@@ -1,0 +1,8 @@
+{
+  "hosting": {
+    "site": "exchange-escrow",
+    "public": "dist/securex-fe/browser",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "rewrites": [{ "source": "**", "destination": "/index.html" }]
+  }
+}

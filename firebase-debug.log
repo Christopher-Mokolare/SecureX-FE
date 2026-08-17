@@ -1,0 +1,312 @@
+[debug] [2026-07-22T08:59:18.472Z] ----------------------------------------------------------------------
+[debug] [2026-07-22T08:59:18.476Z] Command:       /opt/homebrew/Cellar/node@20/20.20.2/bin/node /opt/homebrew/bin/firebase hosting:sites:list --project exchange-escrow
+[debug] [2026-07-22T08:59:18.477Z] CLI Version:   15.24.0
+[debug] [2026-07-22T08:59:18.477Z] Platform:      darwin
+[debug] [2026-07-22T08:59:18.477Z] Node Version:  v20.20.2
+[debug] [2026-07-22T08:59:18.477Z] Detected Agent: unknown
+[debug] [2026-07-22T08:59:18.477Z] Time:          Wed Jul 22 2026 10:59:18 GMT+0200 (South Africa Standard Time)
+[debug] [2026-07-22T08:59:18.477Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-07-22T08:59:18.484Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-07-22T08:59:18.484Z] > authorizing via signed-in user (2co.mokolare@gmail.com)
+[debug] [2026-07-22T08:59:18.484Z] [iam] checking project exchange-escrow for permissions ["firebase.projects.get","firebasehosting.sites.get"]
+[debug] [2026-07-22T08:59:18.493Z] Checked if tokens are valid: false, expires at: 1784639721572
+[debug] [2026-07-22T08:59:18.493Z] Checked if tokens are valid: false, expires at: 1784639721572
+[debug] [2026-07-22T08:59:18.493Z] > refreshing access token with scopes: []
+[debug] [2026-07-22T08:59:18.494Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2026-07-22T08:59:18.494Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-07-22T08:59:19.033Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2026-07-22T08:59:19.033Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-07-22T08:59:19.056Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/exchange-escrow:testIamPermissions [none]
+[debug] [2026-07-22T08:59:19.056Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/exchange-escrow:testIamPermissions  x-goog-user-project=exchange-escrow
+[debug] [2026-07-22T08:59:19.057Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/exchange-escrow:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.get"]}
+[debug] [2026-07-22T08:59:20.891Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/exchange-escrow:testIamPermissions 403
+[debug] [2026-07-22T08:59:20.891Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/exchange-escrow:testIamPermissions {"error":{"code":403,"message":"Caller does not have required permission to use project exchange-escrow. Grant the caller the roles/serviceusage.serviceUsageConsumer role, or a custom role with the serviceusage.services.use permission, by visiting https://console.developers.google.com/iam-admin/iam?project=exchange-escrow and then retry. Propagation of the new permission may take a few minutes.","status":"PERMISSION_DENIED","details":[{"@type":"type.googleapis.com/google.rpc.ErrorInfo","reason":"USER_PROJECT_DENIED","domain":"googleapis.com","metadata":{"consoleUrl":"https://console.developers.google.com/iam-admin/iam?project=exchange-escrow","service":"cloudresourcemanager.googleapis.com","consumer":"projects/exchange-escrow","containerInfo":"exchange-escrow"}},{"@type":"type.googleapis.com/google.rpc.LocalizedMessage","locale":"en-US","message":"Caller does not have required permission to use project exchange-escrow. Grant the caller the roles/serviceusage.serviceUsageConsumer role, or a custom role with the serviceusage.services.use permission, by visiting https://console.developers.google.com/iam-admin/iam?project=exchange-escrow and then retry. Propagation of the new permission may take a few minutes."},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Google developer console IAM admin","url":"https://console.developers.google.com/iam-admin/iam?project=exchange-escrow"}]}]}}
+[debug] [2026-07-22T08:59:20.893Z] [iam] error while checking permissions, command may fail: Request to https://cloudresourcemanager.googleapis.com/v1/projects/exchange-escrow:testIamPermissions had HTTP Error: 403, Caller does not have required permission to use project exchange-escrow. Grant the caller the roles/serviceusage.serviceUsageConsumer role, or a custom role with the serviceusage.services.use permission, by visiting https://console.developers.google.com/iam-admin/iam?project=exchange-escrow and then retry. Propagation of the new permission may take a few minutes.
+[debug] [2026-07-22T08:59:20.894Z] Checked if tokens are valid: true, expires at: 1784714358033
+[debug] [2026-07-22T08:59:20.894Z] Checked if tokens are valid: true, expires at: 1784714358033
+[debug] [2026-07-22T08:59:20.895Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/exchange-escrow/sites pageToken=&pageSize=10
+[debug] [2026-07-22T08:59:22.609Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/exchange-escrow/sites 403
+[debug] [2026-07-22T08:59:22.609Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/exchange-escrow/sites {"error":{"code":403,"message":"The caller does not have permission","status":"PERMISSION_DENIED"}}
+[error] 
+[error] Error: Request to https://firebasehosting.googleapis.com/v1beta1/projects/exchange-escrow/sites?pageToken=&pageSize=10 had HTTP Error: 403, The caller does not have permission
+[debug] [2026-07-22T08:59:23.084Z] Error Context: {
+  "body": {
+    "error": {
+      "code": 403,
+      "message": "The caller does not have permission",
+      "status": "PERMISSION_DENIED"
+    }
+  },
+  "response": {
+    "statusCode": 403
+  }
+}
+[debug] [2026-07-22T09:21:20.297Z] ----------------------------------------------------------------------
+[debug] [2026-07-22T09:21:20.302Z] Command:       /opt/homebrew/Cellar/node@20/20.20.2/bin/node /opt/homebrew/bin/firebase login:list
+[debug] [2026-07-22T09:21:20.302Z] CLI Version:   15.24.0
+[debug] [2026-07-22T09:21:20.302Z] Platform:      darwin
+[debug] [2026-07-22T09:21:20.302Z] Node Version:  v20.20.2
+[debug] [2026-07-22T09:21:20.302Z] Detected Agent: unknown
+[debug] [2026-07-22T09:21:20.302Z] Time:          Wed Jul 22 2026 11:21:20 GMT+0200 (South Africa Standard Time)
+[debug] [2026-07-22T09:21:20.302Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-07-22T09:21:20.310Z] >>> [apiv2][query] GET https://firebase-public.firebaseio.com/cli.json [none]
+[info] Logged in as 2co.mokolare@gmail.com
+[debug] [2026-07-22T09:24:41.251Z] ----------------------------------------------------------------------
+[debug] [2026-07-22T09:24:41.256Z] Command:       /opt/homebrew/Cellar/node@20/20.20.2/bin/node /opt/homebrew/bin/firebase deploy --only hosting --project exchange-escrow
+[debug] [2026-07-22T09:24:41.256Z] CLI Version:   15.24.0
+[debug] [2026-07-22T09:24:41.256Z] Platform:      darwin
+[debug] [2026-07-22T09:24:41.256Z] Node Version:  v20.20.2
+[debug] [2026-07-22T09:24:41.257Z] Detected Agent: unknown
+[debug] [2026-07-22T09:24:41.257Z] Time:          Wed Jul 22 2026 11:24:41 GMT+0200 (South Africa Standard Time)
+[debug] [2026-07-22T09:24:41.257Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-07-22T09:24:41.265Z] >>> [apiv2][query] GET https://firebase-public.firebaseio.com/cli.json [none]
+[debug] [2026-07-22T09:24:42.234Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-07-22T09:24:42.234Z] > authorizing via signed-in user (2co.mokolare@gmail.com)
+[debug] [2026-07-22T09:24:42.234Z] [iam] checking project exchange-escrow for permissions ["firebase.projects.get","firebasehosting.sites.update"]
+[debug] [2026-07-22T09:24:42.235Z] Checked if tokens are valid: true, expires at: 1784714358033
+[debug] [2026-07-22T09:24:42.235Z] Checked if tokens are valid: true, expires at: 1784714358033
+[debug] [2026-07-22T09:24:42.235Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/exchange-escrow:testIamPermissions [none]
+[debug] [2026-07-22T09:24:42.235Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/exchange-escrow:testIamPermissions  x-goog-user-project=exchange-escrow
+[debug] [2026-07-22T09:24:42.235Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/exchange-escrow:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2026-07-22T09:24:42.870Z] <<< [apiv2][status] GET https://firebase-public.firebaseio.com/cli.json 200
+[debug] [2026-07-22T09:24:42.871Z] <<< [apiv2][body] GET https://firebase-public.firebaseio.com/cli.json {"cloudBuildErrorAfter":1594252800000,"cloudBuildWarnAfter":1590019200000,"defaultNode10After":1594252800000,"minVersion":"3.0.5","node8DeploysDisabledAfter":1613390400000,"node8RuntimeDisabledAfter":1615809600000,"node8WarnAfter":1600128000000}
+[debug] [2026-07-22T09:24:44.163Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/exchange-escrow:testIamPermissions 200
+[debug] [2026-07-22T09:24:44.164Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/exchange-escrow:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2026-07-22T09:24:44.164Z] Checked if tokens are valid: true, expires at: 1784714358033
+[debug] [2026-07-22T09:24:44.165Z] Checked if tokens are valid: true, expires at: 1784714358033
+[debug] [2026-07-22T09:24:44.165Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/exchange-escrow [none]
+[debug] [2026-07-22T09:24:45.153Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/exchange-escrow 200
+[debug] [2026-07-22T09:24:45.154Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/exchange-escrow {"projectId":"exchange-escrow","projectNumber":"731832409280","displayName":"SecureExhange","name":"projects/exchange-escrow","resources":{"hostingSite":"exchange-escrow"},"state":"ACTIVE","labels":{"firebase":"enabled"},"etag":"1_95d8e1c6-06e6-4987-8c6d-1564d9c428a2"}
+[info] 
+[info] === Deploying to 'exchange-escrow'...
+[info] 
+[info] i  deploying hosting 
+[debug] [2026-07-22T09:24:45.161Z] Checked if tokens are valid: true, expires at: 1784714358033
+[debug] [2026-07-22T09:24:45.161Z] Checked if tokens are valid: true, expires at: 1784714358033
+[debug] [2026-07-22T09:24:45.161Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/exchange-escrow/sites/exchange-escrow [none]
+[debug] [2026-07-22T09:24:47.638Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/exchange-escrow/sites/exchange-escrow 200
+[debug] [2026-07-22T09:24:47.638Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/exchange-escrow/sites/exchange-escrow {"name":"projects/exchange-escrow/sites/exchange-escrow","defaultUrl":"https://exchange-escrow.web.app","type":"DEFAULT_SITE"}
+[debug] [2026-07-22T09:24:47.642Z] Checked if tokens are valid: true, expires at: 1784714358033
+[debug] [2026-07-22T09:24:47.642Z] Checked if tokens are valid: true, expires at: 1784714358033
+[debug] [2026-07-22T09:24:47.643Z] >>> [apiv2][query] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/exchange-escrow/versions [none]
+[debug] [2026-07-22T09:24:47.643Z] >>> [apiv2][body] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/exchange-escrow/versions {"status":"CREATED","labels":{"deployment-tool":"cli-firebase"}}
+[debug] [2026-07-22T09:24:50.355Z] <<< [apiv2][status] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/exchange-escrow/versions 200
+[debug] [2026-07-22T09:24:50.356Z] <<< [apiv2][body] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/exchange-escrow/versions {"name":"projects/731832409280/sites/exchange-escrow/versions/a5f0b1e41fbd0eda","status":"CREATED","config":{},"labels":{"deployment-tool":"cli-firebase"}}
+[info] i  hosting[exchange-escrow]: beginning deploy... 
+[info] i  hosting[exchange-escrow]: found 6 files in dist/securex-fe/browser 
+[debug] [2026-07-22T09:24:50.365Z] [hosting] uploading with 200 concurrency
+[debug] [2026-07-22T09:24:50.365Z] [hosting] hash cache [ZGlzdC9zZWN1cmV4LWZlL2Jyb3dzZXI] not populated
+[debug] [2026-07-22T09:24:50.381Z] Checked if tokens are valid: true, expires at: 1784714358033
+[debug] [2026-07-22T09:24:50.381Z] Checked if tokens are valid: true, expires at: 1784714358033
+[debug] [2026-07-22T09:24:50.381Z] [hosting] hash cache [ZGlzdC9zZWN1cmV4LWZlL2Jyb3dzZXI] stored for 6 files
+[debug] [2026-07-22T09:24:50.381Z] [hosting][hash queue][FINAL] {"max":13,"min":3,"avg":5.5,"active":0,"complete":6,"success":6,"errored":0,"retried":0,"total":6,"elapsed":15}
+[debug] [2026-07-22T09:24:50.381Z] >>> [apiv2][query] POST https://firebasehosting.googleapis.com/v1beta1/projects/731832409280/sites/exchange-escrow/versions/a5f0b1e41fbd0eda:populateFiles [none]
+[debug] [2026-07-22T09:24:50.382Z] >>> [apiv2][body] POST https://firebasehosting.googleapis.com/v1beta1/projects/731832409280/sites/exchange-escrow/versions/a5f0b1e41fbd0eda:populateFiles {"files":{"/index.html":"3204f9ed11d72b7fd9d75c06e2e6d63ed303a93a535d39cbeed2183fc18ba84d","/styles-MUJTNVJL.css":"8451af6f2268c42f7a15f87182e80ad14ebfd20c4a9f978cad043e10cf8352ae","/polyfills-5CFQRCPP.js":"ff12d5962f212ea41d33f336969ac07806bf59976d72b7cfe9366811199d99b2","/favicon.ico":"006bf6beeef1e9c7926f2185701668183959d6c02959b86a521d13fea16fed31","/SecureX_TC_PrivacyPolicy.pdf":"cc3d2ad3f22be192f7a5a43e2178a7a2b9a8be5bce85ed5122db0e2aadcef8c2","/main-7PXR2WFE.js":"ac533d70b3916ab489e09e69cc90b98174e562c15f856437a490b885f7dd36fb"}}
+[debug] [2026-07-22T09:24:51.369Z] <<< [apiv2][status] POST https://firebasehosting.googleapis.com/v1beta1/projects/731832409280/sites/exchange-escrow/versions/a5f0b1e41fbd0eda:populateFiles 200
+[debug] [2026-07-22T09:24:51.370Z] <<< [apiv2][body] POST https://firebasehosting.googleapis.com/v1beta1/projects/731832409280/sites/exchange-escrow/versions/a5f0b1e41fbd0eda:populateFiles {"uploadRequiredHashes":["3204f9ed11d72b7fd9d75c06e2e6d63ed303a93a535d39cbeed2183fc18ba84d","8451af6f2268c42f7a15f87182e80ad14ebfd20c4a9f978cad043e10cf8352ae","ff12d5962f212ea41d33f336969ac07806bf59976d72b7cfe9366811199d99b2","006bf6beeef1e9c7926f2185701668183959d6c02959b86a521d13fea16fed31","cc3d2ad3f22be192f7a5a43e2178a7a2b9a8be5bce85ed5122db0e2aadcef8c2","ac533d70b3916ab489e09e69cc90b98174e562c15f856437a490b885f7dd36fb"],"uploadUrl":"https://upload-firebasehosting.googleapis.com/upload/sites/exchange-escrow/versions/a5f0b1e41fbd0eda/files"}
+[debug] [2026-07-22T09:24:51.371Z] Checked if tokens are valid: true, expires at: 1784714358033
+[debug] [2026-07-22T09:24:51.371Z] Checked if tokens are valid: true, expires at: 1784714358033
+[debug] [2026-07-22T09:24:51.372Z] Checked if tokens are valid: true, expires at: 1784714358033
+[debug] [2026-07-22T09:24:51.372Z] Checked if tokens are valid: true, expires at: 1784714358033
+[debug] [2026-07-22T09:24:51.372Z] Checked if tokens are valid: true, expires at: 1784714358033
+[debug] [2026-07-22T09:24:51.372Z] Checked if tokens are valid: true, expires at: 1784714358033
+[debug] [2026-07-22T09:24:51.373Z] Checked if tokens are valid: true, expires at: 1784714358033
+[debug] [2026-07-22T09:24:51.373Z] Checked if tokens are valid: true, expires at: 1784714358033
+[debug] [2026-07-22T09:24:51.373Z] Checked if tokens are valid: true, expires at: 1784714358033
+[debug] [2026-07-22T09:24:51.373Z] Checked if tokens are valid: true, expires at: 1784714358033
+[debug] [2026-07-22T09:24:51.374Z] Checked if tokens are valid: true, expires at: 1784714358033
+[debug] [2026-07-22T09:24:51.374Z] Checked if tokens are valid: true, expires at: 1784714358033
+[debug] [2026-07-22T09:24:51.374Z] >>> [apiv2][query] POST https://upload-firebasehosting.googleapis.com/upload/sites/exchange-escrow/versions/a5f0b1e41fbd0eda/files/3204f9ed11d72b7fd9d75c06e2e6d63ed303a93a535d39cbeed2183fc18ba84d [none]
+[debug] [2026-07-22T09:24:51.375Z] >>> [apiv2][body] POST https://upload-firebasehosting.googleapis.com/upload/sites/exchange-escrow/versions/a5f0b1e41fbd0eda/files/3204f9ed11d72b7fd9d75c06e2e6d63ed303a93a535d39cbeed2183fc18ba84d [stream]
+[debug] [2026-07-22T09:24:51.377Z] >>> [apiv2][query] POST https://upload-firebasehosting.googleapis.com/upload/sites/exchange-escrow/versions/a5f0b1e41fbd0eda/files/8451af6f2268c42f7a15f87182e80ad14ebfd20c4a9f978cad043e10cf8352ae [none]
+[debug] [2026-07-22T09:24:51.377Z] >>> [apiv2][body] POST https://upload-firebasehosting.googleapis.com/upload/sites/exchange-escrow/versions/a5f0b1e41fbd0eda/files/8451af6f2268c42f7a15f87182e80ad14ebfd20c4a9f978cad043e10cf8352ae [stream]
+[debug] [2026-07-22T09:24:51.378Z] >>> [apiv2][query] POST https://upload-firebasehosting.googleapis.com/upload/sites/exchange-escrow/versions/a5f0b1e41fbd0eda/files/ff12d5962f212ea41d33f336969ac07806bf59976d72b7cfe9366811199d99b2 [none]
+[debug] [2026-07-22T09:24:51.378Z] >>> [apiv2][body] POST https://upload-firebasehosting.googleapis.com/upload/sites/exchange-escrow/versions/a5f0b1e41fbd0eda/files/ff12d5962f212ea41d33f336969ac07806bf59976d72b7cfe9366811199d99b2 [stream]
+[debug] [2026-07-22T09:24:51.379Z] >>> [apiv2][query] POST https://upload-firebasehosting.googleapis.com/upload/sites/exchange-escrow/versions/a5f0b1e41fbd0eda/files/006bf6beeef1e9c7926f2185701668183959d6c02959b86a521d13fea16fed31 [none]
+[debug] [2026-07-22T09:24:51.379Z] >>> [apiv2][body] POST https://upload-firebasehosting.googleapis.com/upload/sites/exchange-escrow/versions/a5f0b1e41fbd0eda/files/006bf6beeef1e9c7926f2185701668183959d6c02959b86a521d13fea16fed31 [stream]
+[debug] [2026-07-22T09:24:51.380Z] >>> [apiv2][query] POST https://upload-firebasehosting.googleapis.com/upload/sites/exchange-escrow/versions/a5f0b1e41fbd0eda/files/cc3d2ad3f22be192f7a5a43e2178a7a2b9a8be5bce85ed5122db0e2aadcef8c2 [none]
+[debug] [2026-07-22T09:24:51.380Z] >>> [apiv2][body] POST https://upload-firebasehosting.googleapis.com/upload/sites/exchange-escrow/versions/a5f0b1e41fbd0eda/files/cc3d2ad3f22be192f7a5a43e2178a7a2b9a8be5bce85ed5122db0e2aadcef8c2 [stream]
+[debug] [2026-07-22T09:24:51.381Z] >>> [apiv2][query] POST https://upload-firebasehosting.googleapis.com/upload/sites/exchange-escrow/versions/a5f0b1e41fbd0eda/files/ac533d70b3916ab489e09e69cc90b98174e562c15f856437a490b885f7dd36fb [none]
+[debug] [2026-07-22T09:24:51.381Z] >>> [apiv2][body] POST https://upload-firebasehosting.googleapis.com/upload/sites/exchange-escrow/versions/a5f0b1e41fbd0eda/files/ac533d70b3916ab489e09e69cc90b98174e562c15f856437a490b885f7dd36fb [stream]
+[debug] [2026-07-22T09:24:51.387Z] [hosting][populate queue][FINAL] {"max":994,"min":994,"avg":994,"active":0,"complete":1,"success":1,"errored":0,"retried":0,"total":1,"elapsed":1007}
+[debug] [2026-07-22T09:24:51.387Z] [hosting] uploads queued: 6
+[info] i  hosting: uploading new files [0/6] (0%) 
+[debug] [2026-07-22T09:24:52.720Z] <<< [apiv2][status] POST https://upload-firebasehosting.googleapis.com/upload/sites/exchange-escrow/versions/a5f0b1e41fbd0eda/files/006bf6beeef1e9c7926f2185701668183959d6c02959b86a521d13fea16fed31 200
+[debug] [2026-07-22T09:24:52.721Z] <<< [apiv2][body] POST https://upload-firebasehosting.googleapis.com/upload/sites/exchange-escrow/versions/a5f0b1e41fbd0eda/files/006bf6beeef1e9c7926f2185701668183959d6c02959b86a521d13fea16fed31 [stream]
+[debug] [2026-07-22T09:24:52.843Z] <<< [apiv2][status] POST https://upload-firebasehosting.googleapis.com/upload/sites/exchange-escrow/versions/a5f0b1e41fbd0eda/files/3204f9ed11d72b7fd9d75c06e2e6d63ed303a93a535d39cbeed2183fc18ba84d 200
+[debug] [2026-07-22T09:24:52.843Z] <<< [apiv2][body] POST https://upload-firebasehosting.googleapis.com/upload/sites/exchange-escrow/versions/a5f0b1e41fbd0eda/files/3204f9ed11d72b7fd9d75c06e2e6d63ed303a93a535d39cbeed2183fc18ba84d [stream]
+[debug] [2026-07-22T09:24:52.958Z] <<< [apiv2][status] POST https://upload-firebasehosting.googleapis.com/upload/sites/exchange-escrow/versions/a5f0b1e41fbd0eda/files/ff12d5962f212ea41d33f336969ac07806bf59976d72b7cfe9366811199d99b2 200
+[debug] [2026-07-22T09:24:52.958Z] <<< [apiv2][body] POST https://upload-firebasehosting.googleapis.com/upload/sites/exchange-escrow/versions/a5f0b1e41fbd0eda/files/ff12d5962f212ea41d33f336969ac07806bf59976d72b7cfe9366811199d99b2 [stream]
+[debug] [2026-07-22T09:24:53.084Z] <<< [apiv2][status] POST https://upload-firebasehosting.googleapis.com/upload/sites/exchange-escrow/versions/a5f0b1e41fbd0eda/files/8451af6f2268c42f7a15f87182e80ad14ebfd20c4a9f978cad043e10cf8352ae 200
+[debug] [2026-07-22T09:24:53.085Z] <<< [apiv2][body] POST https://upload-firebasehosting.googleapis.com/upload/sites/exchange-escrow/versions/a5f0b1e41fbd0eda/files/8451af6f2268c42f7a15f87182e80ad14ebfd20c4a9f978cad043e10cf8352ae [stream]
+[debug] [2026-07-22T09:24:53.489Z] <<< [apiv2][status] POST https://upload-firebasehosting.googleapis.com/upload/sites/exchange-escrow/versions/a5f0b1e41fbd0eda/files/cc3d2ad3f22be192f7a5a43e2178a7a2b9a8be5bce85ed5122db0e2aadcef8c2 200
+[debug] [2026-07-22T09:24:53.490Z] <<< [apiv2][body] POST https://upload-firebasehosting.googleapis.com/upload/sites/exchange-escrow/versions/a5f0b1e41fbd0eda/files/cc3d2ad3f22be192f7a5a43e2178a7a2b9a8be5bce85ed5122db0e2aadcef8c2 [stream]
+[debug] [2026-07-22T09:24:53.565Z] <<< [apiv2][status] POST https://upload-firebasehosting.googleapis.com/upload/sites/exchange-escrow/versions/a5f0b1e41fbd0eda/files/ac533d70b3916ab489e09e69cc90b98174e562c15f856437a490b885f7dd36fb 200
+[debug] [2026-07-22T09:24:53.566Z] <<< [apiv2][body] POST https://upload-firebasehosting.googleapis.com/upload/sites/exchange-escrow/versions/a5f0b1e41fbd0eda/files/ac533d70b3916ab489e09e69cc90b98174e562c15f856437a490b885f7dd36fb [stream]
+[debug] [2026-07-22T09:24:53.566Z] [hosting][upload queue][FINAL] {"max":2193,"min":1349,"avg":1738.8333333333333,"active":0,"complete":6,"success":6,"errored":0,"retried":0,"total":6,"elapsed":2196}
+[info] i  hosting: upload complete 
+[info] ✔  hosting[exchange-escrow]: file upload complete 
+[debug] [2026-07-22T09:24:53.567Z] [hosting] deploy completed after 3209ms
+[debug] [2026-07-22T09:24:53.568Z] [
+  {
+    "config": {
+      "site": "exchange-escrow",
+      "public": "dist/securex-fe/browser",
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "rewrites": [
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ]
+    },
+    "version": "projects/731832409280/sites/exchange-escrow/versions/a5f0b1e41fbd0eda"
+  }
+]
+[info] i  hosting[exchange-escrow]: finalizing version... 
+[debug] [2026-07-22T09:24:53.570Z] Checked if tokens are valid: true, expires at: 1784714358033
+[debug] [2026-07-22T09:24:53.570Z] Checked if tokens are valid: true, expires at: 1784714358033
+[debug] [2026-07-22T09:24:53.571Z] >>> [apiv2][query] PATCH https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/exchange-escrow/versions/a5f0b1e41fbd0eda updateMask=status%2Cconfig
+[debug] [2026-07-22T09:24:53.571Z] >>> [apiv2][body] PATCH https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/exchange-escrow/versions/a5f0b1e41fbd0eda {"status":"FINALIZED","config":{"rewrites":[{"glob":"**","path":"/index.html"}]}}
+[debug] [2026-07-22T09:24:55.327Z] <<< [apiv2][status] PATCH https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/exchange-escrow/versions/a5f0b1e41fbd0eda 200
+[debug] [2026-07-22T09:24:55.327Z] <<< [apiv2][body] PATCH https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/exchange-escrow/versions/a5f0b1e41fbd0eda {"name":"projects/731832409280/sites/exchange-escrow/versions/a5f0b1e41fbd0eda","status":"FINALIZED","config":{"rewrites":[{"glob":"**","path":"/index.html"}]},"labels":{"deployment-tool":"cli-firebase"},"createTime":"2026-07-22T09:24:48.423176Z","createUser":{"email":"2CO.mokolare@gmail.com"},"finalizeTime":"2026-07-22T09:24:55.230791Z","finalizeUser":{"email":"2CO.mokolare@gmail.com"}}
+[debug] [2026-07-22T09:24:55.327Z] [hosting] finalized version for exchange-escrow:[object Object]
+[info] ✔  hosting[exchange-escrow]: version finalized 
+[info] i  hosting[exchange-escrow]: releasing new version... 
+[debug] [2026-07-22T09:24:55.328Z] Checked if tokens are valid: true, expires at: 1784714358033
+[debug] [2026-07-22T09:24:55.328Z] Checked if tokens are valid: true, expires at: 1784714358033
+[debug] [2026-07-22T09:24:55.329Z] >>> [apiv2][query] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/exchange-escrow/channels/live/releases versionName=projects%2F731832409280%2Fsites%2Fexchange-escrow%2Fversions%2Fa5f0b1e41fbd0eda
+[debug] [2026-07-22T09:24:55.329Z] >>> [apiv2][body] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/exchange-escrow/channels/live/releases {}
+[debug] [2026-07-22T09:24:57.452Z] <<< [apiv2][status] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/exchange-escrow/channels/live/releases 200
+[debug] [2026-07-22T09:24:57.453Z] <<< [apiv2][body] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/exchange-escrow/channels/live/releases {"name":"projects/731832409280/sites/exchange-escrow/channels/live/releases/1784712296343000","version":{"name":"projects/731832409280/sites/exchange-escrow/versions/a5f0b1e41fbd0eda","status":"FINALIZED","config":{"rewrites":[{"glob":"**","path":"/index.html"}]},"labels":{"deployment-tool":"cli-firebase"},"createTime":"2026-07-22T09:24:48.423176Z","createUser":{"email":"2CO.mokolare@gmail.com","imageUrl":"https://lh3.googleusercontent.com/a/ACg8ocJuIOYEh_wstK3RlT9Ri5YuiYYqpm-gsboMJj-UNMVyDxHop4SE"},"finalizeTime":"2026-07-22T09:24:55.230791Z","finalizeUser":{"email":"2CO.mokolare@gmail.com","imageUrl":"https://lh3.googleusercontent.com/a/ACg8ocJuIOYEh_wstK3RlT9Ri5YuiYYqpm-gsboMJj-UNMVyDxHop4SE"}},"type":"DEPLOY","releaseTime":"2026-07-22T09:24:56.343Z","releaseUser":{"email":"2CO.mokolare@gmail.com","imageUrl":"https://lh3.googleusercontent.com/a/ACg8ocJuIOYEh_wstK3RlT9Ri5YuiYYqpm-gsboMJj-UNMVyDxHop4SE"}}
+[debug] [2026-07-22T09:24:57.453Z] [hosting] release: {"name":"projects/731832409280/sites/exchange-escrow/channels/live/releases/1784712296343000","version":{"name":"projects/731832409280/sites/exchange-escrow/versions/a5f0b1e41fbd0eda","status":"FINALIZED","config":{"rewrites":[{"glob":"**","path":"/index.html"}]},"labels":{"deployment-tool":"cli-firebase"},"createTime":"2026-07-22T09:24:48.423176Z","createUser":{"email":"2CO.mokolare@gmail.com","imageUrl":"https://lh3.googleusercontent.com/a/ACg8ocJuIOYEh_wstK3RlT9Ri5YuiYYqpm-gsboMJj-UNMVyDxHop4SE"},"finalizeTime":"2026-07-22T09:24:55.230791Z","finalizeUser":{"email":"2CO.mokolare@gmail.com","imageUrl":"https://lh3.googleusercontent.com/a/ACg8ocJuIOYEh_wstK3RlT9Ri5YuiYYqpm-gsboMJj-UNMVyDxHop4SE"}},"type":"DEPLOY","releaseTime":"2026-07-22T09:24:56.343Z","releaseUser":{"email":"2CO.mokolare@gmail.com","imageUrl":"https://lh3.googleusercontent.com/a/ACg8ocJuIOYEh_wstK3RlT9Ri5YuiYYqpm-gsboMJj-UNMVyDxHop4SE"}}
+[info] ✔  hosting[exchange-escrow]: release complete 
+[info] 
+[info] ✔  Deploy complete! 
+[info] 
+[info] Project Console: https://console.firebase.google.com/project/exchange-escrow/overview
+[info] Hosting URL: https://exchange-escrow.web.app
+[debug] [2026-07-22T11:08:13.794Z] ----------------------------------------------------------------------
+[debug] [2026-07-22T11:08:13.796Z] Command:       /opt/homebrew/Cellar/node@20/20.20.2/bin/node /opt/homebrew/bin/firebase deploy --only hosting --project exchange-escrow
+[debug] [2026-07-22T11:08:13.796Z] CLI Version:   15.24.0
+[debug] [2026-07-22T11:08:13.796Z] Platform:      darwin
+[debug] [2026-07-22T11:08:13.796Z] Node Version:  v20.20.2
+[debug] [2026-07-22T11:08:13.796Z] Detected Agent: unknown
+[debug] [2026-07-22T11:08:13.797Z] Time:          Wed Jul 22 2026 13:08:13 GMT+0200 (South Africa Standard Time)
+[debug] [2026-07-22T11:08:13.797Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-07-22T11:08:14.650Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-07-22T11:08:14.650Z] > authorizing via signed-in user (2co.mokolare@gmail.com)
+[debug] [2026-07-22T11:08:14.650Z] [iam] checking project exchange-escrow for permissions ["firebase.projects.get","firebasehosting.sites.update"]
+[debug] [2026-07-22T11:08:14.651Z] Checked if tokens are valid: false, expires at: 1784714358033
+[debug] [2026-07-22T11:08:14.651Z] Checked if tokens are valid: false, expires at: 1784714358033
+[debug] [2026-07-22T11:08:14.651Z] > refreshing access token with scopes: []
+[debug] [2026-07-22T11:08:14.652Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2026-07-22T11:08:14.652Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-07-22T11:08:15.193Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2026-07-22T11:08:15.193Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-07-22T11:08:15.208Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/exchange-escrow:testIamPermissions [none]
+[debug] [2026-07-22T11:08:15.208Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/exchange-escrow:testIamPermissions  x-goog-user-project=exchange-escrow
+[debug] [2026-07-22T11:08:15.208Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/exchange-escrow:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2026-07-22T11:08:16.929Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/exchange-escrow:testIamPermissions 200
+[debug] [2026-07-22T11:08:16.930Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/exchange-escrow:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2026-07-22T11:08:16.932Z] Checked if tokens are valid: true, expires at: 1784722094193
+[debug] [2026-07-22T11:08:16.932Z] Checked if tokens are valid: true, expires at: 1784722094193
+[debug] [2026-07-22T11:08:16.932Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/exchange-escrow [none]
+[debug] [2026-07-22T11:08:17.665Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/exchange-escrow 200
+[debug] [2026-07-22T11:08:17.665Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/exchange-escrow {"projectId":"exchange-escrow","projectNumber":"731832409280","displayName":"SecureExhange","name":"projects/exchange-escrow","resources":{"hostingSite":"exchange-escrow"},"state":"ACTIVE","labels":{"firebase":"enabled"},"etag":"1_95d8e1c6-06e6-4987-8c6d-1564d9c428a2"}
+[info] 
+[info] === Deploying to 'exchange-escrow'...
+[info] 
+[info] i  deploying hosting 
+[debug] [2026-07-22T11:08:17.669Z] Checked if tokens are valid: true, expires at: 1784722094193
+[debug] [2026-07-22T11:08:17.670Z] Checked if tokens are valid: true, expires at: 1784722094193
+[debug] [2026-07-22T11:08:17.670Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/exchange-escrow/sites/exchange-escrow [none]
+[debug] [2026-07-22T11:08:20.021Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/exchange-escrow/sites/exchange-escrow 200
+[debug] [2026-07-22T11:08:20.021Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/exchange-escrow/sites/exchange-escrow {"name":"projects/exchange-escrow/sites/exchange-escrow","defaultUrl":"https://exchange-escrow.web.app","type":"DEFAULT_SITE"}
+[debug] [2026-07-22T11:08:20.025Z] Checked if tokens are valid: true, expires at: 1784722094193
+[debug] [2026-07-22T11:08:20.025Z] Checked if tokens are valid: true, expires at: 1784722094193
+[debug] [2026-07-22T11:08:20.026Z] >>> [apiv2][query] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/exchange-escrow/versions [none]
+[debug] [2026-07-22T11:08:20.026Z] >>> [apiv2][body] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/exchange-escrow/versions {"status":"CREATED","labels":{"deployment-tool":"cli-firebase"}}
+[debug] [2026-07-22T11:08:21.760Z] <<< [apiv2][status] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/exchange-escrow/versions 200
+[debug] [2026-07-22T11:08:21.760Z] <<< [apiv2][body] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/exchange-escrow/versions {"name":"projects/731832409280/sites/exchange-escrow/versions/80e5238edab20071","status":"CREATED","config":{},"labels":{"deployment-tool":"cli-firebase"}}
+[info] i  hosting[exchange-escrow]: beginning deploy... 
+[info] i  hosting[exchange-escrow]: found 6 files in dist/securex-fe/browser 
+[debug] [2026-07-22T11:08:21.776Z] [hosting] uploading with 200 concurrency
+[debug] [2026-07-22T11:08:21.802Z] Checked if tokens are valid: true, expires at: 1784722094193
+[debug] [2026-07-22T11:08:21.802Z] Checked if tokens are valid: true, expires at: 1784722094193
+[debug] [2026-07-22T11:08:21.803Z] [hosting] hash cache [ZGlzdC9zZWN1cmV4LWZlL2Jyb3dzZXI] stored for 6 files
+[debug] [2026-07-22T11:08:21.803Z] [hosting][hash queue][FINAL] {"max":24,"min":10,"avg":13.166666666666666,"active":0,"complete":6,"success":6,"errored":0,"retried":0,"total":6,"elapsed":26}
+[debug] [2026-07-22T11:08:21.803Z] >>> [apiv2][query] POST https://firebasehosting.googleapis.com/v1beta1/projects/731832409280/sites/exchange-escrow/versions/80e5238edab20071:populateFiles [none]
+[debug] [2026-07-22T11:08:21.803Z] >>> [apiv2][body] POST https://firebasehosting.googleapis.com/v1beta1/projects/731832409280/sites/exchange-escrow/versions/80e5238edab20071:populateFiles {"files":{"/index.html":"6154deba2b11fcd31d2b3aa73d8f3d792687a582f23732d1f10479fd922a5b00","/styles-MUJTNVJL.css":"8451af6f2268c42f7a15f87182e80ad14ebfd20c4a9f978cad043e10cf8352ae","/polyfills-5CFQRCPP.js":"ff12d5962f212ea41d33f336969ac07806bf59976d72b7cfe9366811199d99b2","/favicon.ico":"006bf6beeef1e9c7926f2185701668183959d6c02959b86a521d13fea16fed31","/SecureX_TC_PrivacyPolicy.pdf":"cc3d2ad3f22be192f7a5a43e2178a7a2b9a8be5bce85ed5122db0e2aadcef8c2","/main-RHOXRNQ5.js":"e694c468a4eccb821377919e6e09b966a20e6d3240e37e2a80d6f5ca7ddca4cb"}}
+[debug] [2026-07-22T11:08:22.671Z] <<< [apiv2][status] POST https://firebasehosting.googleapis.com/v1beta1/projects/731832409280/sites/exchange-escrow/versions/80e5238edab20071:populateFiles 200
+[debug] [2026-07-22T11:08:22.671Z] <<< [apiv2][body] POST https://firebasehosting.googleapis.com/v1beta1/projects/731832409280/sites/exchange-escrow/versions/80e5238edab20071:populateFiles {"uploadRequiredHashes":["e694c468a4eccb821377919e6e09b966a20e6d3240e37e2a80d6f5ca7ddca4cb","6154deba2b11fcd31d2b3aa73d8f3d792687a582f23732d1f10479fd922a5b00"],"uploadUrl":"https://upload-firebasehosting.googleapis.com/upload/sites/exchange-escrow/versions/80e5238edab20071/files"}
+[debug] [2026-07-22T11:08:22.672Z] Checked if tokens are valid: true, expires at: 1784722094193
+[debug] [2026-07-22T11:08:22.672Z] Checked if tokens are valid: true, expires at: 1784722094193
+[debug] [2026-07-22T11:08:22.672Z] Checked if tokens are valid: true, expires at: 1784722094193
+[debug] [2026-07-22T11:08:22.672Z] Checked if tokens are valid: true, expires at: 1784722094193
+[debug] [2026-07-22T11:08:22.672Z] >>> [apiv2][query] POST https://upload-firebasehosting.googleapis.com/upload/sites/exchange-escrow/versions/80e5238edab20071/files/e694c468a4eccb821377919e6e09b966a20e6d3240e37e2a80d6f5ca7ddca4cb [none]
+[debug] [2026-07-22T11:08:22.672Z] >>> [apiv2][body] POST https://upload-firebasehosting.googleapis.com/upload/sites/exchange-escrow/versions/80e5238edab20071/files/e694c468a4eccb821377919e6e09b966a20e6d3240e37e2a80d6f5ca7ddca4cb [stream]
+[debug] [2026-07-22T11:08:22.673Z] >>> [apiv2][query] POST https://upload-firebasehosting.googleapis.com/upload/sites/exchange-escrow/versions/80e5238edab20071/files/6154deba2b11fcd31d2b3aa73d8f3d792687a582f23732d1f10479fd922a5b00 [none]
+[debug] [2026-07-22T11:08:22.673Z] >>> [apiv2][body] POST https://upload-firebasehosting.googleapis.com/upload/sites/exchange-escrow/versions/80e5238edab20071/files/6154deba2b11fcd31d2b3aa73d8f3d792687a582f23732d1f10479fd922a5b00 [stream]
+[debug] [2026-07-22T11:08:22.674Z] [hosting][populate queue][FINAL] {"max":870,"min":870,"avg":870,"active":0,"complete":1,"success":1,"errored":0,"retried":0,"total":1,"elapsed":872}
+[debug] [2026-07-22T11:08:22.674Z] [hosting] uploads queued: 2
+[info] i  hosting: uploading new files [0/2] (0%) 
+[debug] [2026-07-22T11:08:24.497Z] <<< [apiv2][status] POST https://upload-firebasehosting.googleapis.com/upload/sites/exchange-escrow/versions/80e5238edab20071/files/6154deba2b11fcd31d2b3aa73d8f3d792687a582f23732d1f10479fd922a5b00 200
+[debug] [2026-07-22T11:08:24.498Z] <<< [apiv2][body] POST https://upload-firebasehosting.googleapis.com/upload/sites/exchange-escrow/versions/80e5238edab20071/files/6154deba2b11fcd31d2b3aa73d8f3d792687a582f23732d1f10479fd922a5b00 [stream]
+[debug] [2026-07-22T11:08:24.612Z] <<< [apiv2][status] POST https://upload-firebasehosting.googleapis.com/upload/sites/exchange-escrow/versions/80e5238edab20071/files/e694c468a4eccb821377919e6e09b966a20e6d3240e37e2a80d6f5ca7ddca4cb 200
+[debug] [2026-07-22T11:08:24.612Z] <<< [apiv2][body] POST https://upload-firebasehosting.googleapis.com/upload/sites/exchange-escrow/versions/80e5238edab20071/files/e694c468a4eccb821377919e6e09b966a20e6d3240e37e2a80d6f5ca7ddca4cb [stream]
+[debug] [2026-07-22T11:08:24.612Z] [hosting][upload queue][FINAL] {"max":1941,"min":1826,"avg":1883.5,"active":0,"complete":2,"success":2,"errored":0,"retried":0,"total":2,"elapsed":1941}
+[info] i  hosting: upload complete 
+[info] ✔  hosting[exchange-escrow]: file upload complete 
+[debug] [2026-07-22T11:08:24.613Z] [hosting] deploy completed after 2849ms
+[debug] [2026-07-22T11:08:24.613Z] [
+  {
+    "config": {
+      "site": "exchange-escrow",
+      "public": "dist/securex-fe/browser",
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "rewrites": [
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ]
+    },
+    "version": "projects/731832409280/sites/exchange-escrow/versions/80e5238edab20071"
+  }
+]
+[info] i  hosting[exchange-escrow]: finalizing version... 
+[debug] [2026-07-22T11:08:24.614Z] Checked if tokens are valid: true, expires at: 1784722094193
+[debug] [2026-07-22T11:08:24.614Z] Checked if tokens are valid: true, expires at: 1784722094193
+[debug] [2026-07-22T11:08:24.615Z] >>> [apiv2][query] PATCH https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/exchange-escrow/versions/80e5238edab20071 updateMask=status%2Cconfig
+[debug] [2026-07-22T11:08:24.615Z] >>> [apiv2][body] PATCH https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/exchange-escrow/versions/80e5238edab20071 {"status":"FINALIZED","config":{"rewrites":[{"glob":"**","path":"/index.html"}]}}
+[debug] [2026-07-22T11:08:26.171Z] <<< [apiv2][status] PATCH https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/exchange-escrow/versions/80e5238edab20071 200
+[debug] [2026-07-22T11:08:26.172Z] <<< [apiv2][body] PATCH https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/exchange-escrow/versions/80e5238edab20071 {"name":"projects/731832409280/sites/exchange-escrow/versions/80e5238edab20071","status":"FINALIZED","config":{"rewrites":[{"glob":"**","path":"/index.html"}]},"labels":{"deployment-tool":"cli-firebase"},"createTime":"2026-07-22T11:08:20.966501Z","createUser":{"email":"2CO.mokolare@gmail.com"},"finalizeTime":"2026-07-22T11:08:26.240306Z","finalizeUser":{"email":"2CO.mokolare@gmail.com"}}
+[debug] [2026-07-22T11:08:26.172Z] [hosting] finalized version for exchange-escrow:[object Object]
+[info] ✔  hosting[exchange-escrow]: version finalized 
+[info] i  hosting[exchange-escrow]: releasing new version... 
+[debug] [2026-07-22T11:08:26.173Z] Checked if tokens are valid: true, expires at: 1784722094193
+[debug] [2026-07-22T11:08:26.173Z] Checked if tokens are valid: true, expires at: 1784722094193
+[debug] [2026-07-22T11:08:26.173Z] >>> [apiv2][query] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/exchange-escrow/channels/live/releases versionName=projects%2F731832409280%2Fsites%2Fexchange-escrow%2Fversions%2F80e5238edab20071
+[debug] [2026-07-22T11:08:26.174Z] >>> [apiv2][body] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/exchange-escrow/channels/live/releases {}
+[debug] [2026-07-22T11:08:28.298Z] <<< [apiv2][status] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/exchange-escrow/channels/live/releases 200
+[debug] [2026-07-22T11:08:28.299Z] <<< [apiv2][body] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/exchange-escrow/channels/live/releases {"name":"projects/731832409280/sites/exchange-escrow/channels/live/releases/1784718507350000","version":{"name":"projects/731832409280/sites/exchange-escrow/versions/80e5238edab20071","status":"FINALIZED","config":{"rewrites":[{"glob":"**","path":"/index.html"}]},"labels":{"deployment-tool":"cli-firebase"},"createTime":"2026-07-22T11:08:20.966501Z","createUser":{"email":"2CO.mokolare@gmail.com","imageUrl":"https://lh3.googleusercontent.com/a/ACg8ocJuIOYEh_wstK3RlT9Ri5YuiYYqpm-gsboMJj-UNMVyDxHop4SE"},"finalizeTime":"2026-07-22T11:08:26.240306Z","finalizeUser":{"email":"2CO.mokolare@gmail.com","imageUrl":"https://lh3.googleusercontent.com/a/ACg8ocJuIOYEh_wstK3RlT9Ri5YuiYYqpm-gsboMJj-UNMVyDxHop4SE"}},"type":"DEPLOY","releaseTime":"2026-07-22T11:08:27.350Z","releaseUser":{"email":"2CO.mokolare@gmail.com","imageUrl":"https://lh3.googleusercontent.com/a/ACg8ocJuIOYEh_wstK3RlT9Ri5YuiYYqpm-gsboMJj-UNMVyDxHop4SE"}}
+[debug] [2026-07-22T11:08:28.299Z] [hosting] release: {"name":"projects/731832409280/sites/exchange-escrow/channels/live/releases/1784718507350000","version":{"name":"projects/731832409280/sites/exchange-escrow/versions/80e5238edab20071","status":"FINALIZED","config":{"rewrites":[{"glob":"**","path":"/index.html"}]},"labels":{"deployment-tool":"cli-firebase"},"createTime":"2026-07-22T11:08:20.966501Z","createUser":{"email":"2CO.mokolare@gmail.com","imageUrl":"https://lh3.googleusercontent.com/a/ACg8ocJuIOYEh_wstK3RlT9Ri5YuiYYqpm-gsboMJj-UNMVyDxHop4SE"},"finalizeTime":"2026-07-22T11:08:26.240306Z","finalizeUser":{"email":"2CO.mokolare@gmail.com","imageUrl":"https://lh3.googleusercontent.com/a/ACg8ocJuIOYEh_wstK3RlT9Ri5YuiYYqpm-gsboMJj-UNMVyDxHop4SE"}},"type":"DEPLOY","releaseTime":"2026-07-22T11:08:27.350Z","releaseUser":{"email":"2CO.mokolare@gmail.com","imageUrl":"https://lh3.googleusercontent.com/a/ACg8ocJuIOYEh_wstK3RlT9Ri5YuiYYqpm-gsboMJj-UNMVyDxHop4SE"}}
+[info] ✔  hosting[exchange-escrow]: release complete 
+[info] 
+[info] ✔  Deploy complete! 
+[info] 
+[info] Project Console: https://console.firebase.google.com/project/exchange-escrow/overview
+[info] Hosting URL: https://exchange-escrow.web.app

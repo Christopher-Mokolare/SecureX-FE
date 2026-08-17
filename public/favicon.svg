@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Shield background -->
+  <path d="M32 4 L56 14 L56 34 C56 48 44 58 32 62 C20 58 8 48 8 34 L8 14 Z" fill="#0f172a"/>
+  <!-- Shield inner gradient overlay -->
+  <path d="M32 8 L52 17 L52 34 C52 46 42 55 32 59 C22 55 12 46 12 34 L12 17 Z" fill="#1e293b"/>
+  <!-- X mark -->
+  <line x1="22" y1="22" x2="42" y2="42" stroke="#3b82f6" stroke-width="5" stroke-linecap="round"/>
+  <line x1="42" y1="22" x2="22" y2="42" stroke="#3b82f6" stroke-width="5" stroke-linecap="round"/>
+</svg>

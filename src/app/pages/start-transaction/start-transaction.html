@@ -1,0 +1,266 @@
+<!-- Success state -->
+@if (dealReference()) {
+  <div class="min-h-screen bg-gray-50 flex items-center justify-center px-4 mt-16">
+    <div class="bg-white rounded-2xl shadow-lg p-10 max-w-md w-full text-center">
+      <div class="text-6xl mb-4">✅</div>
+      <h2 class="text-2xl font-bold text-green-600 mb-2">Transaction Created!</h2>
+      <p class="text-gray-600 mb-4">Your deal reference is:</p>
+      <p class="text-3xl font-mono font-bold text-blue-600 bg-blue-50 py-3 px-6 rounded-lg inline-block">
+        {{ dealReference() }}
+      </p>
+      <p class="text-sm text-gray-500 mt-4 mb-6">Save this reference — you'll need it to track your transaction.</p>
+
+      <!-- Seller bank details CTA -->
+      @if (sellerId()) {
+        <div class="bg-yellow-50 border border-yellow-300 rounded-xl p-4 mb-6 text-left">
+          <p class="font-semibold text-yellow-800 text-sm mb-1">⚠️ Seller: Submit your bank details</p>
+          <p class="text-yellow-700 text-xs mb-3">The seller must submit bank account details before payment can be released.</p>
+          <a [routerLink]="['/bank-details', sellerId()]"
+             [queryParams]="{ email: sellerEmail(), ref: dealReference(), txId: transactionId() }"
+             class="block w-full bg-yellow-400 hover:bg-yellow-500 text-yellow-900 font-bold py-2 px-4 rounded-lg text-center text-sm transition">
+            Submit Seller Bank Details →
+          </a>
+        </div>
+      }
+
+      <a routerLink="/" class="inline-block text-blue-600 underline hover:text-blue-800 text-sm">Back to Home</a>
+    </div>
+  </div>
+} @else {
+  <div class="mt-16 bg-gray-50 min-h-screen py-12 px-4">
+    <div class="max-w-2xl mx-auto bg-white p-8 rounded-2xl shadow-md">
+      <h1 class="text-3xl font-bold mb-2 text-center text-blue-700">Start a Transaction</h1>
+      <p class="text-center text-gray-500 mb-8 text-sm">Fill in the details below to create a secure escrow deal.</p>
+
+      @if (errorMessage()) {
+        <div class="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+          {{ errorMessage() }}
+        </div>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate class="space-y-8">
+
+        <!-- 1. Deal Basics -->
+        <section>
+          <h2 class="text-xl font-semibold mb-4 text-gray-800 border-b pb-2">1. Deal Basics</h2>
+
+          <div class="mb-4">
+            <label class="block font-medium mb-1 text-sm">Item Title <span class="text-red-500">*</span></label>
+            <input formControlName="itemTitle" type="text" placeholder='e.g. "iPhone 15 Pro"'
+                   class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                   [class.border-red-400]="isInvalid('itemTitle')" [class.border-gray-300]="!isInvalid('itemTitle')">
+            @if (isInvalid('itemTitle')) {
+              <p class="text-red-500 text-xs mt-1">Item title is required (min 3 characters).</p>
+            }
+          </div>
+
+          <div class="mb-4">
+            <label class="block font-medium mb-1 text-sm">Full Description <span class="text-red-500">*</span></label>
+            <textarea formControlName="itemDescription" rows="3"
+                      placeholder='e.g. "Phone has minor scratches on the back, screen is perfect."'
+                      class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      [class.border-red-400]="isInvalid('itemDescription')" [class.border-gray-300]="!isInvalid('itemDescription')"></textarea>
+            @if (isInvalid('itemDescription')) {
+              <p class="text-red-500 text-xs mt-1">Description is required (min 10 characters).</p>
+            }
+          </div>
+
+          <div class="mb-4">
+            <label class="block font-medium mb-1 text-sm">Agreed Price (ZAR) <span class="text-red-500">*</span></label>
+            <input formControlName="itemValue" type="number" min="1" placeholder="e.g. 5000"
+                   class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                   [class.border-red-400]="isInvalid('itemValue')" [class.border-gray-300]="!isInvalid('itemValue')">
+            @if (isInvalid('itemValue')) {
+              <p class="text-red-500 text-xs mt-1">A valid price is required.</p>
+            }
+          </div>
+
+          <div>
+            <label class="block font-medium mb-1 text-sm">Seller's Location <span class="text-red-500">*</span></label>
+            <input formControlName="sellerLocation" type="text" placeholder="e.g. Sandton, Johannesburg"
+                   class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                   [class.border-red-400]="isInvalid('sellerLocation')" [class.border-gray-300]="!isInvalid('sellerLocation')">
+            @if (isInvalid('sellerLocation')) {
+              <p class="text-red-500 text-xs mt-1">Seller location is required.</p>
+            }
+          </div>
+        </section>
+
+        <!-- 2. Financials -->
+        <section>
+          <h2 class="text-xl font-semibold mb-4 text-gray-800 border-b pb-2">2. Financials</h2>
+
+          <div class="mb-4">
+            <label class="block font-medium mb-2 text-sm">Service Type <span class="text-red-500">*</span></label>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <label class="flex items-start gap-3 p-4 border rounded-lg cursor-pointer transition"
+                     [class.border-blue-500]="form.get('serviceType')?.value === 'Standard'"
+                     [class.bg-blue-50]="form.get('serviceType')?.value === 'Standard'"
+                     [class.border-gray-200]="form.get('serviceType')?.value !== 'Standard'">
+                <input type="radio" formControlName="serviceType" value="Standard" class="mt-1">
+                <div>
+                  <p class="font-semibold text-sm">Standard Escrow</p>
+                  <p class="text-xs text-gray-500">2.5% (min R150) — 24hr inspection window</p>
+                  @if ((form.get('itemValue')?.value ?? 0) > 0) {
+                    <p class="text-xs font-bold text-blue-600 mt-1">Fee: {{ fmt(standardFee()) }}</p>
+                  }
+                </div>
+              </label>
+              <label class="flex items-start gap-3 p-4 border rounded-lg cursor-pointer transition"
+                     [class.border-green-500]="form.get('serviceType')?.value === 'VerifiedExpress'"
+                     [class.bg-green-50]="form.get('serviceType')?.value === 'VerifiedExpress'"
+                     [class.border-gray-200]="form.get('serviceType')?.value !== 'VerifiedExpress'">
+                <input type="radio" formControlName="serviceType" value="VerifiedExpress" class="mt-1">
+                <div>
+                  <p class="font-semibold text-sm">Verified Express ⭐</p>
+                  <p class="text-xs text-gray-500">1.5% + R250 — agent-verified, instant payout</p>
+                  @if ((form.get('itemValue')?.value ?? 0) > 0) {
+                    <p class="text-xs font-bold text-green-600 mt-1">Fee: {{ fmt(expressFee()) }}</p>
+                  }
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <label class="block font-medium mb-2 text-sm">Who pays the fee? <span class="text-red-500">*</span></label>
+            <div class="flex flex-col sm:flex-row gap-3">
+              @for (opt of feeOptions; track opt.value) {
+                <label class="flex items-center gap-2 p-3 border rounded-lg cursor-pointer flex-1 transition"
+                       [class.border-blue-500]="form.get('feePayer')?.value === opt.value"
+                       [class.bg-blue-50]="form.get('feePayer')?.value === opt.value"
+                       [class.border-gray-200]="form.get('feePayer')?.value !== opt.value">
+                  <input type="radio" formControlName="feePayer" [value]="opt.value">
+                  <span class="text-sm font-medium">{{ opt.label }}</span>
+                </label>
+              }
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. Buyer Details -->
+        <section>
+          <h2 class="text-xl font-semibold mb-4 text-gray-800 border-b pb-2">3. Buyer Details</h2>
+
+          <div class="mb-4">
+            <label class="block font-medium mb-1 text-sm">Full Name <span class="text-red-500">*</span></label>
+            <input formControlName="buyerFullName" type="text"
+                   class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                   [class.border-red-400]="isInvalid('buyerFullName')" [class.border-gray-300]="!isInvalid('buyerFullName')">
+            @if (isInvalid('buyerFullName')) {
+              <p class="text-red-500 text-xs mt-1">Buyer's full name is required.</p>
+            }
+          </div>
+
+          <div class="mb-4">
+            <label class="block font-medium mb-1 text-sm">Email Address <span class="text-red-500">*</span></label>
+            <input formControlName="buyerEmail" type="email" placeholder="you@example.com"
+                   class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                   [class.border-red-400]="isInvalid('buyerEmail')" [class.border-gray-300]="!isInvalid('buyerEmail')">
+            @if (isInvalid('buyerEmail')) {
+              <p class="text-red-500 text-xs mt-1">A valid email address is required.</p>
+            }
+          </div>
+
+          <div>
+            <label class="block font-medium mb-1 text-sm">WhatsApp Number <span class="text-red-500">*</span></label>
+            <input formControlName="buyerPhone" type="tel" placeholder="e.g. 0821234567"
+                   class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                   [class.border-red-400]="isInvalid('buyerPhone')" [class.border-gray-300]="!isInvalid('buyerPhone')">
+            @if (isInvalid('buyerPhone')) {
+              <p class="text-red-500 text-xs mt-1">A valid 10-digit SA number is required.</p>
+            }
+          </div>
+
+          <div class="mt-4">
+            <label class="block font-medium mb-1 text-sm">SA ID Number <span class="text-red-500">*</span></label>
+            <input formControlName="buyerIdNumber" type="text" placeholder="13-digit SA ID number"
+                   class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                   [class.border-red-400]="isInvalid('buyerIdNumber')" [class.border-gray-300]="!isInvalid('buyerIdNumber')">
+            @if (isInvalid('buyerIdNumber')) {
+              <p class="text-red-500 text-xs mt-1">A valid 13-digit SA ID number is required.</p>
+            }
+            <p class="text-xs text-gray-400 mt-1">Required for identity verification (KYC) before payment.</p>
+          </div>
+        </section>
+
+        <!-- 4. Seller Details -->
+        <section>
+          <h2 class="text-xl font-semibold mb-4 text-gray-800 border-b pb-2">4. Seller Details</h2>
+
+          <div class="mb-4">
+            <label class="block font-medium mb-1 text-sm">Full Name <span class="text-red-500">*</span></label>
+            <input formControlName="sellerFullName" type="text"
+                   class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                   [class.border-red-400]="isInvalid('sellerFullName')" [class.border-gray-300]="!isInvalid('sellerFullName')">
+            @if (isInvalid('sellerFullName')) {
+              <p class="text-red-500 text-xs mt-1">Seller's full name is required.</p>
+            }
+          </div>
+
+          <div class="mb-4">
+            <label class="block font-medium mb-1 text-sm">Email Address <span class="text-red-500">*</span></label>
+            <input formControlName="sellerEmail" type="email" placeholder="seller@example.com"
+                   class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                   [class.border-red-400]="isInvalid('sellerEmail')" [class.border-gray-300]="!isInvalid('sellerEmail')">
+            @if (isInvalid('sellerEmail')) {
+              <p class="text-red-500 text-xs mt-1">A valid email address is required.</p>
+            }
+          </div>
+
+          <div>
+            <label class="block font-medium mb-1 text-sm">WhatsApp Number <span class="text-red-500">*</span></label>
+            <input formControlName="sellerPhone" type="tel" placeholder="e.g. 0834567890"
+                   class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                   [class.border-red-400]="isInvalid('sellerPhone')" [class.border-gray-300]="!isInvalid('sellerPhone')">
+            @if (isInvalid('sellerPhone')) {
+              <p class="text-red-500 text-xs mt-1">A valid 10-digit SA number is required.</p>
+            }
+          </div>
+        </section>
+
+        <!-- Fee Summary -->
+        @if ((form.get('itemValue')?.value ?? 0) > 0) {
+          <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <p class="text-sm font-semibold text-blue-800 mb-1">Fee Summary</p>
+            <p class="text-2xl font-bold text-blue-700">{{ fmt(activeFee()) }}</p>
+            <p class="text-xs text-blue-500 mt-1">
+              {{ form.get('serviceType')?.value === 'VerifiedExpress' ? 'Verified Express: 1.5% + R250' : 'Standard: 2.5% (min R150)' }}
+              — paid by {{ form.get('feePayer')?.value }}
+            </p>
+          </div>
+        }
+
+        <!-- 5. Consent -->
+        <section>
+          <h2 class="text-xl font-semibold mb-4 text-gray-800 border-b pb-2">5. Legal Consent</h2>
+          <label class="flex items-start gap-3 cursor-pointer">
+            <input type="checkbox" formControlName="consent" class="mt-1 w-4 h-4">
+            <span class="text-sm text-gray-700">
+              I agree to the
+              <a routerLink="/terms" target="_blank" class="text-blue-600 underline hover:text-blue-800">Terms &amp; Conditions</a>
+              and confirm all information provided is accurate.
+            </span>
+          </label>
+          @if (isInvalid('consent')) {
+            <p class="text-red-500 text-xs mt-1">You must accept the Terms &amp; Conditions.</p>
+          }
+        </section>
+
+        <button type="submit" [disabled]="submitting()"
+                class="w-full bg-gradient-to-r from-green-500 to-blue-600 text-white py-4 rounded-lg font-bold text-lg hover:from-green-600 hover:to-blue-700 transition disabled:opacity-60 disabled:cursor-not-allowed">
+          @if (!submitting()) {
+            Submit Transaction
+          } @else if (kycStep() === 'kyc') {
+            🔍 Verifying identity…
+          } @else if (kycStep() === 'payment') {
+            💳 Preparing payment…
+          } @else {
+            Submitting…
+          }
+        </button>
+
+      </form>
+    </div>
+  </div>
+}

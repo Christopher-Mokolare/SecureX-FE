@@ -1,0 +1,102 @@
+<!-- Hero -->
+<header class="mt-16 bg-gradient-to-b from-blue-50 to-white">
+  <div class="max-w-6xl mx-auto px-4 py-20 md:py-28 text-center">
+    <h1 class="text-4xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+      Buy and Sell <span class="text-green-600">Online</span><br>
+      Without the <span class="text-red-600">Risk!</span>
+    </h1>
+    <p class="text-lg md:text-xl text-gray-600 mb-10 max-w-2xl mx-auto">
+      SecureX is the secure middleman for South African peer-to-peer transactions.
+      Buyers are protected until they receive what they paid for.
+      Sellers are guaranteed payment the moment they deliver.
+    </p>
+    <div class="flex flex-col md:flex-row justify-center gap-4">
+      <a routerLink="/start"
+         class="bg-gradient-to-r from-green-500 to-blue-600 text-white px-8 py-4 rounded-lg font-bold text-lg hover:from-green-600 hover:to-blue-700 transition shadow-lg flex items-center justify-center">
+        Start a New Deal
+      </a>
+      <a (click)="scrollTo('how-it-works')"
+         class="bg-white text-gray-700 border border-gray-300 px-8 py-4 rounded-lg font-bold text-lg hover:bg-gray-50 transition flex items-center justify-center cursor-pointer">
+        See How It Works
+      </a>
+    </div>
+    <p class="mt-6 text-sm text-gray-400">Money is held safely by our regulated banking partner.</p>
+  </div>
+</header>
+
+<!-- How It Works -->
+<section id="how-it-works" class="py-20 bg-gray-50 scroll-mt-16">
+  <div class="max-w-6xl mx-auto px-4">
+    <h2 class="text-3xl font-bold text-center mb-12 text-blue-900">Two Ways to Trade</h2>
+    <div class="grid md:grid-cols-2 gap-8">
+      <div class="bg-white p-8 rounded-xl shadow-md border hover:shadow-lg hover:scale-105 transition-transform">
+        <h3 class="text-2xl font-bold mb-2 text-blue-700">Standard Escrow Service</h3>
+        <p class="text-gray-600 mb-4">Best for: Everyday marketplace transactions</p>
+        <ul class="space-y-2 mb-6 text-sm text-gray-600">
+          <li>💰 Your money is held securely until the deal is done</li>
+          <li>📦 Seller drops off at PostNet or Pudo — tracked from the start</li>
+          <li>🔍 24 hours to inspect before payment is released</li>
+          <li>⚖️ Dispute? We resolve it within 72 hours</li>
+        </ul>
+      </div>
+      <div class="bg-white p-8 rounded-xl shadow-md border-2 border-yellow-400 relative overflow-hidden hover:shadow-lg hover:scale-105 transition-transform">
+        <div class="absolute top-0 right-0 bg-yellow-400 text-white text-xs font-bold px-3 py-1 rounded-bl-lg">
+          RECOMMENDED
+        </div>
+        <h3 class="text-2xl font-bold mb-2 text-green-600">Verified Express Service</h3>
+        <p class="text-gray-600 mb-4">Best for: High-value items &amp; electronics</p>
+        <ul class="space-y-2 mb-6 text-sm text-gray-600">
+          <li>🕵️ Our agent physically inspects the item before it's sent</li>
+          <li>📦 Seller drops off in our agent's presence — fully witnessed</li>
+          <li>🚀 Seller gets paid the moment the item is verified and dispatched</li>
+          <li>🛡️ The safest way to buy and sell high-value items privately</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Pricing Calculator -->
+<section id="pricing" class="py-20 bg-white scroll-mt-16">
+  <div class="max-w-4xl mx-auto px-4 text-center">
+    <h2 class="text-3xl font-bold mb-4 text-blue-900">Transparent Pricing</h2>
+    <p class="text-gray-600 mb-8">No hidden fees. Calculated instantly.</p>
+    <div class="bg-gray-50 p-8 rounded-xl shadow-inner max-w-lg mx-auto">
+      <label class="block text-left text-sm font-semibold text-gray-700 mb-2">Item Value (ZAR)</label>
+      <input type="number" placeholder="e.g. 5000" min="0"
+             (input)="onAmountChange($any($event.target).value)"
+             class="w-full p-4 border border-gray-300 rounded-lg mb-6 text-lg focus:ring-2 focus:ring-green-500 focus:outline-none">
+      <div class="grid grid-cols-2 gap-4 text-left">
+        <div class="bg-white p-4 rounded-lg border">
+          <p class="text-xs text-gray-500 uppercase font-bold">Standard Escrow Fee</p>
+          <p class="text-xl font-bold text-gray-800">{{ formatCurrency(standardFee()) }}</p>
+          <p class="text-xs text-gray-400 mt-1">2.5% (Minimum R150.00)</p>
+        </div>
+        <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+          <p class="text-xs text-green-600 uppercase font-bold">Verified Express Fee</p>
+          <p class="text-xl font-bold text-green-800">{{ formatCurrency(expressFee()) }}</p>
+          <p class="text-xs text-green-400 mt-1">1.5% + R250.00 flat</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq" class="py-20 bg-slate-50 scroll-mt-16">
+  <div class="max-w-6xl mx-auto px-4">
+    <h2 class="text-3xl font-bold text-center mb-12 text-blue-900">Frequently Asked Questions</h2>
+    <div class="space-y-6">
+      @for (item of faqs; track item.q) {
+        <article class="bg-white p-8 rounded-xl shadow-md border">
+          <p class="font-semibold mb-3">{{ item.q }}</p>
+          <p class="text-gray-600">{{ item.a }}</p>
+        </article>
+      }
+    </div>
+  </div>
+</section>
+
+<ng-template #faqData>
+  <!-- data defined in component -->
+</ng-template>

@@ -1,0 +1,30 @@
+<div class="min-h-screen bg-gradient-to-b from-blue-50 to-white flex items-center justify-center px-4">
+  <div class="bg-white rounded-2xl shadow-lg p-10 max-w-md w-full text-center">
+
+    @if (isComplete()) {
+      <div class="text-6xl mb-4">✅</div>
+      <h1 class="text-2xl font-bold text-green-700 mb-2">Payment Successful</h1>
+      <p class="text-gray-500 text-sm mb-6">Your funds are now held securely in escrow.</p>
+    } @else {
+      <div class="text-6xl mb-4">❌</div>
+      <h1 class="text-2xl font-bold text-red-700 mb-2">Payment {{ status() }}</h1>
+      <p class="text-gray-500 text-sm mb-6">Your payment was not completed. No funds were charged.</p>
+    }
+
+    @if (reference()) {
+      <div class="bg-gray-50 rounded-lg p-4 mb-6 text-left text-sm">
+        <p class="text-gray-500">Reference</p>
+        <p class="font-semibold text-gray-800">{{ reference() }}</p>
+        @if (amount()) {
+          <p class="text-gray-500 mt-2">Amount</p>
+          <p class="font-semibold text-gray-800">R{{ amount() }}</p>
+        }
+      </div>
+    }
+
+    <a routerLink="/"
+       class="block w-full bg-gradient-to-r from-green-500 to-blue-600 text-white py-3 rounded-lg font-bold hover:from-green-600 hover:to-blue-700 transition">
+      Back to Home
+    </a>
+  </div>
+</div>
