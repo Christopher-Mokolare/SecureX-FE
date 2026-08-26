@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { switchMap, interval, takeWhile, take, filter } from 'rxjs';
 import { AuthService } from '../../services/auth';
 import { TransactionService } from '../../services/transaction';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-start-transaction',
@@ -15,6 +16,8 @@ export class StartTransaction {
   private fb = inject(FormBuilder);
   private auth = inject(AuthService);
   private txService = inject(TransactionService);
+
+  isSandbox = !environment.production;
 
   submitting = signal(false);
   kycStep = signal<'idle' | 'kyc' | 'payment'>('idle');
@@ -77,6 +80,14 @@ export class StartTransaction {
     return !!(c?.invalid && c?.touched);
   }
 
+  fillTestIdentity() {
+    this.form.patchValue({
+      buyerFullName: 'Amina Fatou Clearwater',
+      buyerEmail: 'amina.clearwater@example.com',
+      buyerIdNumber: '9001015009087',
+    });
+  }
+
   onSubmit() {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -111,26 +122,17 @@ export class StartTransaction {
             this.sellerId.set(tx.Seller?.Id ?? null);
             this.sellerEmail.set(v.sellerEmail!);
             this.kycStep.set('kyc');
-            // Step 2: submit Enhanced KYC + AML (both synchronous)
-            return this.txService.startBuyerKyc(tx.Id, token).pipe(
-              switchMap(kycRes => {
-                // AML failed immediately
-                if (kycRes.aml === 'Failed')
-                  throw { error: { error: 'AML check failed. Transaction cannot proceed.' } };
-                // KYC is async (202) — poll until IdCheckStatus resolves
-                this.kycStep.set('kyc');
-                return interval(3000).pipe(
-                  switchMap(() => this.txService.getById(tx.Id, token)),
-                  takeWhile(t => t.Buyer?.IdCheckStatus === 'Pending', true),
-                  take(20), // max ~60s
-                  filter(t => t.Buyer?.IdCheckStatus !== 'Pending'),
-                  switchMap(t => {
-                    if (t.Buyer?.IdCheckStatus !== 'Approved')
-                      throw { error: { error: 'Identity verification failed. Please check your ID details.' } };
-                    this.kycStep.set('payment');
-                    return this.txService.getPaymentLink(tx.Id, token);
-                  })
-                );
+            // KYC runs inline on deal creation — poll until IdCheckStatus resolves
+            return interval(3000).pipe(
+              switchMap(() => this.txService.getById(tx.Id, token)),
+              takeWhile(t => t.Buyer?.IdCheckStatus === 'Pending', true),
+              take(20), // max ~60s
+              filter(t => t.Buyer?.IdCheckStatus !== 'Pending'),
+              switchMap(t => {
+                if (t.Buyer?.IdCheckStatus !== 'Approved')
+                  throw { error: { error: 'Identity verification failed. Please check your ID details.' } };
+                this.kycStep.set('payment');
+                return this.txService.getPaymentLink(tx.Id, token);
               })
             );
           })

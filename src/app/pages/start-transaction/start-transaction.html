@@ -142,6 +142,16 @@
         <section>
           <h2 class="text-xl font-semibold mb-4 text-gray-800 border-b pb-2">3. Buyer Details</h2>
 
+          @if (isSandbox) {
+            <div class="mb-4 bg-amber-50 border border-amber-300 rounded-lg p-3 flex items-center justify-between gap-3">
+              <p class="text-xs text-amber-800">🧪 <strong>Sandbox:</strong> KYC only accepts the SmileID test identity.</p>
+              <button type="button" (click)="fillTestIdentity()"
+                      class="shrink-0 text-xs bg-amber-400 hover:bg-amber-500 text-amber-900 font-semibold px-3 py-1.5 rounded-lg transition">
+                Fill test identity
+              </button>
+            </div>
+          }
+
           <div class="mb-4">
             <label class="block font-medium mb-1 text-sm">Full Name <span class="text-red-500">*</span></label>
             <input formControlName="buyerFullName" type="text"
