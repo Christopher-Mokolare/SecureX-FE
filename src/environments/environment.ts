@@ -1,5 +1,5 @@
 export const environment = {
   production: false,
-  apiBase: 'http://securex-alb-1751040376.af-south-1.elb.amazonaws.com'
+  apiBase: 'https://securex-api-vjf3.onrender.com',
+  smileIdSandbox: true
 };
-

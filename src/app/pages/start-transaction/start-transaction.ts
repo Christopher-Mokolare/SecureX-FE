@@ -1,7 +1,7 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { switchMap, interval, takeWhile, take, filter } from 'rxjs';
+import { switchMap, interval, takeWhile, take, filter, throwIfEmpty } from 'rxjs';
 import { AuthService } from '../../services/auth';
 import { TransactionService } from '../../services/transaction';
 import { environment } from '../../../environments/environment';
@@ -17,7 +17,7 @@ export class StartTransaction {
   private auth = inject(AuthService);
   private txService = inject(TransactionService);
 
-  isSandbox = !environment.production;
+  isSandbox = environment.smileIdSandbox;
 
   submitting = signal(false);
   kycStep = signal<'idle' | 'kyc' | 'payment'>('idle');
@@ -128,6 +128,7 @@ export class StartTransaction {
               takeWhile(t => t.Buyer?.IdCheckStatus === 'Pending', true),
               take(20), // max ~60s
               filter(t => t.Buyer?.IdCheckStatus !== 'Pending'),
+              throwIfEmpty(() => new Error('Identity verification timed out. Please try again.')),
               switchMap(t => {
                 if (t.Buyer?.IdCheckStatus !== 'Approved')
                   throw { error: { error: 'Identity verification failed. Please check your ID details.' } };
@@ -145,7 +146,7 @@ export class StartTransaction {
         window.location.href = (res as any).redirectUrl;
       },
       error: err => {
-        this.errorMessage.set(err?.error?.error ?? err?.error?.Error ?? 'Submission failed. Please try again.');
+        this.errorMessage.set(err?.error?.error ?? err?.error?.Error ?? err?.message ?? 'Submission failed. Please try again.');
         this.submitting.set(false);
         this.kycStep.set('idle');
       }

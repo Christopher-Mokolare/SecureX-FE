@@ -1,4 +1,5 @@
 export const environment = {
   production: true,
-  apiBase: 'https://api.secureexchange.co.za'
+  apiBase: 'https://securex-api-vjf3.onrender.com',
+  smileIdSandbox: true
 };

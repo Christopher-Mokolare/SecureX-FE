@@ -119,4 +119,39 @@ export class TransactionService {
       { headers }
     );
   }
+
+  getByRef(ref: string, token: string): Observable<CreateTransactionResponse> {
+    const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
+    return this.http.get<CreateTransactionResponse>(
+      `${environment.apiBase}/api/transactions/ref/${ref}`,
+      { headers }
+    );
+  }
+
+  markDelivered(txId: string, version: number, token: string): Observable<CreateTransactionResponse> {
+    const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
+    return this.http.post<CreateTransactionResponse>(
+      `${environment.apiBase}/api/transactions/${txId}/mark-delivered`,
+      { actor: 'seller', expectedVersion: version },
+      { headers }
+    );
+  }
+
+  accept(txId: string, version: number, token: string): Observable<CreateTransactionResponse> {
+    const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
+    return this.http.post<CreateTransactionResponse>(
+      `${environment.apiBase}/api/transactions/${txId}/accept`,
+      { actor: 'buyer', expectedVersion: version },
+      { headers }
+    );
+  }
+
+  reject(txId: string, reason: string, token: string): Observable<CreateTransactionResponse> {
+    const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
+    return this.http.post<CreateTransactionResponse>(
+      `${environment.apiBase}/api/transactions/${txId}/reject`,
+      { reason },
+      { headers }
+    );
+  }
 }
