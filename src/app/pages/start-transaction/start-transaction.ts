@@ -125,13 +125,13 @@ export class StartTransaction {
             // KYC runs inline on deal creation — poll until IdCheckStatus resolves
             return interval(3000).pipe(
               switchMap(() => this.txService.getById(tx.Id, token)),
-              takeWhile(t => t.Buyer?.IdCheckStatus === 'Pending', true),
+              takeWhile(t => t.Buyer?.IdCheckStatus === 'Pending' || t.Buyer?.AmlStatus === 'Pending', true),
               take(20), // max ~60s
-              filter(t => t.Buyer?.IdCheckStatus !== 'Pending'),
+              filter(t => t.Buyer?.IdCheckStatus !== 'Pending' && t.Buyer?.AmlStatus !== 'Pending'),
               throwIfEmpty(() => new Error('Identity verification timed out. Please try again.')),
               switchMap(t => {
-                if (t.Buyer?.IdCheckStatus !== 'Approved')
-                  throw { error: { error: 'Identity verification failed. Please check your ID details.' } };
+                if (t.Buyer?.IdCheckStatus !== 'Approved' || t.Buyer?.AmlStatus !== 'Approved')
+                  throw { error: { error: 'Identity or AML verification failed. Please check the submitted details.' } };
                 this.kycStep.set('payment');
                 return this.txService.getPaymentLink(tx.Id, token);
               })
