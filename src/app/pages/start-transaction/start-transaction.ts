@@ -84,7 +84,7 @@ export class StartTransaction {
     this.form.patchValue({
       buyerFullName: 'Amina Fatou Clearwater',
       buyerEmail: 'amina.clearwater@example.com',
-      buyerIdNumber: '9001015009087',
+      buyerIdNumber: '0000000000000',
     });
   }
 
