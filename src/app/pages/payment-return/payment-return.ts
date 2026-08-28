@@ -26,9 +26,18 @@ export class PaymentReturn implements OnInit {
     this.sellerId.set(p['sellerId'] ?? '');
     this.sellerEmail.set(p['sellerEmail'] ?? '');
     this.transactionId.set(p['txId'] ?? '');
+    this.restoreProviderFields(p['Optional1'] ?? p['optional1'] ?? '',
+      p['Optional2'] ?? p['optional2'] ?? '',
+      p['Optional3'] ?? p['optional3'] ?? '');
     this.restoreSellerState(p['Optional1'] ?? p['optional1'] ?? '');
     this.restoreStoredState();
     this.isComplete.set(p['Status'] === 'Complete');
+  }
+
+  private restoreProviderFields(txId: string, sellerId: string, sellerEmail: string) {
+    if (txId && !this.transactionId()) this.transactionId.set(txId);
+    if (sellerId && !this.sellerId()) this.sellerId.set(sellerId);
+    if (sellerEmail && !this.sellerEmail()) this.sellerEmail.set(sellerEmail);
   }
 
   private restoreStoredState() {
