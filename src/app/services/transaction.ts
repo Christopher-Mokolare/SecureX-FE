@@ -102,9 +102,23 @@ export class TransactionService {
     );
   }
 
-  getPaymentLink(txId: string, token: string): Observable<{ redirectUrl: string }> {
+  getPaymentLink(txId: string, token: string): Observable<{
+    txId: string;
+    dealReference: string;
+    totalAmount: number;
+    sellerId: string;
+    sellerEmail: string;
+    redirectUrl: string;
+  }> {
     const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
-    return this.http.post<{ redirectUrl: string }>(
+    return this.http.post<{
+      txId: string;
+      dealReference: string;
+      totalAmount: number;
+      sellerId: string;
+      sellerEmail: string;
+      redirectUrl: string;
+    }>(
       `${environment.apiBase}/api/transactions/${txId}/payment-link`,
       {},
       { headers }

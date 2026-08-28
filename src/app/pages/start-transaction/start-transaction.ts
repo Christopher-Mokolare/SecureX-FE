@@ -142,6 +142,11 @@ export class StartTransaction {
     ).subscribe({
       next: res => {
         if (!('redirectUrl' in res)) return; // still polling
+        sessionStorage.setItem('securex-payment-state', JSON.stringify({
+          txId: res.txId,
+          sellerId: res.sellerId,
+          sellerEmail: res.sellerEmail,
+        }));
         this.submitting.set(false);
         window.location.href = (res as any).redirectUrl;
       },

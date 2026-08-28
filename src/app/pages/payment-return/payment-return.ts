@@ -26,7 +26,34 @@ export class PaymentReturn implements OnInit {
     this.sellerId.set(p['sellerId'] ?? '');
     this.sellerEmail.set(p['sellerEmail'] ?? '');
     this.transactionId.set(p['txId'] ?? '');
+    this.restoreSellerState(p['Optional1'] ?? p['optional1'] ?? '');
+    this.restoreStoredState();
     this.isComplete.set(p['Status'] === 'Complete');
+  }
+
+  private restoreStoredState() {
+    if (this.sellerId() && this.sellerEmail() && this.transactionId()) return;
+    try {
+      const stored = JSON.parse(sessionStorage.getItem('securex-payment-state') ?? '');
+      this.transactionId.set(this.transactionId() || stored.txId || '');
+      this.sellerId.set(this.sellerId() || stored.sellerId || '');
+      this.sellerEmail.set(this.sellerEmail() || stored.sellerEmail || '');
+    } catch (error) {
+      if (!(error instanceof SyntaxError)) throw error;
+    }
+  }
+
+  private restoreSellerState(state: string) {
+    if (!state || this.sellerId() && this.sellerEmail() && this.transactionId()) return;
+    try {
+      const padded = state.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((state.length + 3) % 4);
+      const [txId, sellerId, sellerEmail] = atob(padded).split('|');
+      this.transactionId.set(txId ?? '');
+      this.sellerId.set(sellerId ?? '');
+      this.sellerEmail.set(sellerEmail ?? '');
+    } catch {
+      // Ignore malformed provider state; the payment result remains displayable.
+    }
   }
 
   sellerVerificationUrl(): string {
