@@ -1,7 +1,7 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { switchMap } from 'rxjs';
+import { interval, switchMap, take, takeWhile } from 'rxjs';
 import { AuthService } from '../../services/auth';
 import { TransactionService, OzowBank } from '../../services/transaction';
 
@@ -95,10 +95,10 @@ export class BankDetails implements OnInit {
           // Already approved from a previous session
           this.kycState.set('approved');
           this.verified.set('Approved');
-        } else if ('token' in res) {
+        } else if (res.token) {
           // Launch SmileID Web SDK
           this.kycState.set('pending');
-          this.launchSmileIdSdk((res as any).token);
+          this.launchSmileIdSdk(res);
         }
       },
       error: err => {
@@ -108,7 +108,16 @@ export class BankDetails implements OnInit {
     });
   }
 
-  private launchSmileIdSdk(token: string) {
+  private launchSmileIdSdk(session: {
+    token?: string;
+    product?: string;
+    environment?: string;
+    callbackUrl?: string;
+    partnerId?: string;
+    userDetails?: { given_names: string; last_name: string; email: string; phone_number: string };
+    idInfo?: { id_number: string };
+    partnerParams?: { internal_reference: string; deal_reference: string; verification_type: string };
+  }) {
     const container = document.getElementById('smile-id-container');
     if (!container) return;
     container.innerHTML = '';
@@ -117,42 +126,74 @@ export class BankDetails implements OnInit {
       this.errorMessage.set('SmileID SDK failed to load. Please refresh and try again.');
       return;
     }
+    if (!session.token) {
+      this.errorMessage.set('SmileID session token is missing. Please try again.');
+      this.kycState.set('failed');
+      return;
+    }
     SmileIdentity({
-      token,
-      product: 'biometric_kyc',
-      environment: 'sandbox',
-      callback_url: '',
+      token: session.token,
+      product: session.product ?? 'biometric_kyc',
+      environment: session.environment ?? 'sandbox',
+      callback_url: session.callbackUrl ?? '',
       container,
-      // v12: consent pre-supplied, names in user_details, correlate via partner_params
       consent_information: {
         granted: true,
         granted_at: new Date().toISOString(),
+        notice_language: 'EN',
+        notice_privacy_policy_url: 'https://secureexchange.co.za/privacy',
       },
-      user_details: {
-        given_names: this.sellerEmail().split('@')[0], // placeholder — ideally pass real name
-        last_name: '',
-        email: this.sellerEmail(),
-      },
+      user_details: session.userDetails,
+      id_info: session.idInfo,
       partner_details: {
-        partner_id: '8811',
+        partner_id: session.partnerId ?? '',
         name: 'SecureX',
         logo_url: 'https://secureexchange.co.za/favicon.ico',
         policy_url: 'https://secureexchange.co.za/terms',
         theme_color: '#1d4ed8',
       },
-      partner_params: {
-        internal_reference: this.sellerId(),
-      },
-      onSuccess: () => { this.kycState.set('approved'); this.verified.set('Approved'); },
-      onError: (err: string) => {
-        if (err === 'SmileIdentity::ConsentDenied') {
-          this.errorMessage.set('Identity verification requires your consent. Please try again.');
+      partner_params: session.partnerParams,
+      onResult: (result: { status?: string; error?: { message?: string } }) => {
+        if (result.status === 'success') {
+          this.pollSellerVerification();
+        } else if (result.status === 'cancelled') {
           this.kycState.set('idle');
         } else {
+          this.errorMessage.set(result.error?.message ?? 'Identity verification failed. Please try again.');
           this.kycState.set('failed');
         }
       },
       onClose: () => { if (this.kycState() === 'pending') this.kycState.set('idle'); },
+    });
+  }
+
+  private pollSellerVerification() {
+    this.kycState.set('pending');
+    this.auth.getToken(this.sellerEmail()).pipe(
+      switchMap(token =>
+        interval(3000).pipe(
+          switchMap(() => this.txService.getById(this.transactionId(), token)),
+          takeWhile(tx =>
+            tx.Seller?.LivenessStatus === 'Pending' &&
+            tx.Seller?.IdCheckStatus !== 'Failed', true),
+          take(20)
+        )
+      )
+    ).subscribe({
+      next: tx => {
+        if (tx.Seller?.LivenessStatus === 'Approved' &&
+            tx.Seller?.IdCheckStatus === 'Approved') {
+          this.kycState.set('approved');
+          this.verified.set('Approved');
+        } else if (tx.Seller?.LivenessStatus === 'Failed' ||
+                   tx.Seller?.IdCheckStatus === 'Failed') {
+          this.kycState.set('failed');
+        }
+      },
+      error: () => {
+        this.errorMessage.set('Unable to confirm verification status. Please refresh and try again.');
+        this.kycState.set('failed');
+      }
     });
   }
 }

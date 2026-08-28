@@ -24,8 +24,8 @@ export interface CreateTransactionResponse {
   Id: string;
   Status: string;
   PaymentRedirectUrl: string | null;
-  Seller?: { Id: string; FullName: string; Email: string; };
-  Buyer?: { Id: string; FullName: string; Email: string; IdCheckStatus: string; AmlStatus: string; };
+  Buyer?: { Id: string; FullName: string; Email: string; IdCheckStatus: string; AmlStatus: string; LivenessStatus: string; };
+  Seller?: { Id: string; FullName: string; Email: string; IdCheckStatus?: string; AmlStatus?: string; LivenessStatus?: string; };
 }
 
 export interface OzowBank {
@@ -111,9 +111,29 @@ export class TransactionService {
     );
   }
 
-  startSellerKyc(txId: string, token: string): Observable<{ token: string; userId: string } | { status: string }> {
+  startSellerKyc(txId: string, token: string): Observable<{
+    status?: string;
+    token?: string;
+    product?: string;
+    environment?: string;
+    callbackUrl?: string;
+    partnerId?: string;
+    userDetails?: { given_names: string; last_name: string; email: string; phone_number: string };
+    idInfo?: { id_number: string };
+    partnerParams?: { internal_reference: string; deal_reference: string; verification_type: string };
+  }> {
     const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
-    return this.http.post<{ token: string; userId: string } | { status: string }>(
+    return this.http.post<{
+      status?: string;
+      token?: string;
+      product?: string;
+      environment?: string;
+      callbackUrl?: string;
+      partnerId?: string;
+      userDetails?: { given_names: string; last_name: string; email: string; phone_number: string };
+      idInfo?: { id_number: string };
+      partnerParams?: { internal_reference: string; deal_reference: string; verification_type: string };
+    }>(
       `${environment.apiBase}/api/transactions/${txId}/start-seller-kyc`,
       {},
       { headers }
