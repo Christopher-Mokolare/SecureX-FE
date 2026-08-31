@@ -46,13 +46,9 @@ export class BankDetails implements OnInit {
     this.dealReference.set(params['ref'] ?? '');
     this.transactionId.set(params['txId'] ?? '');
 
-    this.auth.getToken(this.sellerEmail()).subscribe({
-      next: token => {
-        this.txService.getBanks(token).subscribe({
-          next: banks => { this.banks.set(banks); this.loadingBanks.set(false); },
-          error: () => { this.loadingBanks.set(false); }
-        });
-      }
+    this.txService.getBanks().subscribe({
+      next: banks => { this.banks.set(banks); this.loadingBanks.set(false); },
+      error: () => { this.loadingBanks.set(false); }
     });
 
     // Listen for SmileID SDK result posted back via window message

@@ -71,9 +71,8 @@ export class TransactionService {
     );
   }
 
-  getBanks(token: string): Observable<OzowBank[]> {
-    const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
-    return this.http.get<OzowBank[]>(`${environment.apiBase}/api/users/banks`, { headers });
+  getBanks(): Observable<OzowBank[]> {
+    return this.http.get<OzowBank[]>(`${environment.apiBase}/api/users/banks`);
   }
 
   saveBankDetails(userId: string, body: BankDetailsRequest, token: string): Observable<{ userId: string; bankVerificationStatus: string }> {
