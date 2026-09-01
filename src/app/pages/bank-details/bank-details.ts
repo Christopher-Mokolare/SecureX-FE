@@ -104,6 +104,20 @@ export class BankDetails implements OnInit {
     });
   }
 
+  private normalizeSmilePhone(phone?: string): string {
+    const raw = (phone ?? '').trim();
+    if (!raw) return '';
+
+    const digits = raw.replace(/\D/g, '');
+    if (!digits) return '';
+
+    if (digits.startsWith('0') && digits.length === 10) return `+27${digits.slice(1)}`;
+    if (digits.startsWith('27') && digits.length === 11) return `+${digits}`;
+    if (digits.startsWith('+')) return digits;
+
+    return `+${digits}`;
+  }
+
   private launchSmileIdSdk(session: {
     token?: string;
     product?: string;
@@ -145,6 +159,11 @@ export class BankDetails implements OnInit {
       }
     };
 
+    const formattedUserDetails = session.userDetails ? {
+      ...session.userDetails,
+      phone_number: this.normalizeSmilePhone(session.userDetails.phone_number),
+    } : undefined;
+
     SmileIdentity({
       token: session.token,
       product: session.product ?? 'biometric_kyc',
@@ -157,7 +176,7 @@ export class BankDetails implements OnInit {
         notice_language: 'EN',
         notice_privacy_policy_url: 'https://secureexchange.co.za/privacy',
       },
-      user_details: session.userDetails,
+      user_details: formattedUserDetails,
       // ✅ Use the explicit idInfo instead of session.idInfo
       id_info: idInfo,
       partner_details: {
