@@ -92,9 +92,9 @@ export class BankDetails implements OnInit {
           this.kycState.set('approved');
           this.verified.set('Approved');
         } else if (res.token) {
-          // Launch SmileID Web SDK
+          // Launch SmileID Web SDK — defer one tick so @if block renders first
           this.kycState.set('pending');
-          this.launchSmileIdSdk(res);
+          setTimeout(() => this.launchSmileIdSdk(res), 0);
         }
       },
       error: err => {
@@ -114,19 +114,37 @@ export class BankDetails implements OnInit {
     idInfo?: { id_number: string };
     partnerParams?: { internal_reference: string; deal_reference: string; verification_type: string };
   }) {
+    // ✅ DOM safety check
     const container = document.getElementById('smile-id-container');
-    if (!container) return;
+    if (!container) {
+      console.warn('SecureX: Smile ID container not found');
+      return;
+    }
+    
+    // Clear any stale widget frames
     container.innerHTML = '';
+    
     const SmileIdentity = (window as any).SmileIdentity;
     if (!SmileIdentity) {
       this.errorMessage.set('SmileID SDK failed to load. Please refresh and try again.');
       return;
     }
+    
     if (!session.token) {
       this.errorMessage.set('SmileID session token is missing. Please try again.');
       this.kycState.set('failed');
       return;
     }
+
+    // v12 SDK expects id_info nested by country → id_type → { id_number }
+    const idInfo = {
+      ZA: {
+        NATIONAL_ID: {
+          id_number: String(session.idInfo?.id_number ?? '').trim()
+        }
+      }
+    };
+
     SmileIdentity({
       token: session.token,
       product: session.product ?? 'biometric_kyc',
@@ -140,9 +158,10 @@ export class BankDetails implements OnInit {
         notice_privacy_policy_url: 'https://secureexchange.co.za/privacy',
       },
       user_details: session.userDetails,
-      id_info: session.idInfo,
+      // ✅ Use the explicit idInfo instead of session.idInfo
+      id_info: idInfo,
       partner_details: {
-        partner_id: session.partnerId ?? '',
+        partner_id: session.partnerId ?? '8811',
         name: 'SecureX',
         logo_url: 'https://secureexchange.co.za/favicon.ico',
         policy_url: 'https://secureexchange.co.za/terms',
