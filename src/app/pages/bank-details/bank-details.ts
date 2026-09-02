@@ -118,88 +118,86 @@ export class BankDetails implements OnInit {
     return `+${digits}`;
   }
 
-  private launchSmileIdSdk(session: {
-    token?: string;
-    product?: string;
-    environment?: string;
-    callbackUrl?: string;
-    partnerId?: string;
-    userDetails?: { given_names: string; last_name: string; email: string; phone_number: string };
-    idInfo?: { id_number: string };
-    partnerParams?: { internal_reference: string; deal_reference: string; verification_type: string };
-  }) {
-    // ✅ DOM safety check
-    const container = document.getElementById('smile-id-container');
-    if (!container) {
-      console.warn('SecureX: Smile ID container not found');
-      return;
-    }
-    
-    // Clear any stale widget frames
-    container.innerHTML = '';
-    
-    const SmileIdentity = (window as any).SmileIdentity;
-    if (!SmileIdentity) {
-      this.errorMessage.set('SmileID SDK failed to load. Please refresh and try again.');
-      return;
-    }
-    
-    if (!session.token) {
-      this.errorMessage.set('SmileID session token is missing. Please try again.');
-      this.kycState.set('failed');
-      return;
-    }
-
-    // v12 SDK expects id_info nested by country → id_type → { id_number }
-    const idInfo = {
-      ZA: {
-        NATIONAL_ID: {
-          id_number: String(session.idInfo?.id_number ?? '').trim()
-        }
-      }
-    };
-
-    const formattedUserDetails = session.userDetails ? {
-      ...session.userDetails,
-      phone_number: this.normalizeSmilePhone(session.userDetails.phone_number),
-    } : undefined;
-
-    SmileIdentity({
-      token: session.token,
-      product: session.product ?? 'biometric_kyc',
-      environment: session.environment ?? 'sandbox',
-      callback_url: session.callbackUrl ?? '',
-      container,
-      consent_information: {
-        granted: true,
-        granted_at: new Date().toISOString(),
-        notice_language: 'EN',
-        notice_privacy_policy_url: 'https://secureexchange.co.za/privacy',
-      },
-      user_details: formattedUserDetails,
-      // ✅ Use the explicit idInfo instead of session.idInfo
-      id_info: idInfo,
-      partner_details: {
-        partner_id: session.partnerId ?? '8811',
-        name: 'SecureX',
-        logo_url: 'https://secureexchange.co.za/favicon.ico',
-        policy_url: 'https://secureexchange.co.za/terms',
-        theme_color: '#1d4ed8',
-      },
-      partner_params: session.partnerParams,
-      onResult: (result: { status?: string; error?: { message?: string } }) => {
-        if (result.status === 'success') {
-          this.pollSellerVerification();
-        } else if (result.status === 'cancelled') {
-          this.kycState.set('idle');
-        } else {
-          this.errorMessage.set(result.error?.message ?? 'Identity verification failed. Please try again.');
-          this.kycState.set('failed');
-        }
-      },
-      onClose: () => { if (this.kycState() === 'pending') this.kycState.set('idle'); },
-    });
+private launchSmileIdSdk(session: {
+  token?: string;
+  product?: string;
+  environment?: string;
+  callbackUrl?: string;
+  partnerId?: string;
+  userDetails?: { given_names: string; last_name: string; email: string; phone_number: string };
+  idInfo?: { id_number: string };
+  partnerParams?: { internal_reference: string; deal_reference: string; verification_type: string };
+}) {
+  // ✅ DOM safety check
+  const container = document.getElementById('smile-id-container');
+  if (!container) {
+    console.warn('SecureX: Smile ID container not found');
+    return;
   }
+  
+  // Clear any stale widget frames
+  container.innerHTML = '';
+  
+  const SmileIdentity = (window as any).SmileIdentity;
+  if (!SmileIdentity) {
+    this.errorMessage.set('SmileID SDK failed to load. Please refresh and try again.');
+    return;
+  }
+  
+  if (!session.token) {
+    this.errorMessage.set('SmileID session token is missing. Please try again.');
+    this.kycState.set('failed');
+    return;
+  }
+
+  // CORRECT: v12 SDK expects flat id_info structure
+  // The backend already returns the correct id_number (sandbox: 0000000000000, production: real ID)
+  const idInfo = {
+    id_number: String(session.idInfo?.id_number ?? '').trim(),
+    country: "ZA",
+    id_type: "NATIONAL_ID"
+  };
+
+  const formattedUserDetails = session.userDetails ? {
+    ...session.userDetails,
+    phone_number: this.normalizeSmilePhone(session.userDetails.phone_number),
+  } : undefined;
+
+  SmileIdentity({
+    token: session.token,
+    product: session.product ?? 'biometric_kyc',
+    environment: session.environment ?? 'sandbox',
+    callback_url: session.callbackUrl ?? '',
+    container,
+    consent_information: {
+      granted: true,
+      granted_at: new Date().toISOString(),
+      notice_language: 'EN',
+      notice_privacy_policy_url: 'https://secureexchange.co.za/privacy',
+    },
+    user_details: formattedUserDetails,
+    id_info: idInfo,
+    partner_details: {
+      partner_id: session.partnerId ?? '8811',
+      name: 'SecureX',
+      logo_url: 'https://secureexchange.co.za/favicon.ico',
+      policy_url: 'https://secureexchange.co.za/terms',
+      theme_color: '#1d4ed8',
+    },
+    partner_params: session.partnerParams,
+    onResult: (result: { status?: string; error?: { message?: string } }) => {
+      if (result.status === 'success') {
+        this.pollSellerVerification();
+      } else if (result.status === 'cancelled') {
+        this.kycState.set('idle');
+      } else {
+        this.errorMessage.set(result.error?.message ?? 'Identity verification failed. Please try again.');
+        this.kycState.set('failed');
+      }
+    },
+    onClose: () => { if (this.kycState() === 'pending') this.kycState.set('idle'); },
+  });
+}
 
   private pollSellerVerification() {
     this.kycState.set('pending');
