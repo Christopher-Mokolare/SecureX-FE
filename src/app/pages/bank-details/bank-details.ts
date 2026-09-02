@@ -52,7 +52,7 @@ export class BankDetails implements OnInit {
   ngOnInit() {
     const params = this.route.snapshot.queryParams;
     this.sellerId.set(this.route.snapshot.paramMap.get('sellerId') ?? '');
-    this.sellerEmail.set(params['email'] ?? '');
+    this.sellerEmail.set(params['sellerEmail'] ?? params['email'] ?? '');
     this.dealReference.set(params['ref'] ?? '');
     this.transactionId.set(params['txId'] ?? '');
 
