@@ -5,6 +5,17 @@ import { interval, switchMap, take, takeWhile } from 'rxjs';
 import { AuthService } from '../../services/auth';
 import { TransactionService, OzowBank } from '../../services/transaction';
 
+type SmileSession = {
+  token?: string;
+  product?: string;
+  environment?: string;
+  callbackUrl?: string;
+  partnerId?: string;
+  userDetails?: { given_names: string; last_name: string; email: string; phone_number: string };
+  idInfo?: { id_number: string };
+  partnerParams?: { internal_reference: string; deal_reference: string; verification_type: string };
+};
+
 @Component({
   selector: 'app-bank-details',
   standalone: true,
@@ -26,7 +37,6 @@ export class BankDetails implements OnInit {
   verified = signal<string | null>(null);
   errorMessage = signal<string | null>(null);
   loadingBanks = signal(true);
-  // KYC state: 'idle' | 'pending' | 'approved' | 'failed'
   kycState = signal<'idle' | 'pending' | 'approved' | 'failed'>('idle');
 
   form = this.fb.group({
@@ -51,7 +61,6 @@ export class BankDetails implements OnInit {
       error: () => { this.loadingBanks.set(false); }
     });
 
-    // Listen for SmileID SDK result posted back via window message
     window.addEventListener('message', (event) => {
       if (event.data?.smile_id_result) {
         const passed = event.data.smile_id_result === 'success';
@@ -88,13 +97,11 @@ export class BankDetails implements OnInit {
       next: res => {
         this.submitting.set(false);
         if ('status' in res && res.status === 'Approved') {
-          // Already approved from a previous session
           this.kycState.set('approved');
           this.verified.set('Approved');
         } else if (res.token) {
-          // Launch SmileID Web SDK — defer one tick so @if block renders first
           this.kycState.set('pending');
-          setTimeout(() => this.launchSmileIdSdk(res), 0);
+          this.waitForContainerThenLaunch(res);
         }
       },
       error: err => {
@@ -107,97 +114,90 @@ export class BankDetails implements OnInit {
   private normalizeSmilePhone(phone?: string): string {
     const raw = (phone ?? '').trim();
     if (!raw) return '';
-
     const digits = raw.replace(/\D/g, '');
     if (!digits) return '';
-
     if (digits.startsWith('0') && digits.length === 10) return `+27${digits.slice(1)}`;
     if (digits.startsWith('27') && digits.length === 11) return `+${digits}`;
     if (digits.startsWith('+')) return digits;
-
     return `+${digits}`;
   }
 
-private launchSmileIdSdk(session: {
-  token?: string;
-  product?: string;
-  environment?: string;
-  callbackUrl?: string;
-  partnerId?: string;
-  userDetails?: { given_names: string; last_name: string; email: string; phone_number: string };
-  idInfo?: { id_number: string };
-  partnerParams?: { internal_reference: string; deal_reference: string; verification_type: string };
-}) {
-  // ✅ DOM safety check
-  const container = document.getElementById('smile-id-container');
-  if (!container) {
-    console.warn('SecureX: Smile ID container not found');
-    return;
-  }
-  
-  // Clear any stale widget frames
-  container.innerHTML = '';
-  
-  const SmileIdentity = (window as any).SmileIdentity;
-  if (!SmileIdentity) {
-    this.errorMessage.set('SmileID SDK failed to load. Please refresh and try again.');
-    return;
-  }
-  
-  if (!session.token) {
-    this.errorMessage.set('SmileID session token is missing. Please try again.');
-    this.kycState.set('failed');
-    return;
-  }
-
-  // CORRECT: v12 SDK expects flat id_info structure
-  // The backend already returns the correct id_number (sandbox: 0000000000000, production: real ID)
-  const idInfo = {
-    id_number: String(session.idInfo?.id_number ?? '').trim(),
-    country: "ZA",
-    id_type: "NATIONAL_ID"
-  };
-
-  const formattedUserDetails = session.userDetails ? {
-    ...session.userDetails,
-    phone_number: this.normalizeSmilePhone(session.userDetails.phone_number),
-  } : undefined;
-
-  SmileIdentity({
-    token: session.token,
-    product: session.product ?? 'biometric_kyc',
-    environment: session.environment ?? 'sandbox',
-    callback_url: session.callbackUrl ?? '',
-    container,
-    consent_information: {
-      granted: true,
-      granted_at: new Date().toISOString(),
-      notice_language: 'EN',
-      notice_privacy_policy_url: 'https://secureexchange.co.za/privacy',
-    },
-    user_details: formattedUserDetails,
-    id_info: idInfo,
-    partner_details: {
-      partner_id: session.partnerId ?? '8811',
-      name: 'SecureX',
-      logo_url: 'https://secureexchange.co.za/favicon.ico',
-      policy_url: 'https://secureexchange.co.za/terms',
-      theme_color: '#1d4ed8',
-    },
-    partner_params: session.partnerParams,
-    onResult: (result: { status?: string; error?: { message?: string } }) => {
-      if (result.status === 'success') {
-        this.pollSellerVerification();
-      } else if (result.status === 'cancelled') {
-        this.kycState.set('idle');
-      } else {
-        this.errorMessage.set(result.error?.message ?? 'Identity verification failed. Please try again.');
+  private waitForContainerThenLaunch(session: SmileSession) {
+    let attempts = 0;
+    const poll = setInterval(() => {
+      attempts++;
+      if (attempts > 20) {
+        clearInterval(poll);
+        this.errorMessage.set('Verification widget failed to load. Please refresh and try again.');
         this.kycState.set('failed');
+        return;
       }
-    },
-    onClose: () => { if (this.kycState() === 'pending') this.kycState.set('idle'); },
-  });
-}
+      if (document.getElementById('smile-id-container')) {
+        clearInterval(poll);
+        this.launchSmileIdSdk(session);
+      }
+    }, 50);
+  }
+
+  private launchSmileIdSdk(session: SmileSession) {
+    const container = document.getElementById('smile-id-container');
+    if (!container) { console.warn('SecureX: Smile ID container not found'); return; }
+
+    container.innerHTML = '';
+
+    const SmileIdentity = (window as any).SmileIdentity;
+    if (!SmileIdentity) {
+      this.errorMessage.set('SmileID SDK failed to load. Please refresh and try again.');
+      return;
+    }
+    if (!session.token) {
+      this.errorMessage.set('SmileID session token is missing. Please try again.');
+      this.kycState.set('failed');
+      return;
+    }
+
+    SmileIdentity({
+      token: session.token,
+      product: session.product ?? 'biometric_kyc',
+      environment: session.environment ?? 'sandbox',
+      callback_url: session.callbackUrl ?? '',
+      container,
+      consent_information: {
+        granted: true,
+        granted_at: new Date().toISOString(),
+        notice_language: 'EN',
+        notice_privacy_policy_url: 'https://secureexchange.co.za/privacy',
+      },
+      user_details: session.userDetails ? {
+        ...session.userDetails,
+        phone_number: this.normalizeSmilePhone(session.userDetails.phone_number),
+      } : undefined,
+      id_info: {
+        id_number: String(session.idInfo?.id_number ?? '').trim(),
+        country: 'ZA',
+        id_type: 'NATIONAL_ID',
+      },
+      partner_details: {
+        partner_id: session.partnerId ?? '8811',
+        name: 'SecureX',
+        logo_url: 'https://secureexchange.co.za/favicon.ico',
+        policy_url: 'https://secureexchange.co.za/terms',
+        theme_color: '#1d4ed8',
+      },
+      partner_params: session.partnerParams,
+      onResult: (result: { status?: string; error?: { message?: string } }) => {
+        if (result.status === 'success') {
+          this.pollSellerVerification();
+        } else if (result.status === 'cancelled') {
+          this.kycState.set('idle');
+        } else {
+          this.errorMessage.set(result.error?.message ?? 'Identity verification failed. Please try again.');
+          this.kycState.set('failed');
+        }
+      },
+      onClose: () => { if (this.kycState() === 'pending') this.kycState.set('idle'); },
+    });
+  }
 
   private pollSellerVerification() {
     this.kycState.set('pending');
@@ -213,12 +213,10 @@ private launchSmileIdSdk(session: {
       )
     ).subscribe({
       next: tx => {
-        if (tx.Seller?.LivenessStatus === 'Approved' &&
-            tx.Seller?.IdCheckStatus === 'Approved') {
+        if (tx.Seller?.LivenessStatus === 'Approved' && tx.Seller?.IdCheckStatus === 'Approved') {
           this.kycState.set('approved');
           this.verified.set('Approved');
-        } else if (tx.Seller?.LivenessStatus === 'Failed' ||
-                   tx.Seller?.IdCheckStatus === 'Failed') {
+        } else if (tx.Seller?.LivenessStatus === 'Failed' || tx.Seller?.IdCheckStatus === 'Failed') {
           this.kycState.set('failed');
         }
       },
