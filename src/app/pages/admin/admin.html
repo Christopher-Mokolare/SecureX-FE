@@ -24,12 +24,14 @@
 
     <!-- Tabs -->
     <div class="flex space-x-1 mb-6 border-b border-gray-200">
-      @for (t of [['transactions','Transactions'],['users','Users'],['stats','Stats'],['audit','Audit Log']]; track t[0]) {
-        <button (click)="setTab(t[0] as any)"
-          [class]="tab() === t[0] ? 'px-5 py-2 text-sm font-medium border-b-2 border-blue-600 text-blue-600' : 'px-5 py-2 text-sm font-medium text-gray-500 hover:text-gray-700'">
-          {{ t[1] }}
-        </button>
-      }
+      <button (click)="setTab('transactions')"
+        [class]="tab() === 'transactions' ? 'px-5 py-2 text-sm font-medium border-b-2 border-blue-600 text-blue-600' : 'px-5 py-2 text-sm font-medium text-gray-500 hover:text-gray-700'">Transactions</button>
+      <button (click)="setTab('users')"
+        [class]="tab() === 'users' ? 'px-5 py-2 text-sm font-medium border-b-2 border-blue-600 text-blue-600' : 'px-5 py-2 text-sm font-medium text-gray-500 hover:text-gray-700'">Users</button>
+      <button (click)="setTab('stats')"
+        [class]="tab() === 'stats' ? 'px-5 py-2 text-sm font-medium border-b-2 border-blue-600 text-blue-600' : 'px-5 py-2 text-sm font-medium text-gray-500 hover:text-gray-700'">Stats</button>
+      <button (click)="setTab('audit')"
+        [class]="tab() === 'audit' ? 'px-5 py-2 text-sm font-medium border-b-2 border-blue-600 text-blue-600' : 'px-5 py-2 text-sm font-medium text-gray-500 hover:text-gray-700'">Audit Log</button>
     </div>
 
     @if (error()) {
@@ -293,20 +295,31 @@
 
         <!-- Buyer & Seller -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          @for (party of [['Buyer', d.transaction.buyer], ['Seller', d.transaction.seller]]; track party[0]) {
-            @if (party[1]; as p) {
-              <div class="border border-gray-200 rounded-lg p-4 text-sm">
-                <p class="text-xs font-semibold text-gray-500 uppercase mb-2">{{ party[0] }}</p>
-                <p class="font-medium">{{ p.fullName }}</p>
-                <p class="text-gray-500 text-xs mb-2">{{ p.email }}</p>
-                <div class="space-y-1">
-                  <div class="flex justify-between"><span class="text-gray-500">ID Check</span><span [class]="'px-2 py-0.5 rounded-full text-xs font-medium ' + statusBadge(p.idCheckStatus)">{{ p.idCheckStatus }}</span></div>
-                  <div class="flex justify-between"><span class="text-gray-500">AML</span><span [class]="'px-2 py-0.5 rounded-full text-xs font-medium ' + statusBadge(p.amlStatus)">{{ p.amlStatus }}</span></div>
-                  <div class="flex justify-between"><span class="text-gray-500">Liveness</span><span [class]="'px-2 py-0.5 rounded-full text-xs font-medium ' + statusBadge(p.livenessStatus)">{{ p.livenessStatus }}</span></div>
-                  <div class="flex justify-between"><span class="text-gray-500">Bank</span><span [class]="'px-2 py-0.5 rounded-full text-xs font-medium ' + statusBadge(p.bankVerificationStatus)">{{ p.bankVerificationStatus }}</span></div>
-                </div>
+          @if (d.transaction.buyer; as p) {
+            <div class="border border-gray-200 rounded-lg p-4 text-sm">
+              <p class="text-xs font-semibold text-gray-500 uppercase mb-2">Buyer</p>
+              <p class="font-medium">{{ p.fullName }}</p>
+              <p class="text-gray-500 text-xs mb-2">{{ p.email }}</p>
+              <div class="space-y-1">
+                <div class="flex justify-between"><span class="text-gray-500">ID Check</span><span [class]="'px-2 py-0.5 rounded-full text-xs font-medium ' + statusBadge(p.idCheckStatus)">{{ p.idCheckStatus }}</span></div>
+                <div class="flex justify-between"><span class="text-gray-500">AML</span><span [class]="'px-2 py-0.5 rounded-full text-xs font-medium ' + statusBadge(p.amlStatus)">{{ p.amlStatus }}</span></div>
+                <div class="flex justify-between"><span class="text-gray-500">Liveness</span><span [class]="'px-2 py-0.5 rounded-full text-xs font-medium ' + statusBadge(p.livenessStatus)">{{ p.livenessStatus }}</span></div>
+                <div class="flex justify-between"><span class="text-gray-500">Bank</span><span [class]="'px-2 py-0.5 rounded-full text-xs font-medium ' + statusBadge(p.bankVerificationStatus)">{{ p.bankVerificationStatus }}</span></div>
               </div>
-            }
+            </div>
+          }
+          @if (d.transaction.seller; as p) {
+            <div class="border border-gray-200 rounded-lg p-4 text-sm">
+              <p class="text-xs font-semibold text-gray-500 uppercase mb-2">Seller</p>
+              <p class="font-medium">{{ p.fullName }}</p>
+              <p class="text-gray-500 text-xs mb-2">{{ p.email }}</p>
+              <div class="space-y-1">
+                <div class="flex justify-between"><span class="text-gray-500">ID Check</span><span [class]="'px-2 py-0.5 rounded-full text-xs font-medium ' + statusBadge(p.idCheckStatus)">{{ p.idCheckStatus }}</span></div>
+                <div class="flex justify-between"><span class="text-gray-500">AML</span><span [class]="'px-2 py-0.5 rounded-full text-xs font-medium ' + statusBadge(p.amlStatus)">{{ p.amlStatus }}</span></div>
+                <div class="flex justify-between"><span class="text-gray-500">Liveness</span><span [class]="'px-2 py-0.5 rounded-full text-xs font-medium ' + statusBadge(p.livenessStatus)">{{ p.livenessStatus }}</span></div>
+                <div class="flex justify-between"><span class="text-gray-500">Bank</span><span [class]="'px-2 py-0.5 rounded-full text-xs font-medium ' + statusBadge(p.bankVerificationStatus)">{{ p.bankVerificationStatus }}</span></div>
+              </div>
+            </div>
           }
         </div>
 
@@ -377,15 +390,27 @@
     <div class="bg-white rounded-xl shadow-xl p-6 w-full max-w-sm">
       <h2 class="text-lg font-bold text-gray-800 mb-4">Override KYC — {{ kycTarget()!.fullName }}</h2>
       <div class="space-y-3">
-        @for (field of [['ID Check','idCheck'],['AML','aml'],['Liveness','liveness']]; track field[0]) {
-          <div>
-            <label class="block text-xs text-gray-500 mb-1">{{ field[0] }}</label>
-            <select [(ngModel)]="kycForm[field[1] as 'idCheck'|'aml'|'liveness']"
-              class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
-              @for (s of kycStatuses; track s) { <option [value]="s">{{ s }}</option> }
-            </select>
-          </div>
-        }
+        <div>
+          <label class="block text-xs text-gray-500 mb-1">ID Check</label>
+          <select [(ngModel)]="kycForm.idCheck"
+            class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
+            @for (s of kycStatuses; track s) { <option [value]="s">{{ s }}</option> }
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs text-gray-500 mb-1">AML</label>
+          <select [(ngModel)]="kycForm.aml"
+            class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
+            @for (s of kycStatuses; track s) { <option [value]="s">{{ s }}</option> }
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs text-gray-500 mb-1">Liveness</label>
+          <select [(ngModel)]="kycForm.liveness"
+            class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
+            @for (s of kycStatuses; track s) { <option [value]="s">{{ s }}</option> }
+          </select>
+        </div>
       </div>
       <div class="flex gap-3 mt-5">
         <button (click)="saveKyc()" class="flex-1 bg-blue-600 text-white py-2 rounded font-medium hover:bg-blue-700">Save</button>
