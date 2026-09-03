@@ -1,10 +1,10 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule, DecimalPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { AdminService, AdminTransaction, AdminUser, AdminStats, TxStatusCount, TransactionDetail, AuditEntry } from '../../services/admin';
+import { AdminService, AdminTransaction, AdminUser, AdminStats, TxStatusCount, TransactionDetail, AuditEntry, PayoutFailure, MissingPayout, ReconciliationEntry } from '../../services/admin';
 import { AuthService } from '../../services/auth';
 
-type Tab = 'transactions' | 'users' | 'stats' | 'audit';
+type Tab = 'transactions' | 'users' | 'stats' | 'audit' | 'payouts' | 'reconciliation';
 
 @Component({
   selector: 'app-admin',
@@ -55,6 +55,17 @@ export class Admin implements OnInit {
   auditPage = signal(1);
   auditSearch = signal('');
 
+  // payouts
+  payoutFailures = signal<PayoutFailure[]>([]);
+  payoutFailuresTotal = signal(0);
+  payoutFailuresPage = signal(1);
+  missingPayouts = signal<MissingPayout[]>([]);
+
+  // reconciliation
+  reconList = signal<ReconciliationEntry[]>([]);
+  reconTotal = signal(0);
+  reconPage = signal(1);
+
   // kyc override modal
   kycTarget = signal<AdminUser | null>(null);
   kycForm = { idCheck: '', aml: '', liveness: '' };
@@ -84,6 +95,8 @@ export class Admin implements OnInit {
     if (t === 'users') this.loadUsers();
     if (t === 'stats') this.loadStats();
     if (t === 'audit') this.loadAudit();
+    if (t === 'payouts') this.loadPayouts();
+    if (t === 'reconciliation') this.loadReconciliation();
   }
 
   // ── Transactions ────────────────────────────────────────────────────────────
@@ -193,6 +206,13 @@ export class Admin implements OnInit {
     );
   }
 
+  retryKyc(user: AdminUser) {
+    this.svc.retryKyc(user.id).subscribe({
+      next: () => this.loadUsers(),
+      error: (e) => this.error.set(e.error?.error ?? 'KYC re-submission failed'),
+    });
+  }
+
   openKyc(user: AdminUser) {
     this.kycTarget.set(user);
     this.kycForm = { idCheck: user.idCheckStatus, aml: user.amlStatus, liveness: user.livenessStatus };
@@ -223,6 +243,37 @@ export class Admin implements OnInit {
     this.svc.getAuditLog({ page: this.auditPage(), size: 50, search: this.auditSearch() }).subscribe({
       next: r => { this.auditList.set(r.items); this.auditTotal.set(r.total); this.loading.set(false); },
       error: () => { this.error.set('Failed to load audit log'); this.loading.set(false); },
+    });
+  }
+
+  // ── Payouts ──────────────────────────────────────────────────────────────────
+  loadPayouts() {
+    this.loading.set(true);
+    this.error.set('');
+    this.svc.getPayoutFailures({ page: this.payoutFailuresPage(), size: 50 }).subscribe({
+      next: r => { this.payoutFailures.set(r.items); this.payoutFailuresTotal.set(r.total); },
+      error: () => this.error.set('Failed to load payout failures'),
+    });
+    this.svc.getMissingPayouts().subscribe({
+      next: r => { this.missingPayouts.set(r); this.loading.set(false); },
+      error: () => { this.error.set('Failed to load missing payouts'); this.loading.set(false); },
+    });
+  }
+
+  retryMissingPayout(txId: string) {
+    this.svc.retryPayout(txId).subscribe({
+      next: () => this.loadPayouts(),
+      error: (e) => this.error.set(e.error?.error ?? 'Retry failed'),
+    });
+  }
+
+  // ── Reconciliation ───────────────────────────────────────────────────────────
+  loadReconciliation() {
+    this.loading.set(true);
+    this.error.set('');
+    this.svc.getReconciliation({ page: this.reconPage(), size: 30 }).subscribe({
+      next: r => { this.reconList.set(r.items); this.reconTotal.set(r.total); this.loading.set(false); },
+      error: () => { this.error.set('Failed to load reconciliation'); this.loading.set(false); },
     });
   }
 

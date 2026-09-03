@@ -73,6 +73,39 @@ export interface AdminUser {
   createdAt: string;
 }
 
+export interface PayoutFailure {
+  id: number;
+  payoutId: string;
+  merchantReference?: string;
+  status: number;
+  subStatus?: number;
+  reason?: string;
+  hashValid: boolean;
+  duplicate: boolean;
+  createdAt: string;
+}
+
+export interface MissingPayout {
+  id: string;
+  dealReference: string;
+  itemValue: number;
+  sellerFee: number;
+  sellerPayout: number;
+  sellerEmail?: string;
+  sellerKycComplete: boolean;
+  sellerHasBank: boolean;
+  createdAt: string;
+}
+
+export interface ReconciliationEntry {
+  id: string;
+  runAt: string;
+  expectedFloat: number;
+  ozowFloat: number;
+  discrepancy: number;
+  alertFired: boolean;
+}
+
 export interface TxStatusCount { status: string; count: number; }
 
 export interface AdminStats {
@@ -142,6 +175,22 @@ export class AdminService {
 
   getAuditLog(params: { page?: number; size?: number; search?: string; fromDate?: string; toDate?: string }): Observable<PagedResult<AuditEntry>> {
     return this.http.get<PagedResult<AuditEntry>>(`${this.base}/audit?${this.qs(params)}`);
+  }
+
+  getReconciliation(params: { page?: number; size?: number }): Observable<PagedResult<ReconciliationEntry>> {
+    return this.http.get<PagedResult<ReconciliationEntry>>(`${this.base}/reconciliation?${this.qs(params)}`);
+  }
+
+  getPayoutFailures(params: { page?: number; size?: number }): Observable<PagedResult<PayoutFailure>> {
+    return this.http.get<PagedResult<PayoutFailure>>(`${this.base}/payout-failures?${this.qs(params)}`);
+  }
+
+  getMissingPayouts(): Observable<MissingPayout[]> {
+    return this.http.get<MissingPayout[]>(`${this.base}/missing-payouts`);
+  }
+
+  retryKyc(userId: string): Observable<{ jobId: string; message: string }> {
+    return this.http.post<{ jobId: string; message: string }>(`${this.base}/users/${userId}/retry-kyc`, {});
   }
 
   private qs(params: Record<string, unknown>): string {

@@ -32,6 +32,13 @@
         [class]="tab() === 'stats' ? 'px-5 py-2 text-sm font-medium border-b-2 border-blue-600 text-blue-600' : 'px-5 py-2 text-sm font-medium text-gray-500 hover:text-gray-700'">Stats</button>
       <button (click)="setTab('audit')"
         [class]="tab() === 'audit' ? 'px-5 py-2 text-sm font-medium border-b-2 border-blue-600 text-blue-600' : 'px-5 py-2 text-sm font-medium text-gray-500 hover:text-gray-700'">Audit Log</button>
+      <button (click)="setTab('payouts')"
+        [class]="tab() === 'payouts' ? 'px-5 py-2 text-sm font-medium border-b-2 border-blue-600 text-blue-600' : 'px-5 py-2 text-sm font-medium text-gray-500 hover:text-gray-700'">
+        Payouts
+        @if (missingPayouts().length > 0) { <span class="ml-1 px-1.5 py-0.5 bg-red-500 text-white text-xs rounded-full">{{ missingPayouts().length }}</span> }
+      </button>
+      <button (click)="setTab('reconciliation')"
+        [class]="tab() === 'reconciliation' ? 'px-5 py-2 text-sm font-medium border-b-2 border-blue-600 text-blue-600' : 'px-5 py-2 text-sm font-medium text-gray-500 hover:text-gray-700'">Reconciliation</button>
     </div>
 
     @if (error()) {
