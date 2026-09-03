@@ -1,20 +1,9 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { interval, switchMap, take, takeWhile } from 'rxjs';
-import { AuthService } from '../../services/auth';
-import { TransactionService, OzowBank } from '../../services/transaction';
-
-type SmileSession = {
-  token?: string;
-  product?: string;
-  environment?: string;
-  callbackUrl?: string;
-  partnerId?: string;
-  userDetails?: { given_names: string; last_name: string; email: string; phone_number: string };
-  idInfo?: { id_number: string };
-  partnerParams?: { internal_reference: string; deal_reference: string; verification_type: string };
-};
+import { TransactionService, OzowBank, SmileSession } from '../../services/transaction';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-bank-details',
@@ -22,10 +11,11 @@ type SmileSession = {
   imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './bank-details.html',
 })
-export class BankDetails implements OnInit {
+export class BankDetails implements OnInit, OnDestroy {
+  private readonly allowedOrigin = environment.production ? 'https://cdn.usesmileid.com' : '*';
+  private messageListener!: (e: MessageEvent) => void;
   private route = inject(ActivatedRoute);
   private fb = inject(FormBuilder);
-  private auth = inject(AuthService);
   private txService = inject(TransactionService);
 
   sellerId = signal<string>('');
@@ -61,12 +51,18 @@ export class BankDetails implements OnInit {
       error: () => { this.loadingBanks.set(false); }
     });
 
-    window.addEventListener('message', (event) => {
+    this.messageListener = (event: MessageEvent) => {
+      if (this.allowedOrigin !== '*' && event.origin !== this.allowedOrigin) return;
       if (event.data?.smile_id_result) {
         const passed = event.data.smile_id_result === 'success';
         this.kycState.set(passed ? 'approved' : 'failed');
       }
-    });
+    };
+    window.addEventListener('message', this.messageListener);
+  }
+
+  ngOnDestroy() {
+    window.removeEventListener('message', this.messageListener);
   }
 
   isInvalid(field: string): boolean {
@@ -82,19 +78,15 @@ export class BankDetails implements OnInit {
     const v = this.form.value;
     const bank = this.selectedBank;
 
-    this.auth.getToken(this.sellerEmail()).pipe(
-      switchMap(token =>
-        this.txService.saveBankDetails(this.sellerId(), {
+    this.txService.saveBankDetails(this.sellerId(), {
           AccountNumber: v.accountNumber!,
           BranchCode:    bank?.branchCode ?? '',
           BankGroupId:   v.bankGroupId!,
           IdNumber:      v.idNumber!,
-        }, token).pipe(
-          switchMap(() => this.txService.startSellerKyc(this.transactionId(), token))
-        )
-      )
-    ).subscribe({
-      next: res => {
+        }).pipe(
+          switchMap(() => this.txService.startSellerKyc(this.transactionId()))
+        ).subscribe({
+      next: (res: SmileSession) => {
         this.submitting.set(false);
         if ('status' in res && res.status === 'Approved') {
           this.kycState.set('approved');
@@ -104,7 +96,7 @@ export class BankDetails implements OnInit {
           this.waitForContainerThenLaunch(res);
         }
       },
-      error: err => {
+      error: (err: { error?: { Error?: string; error?: string } }) => {
         this.errorMessage.set(err?.error?.Error ?? err?.error?.error ?? 'Submission failed. Please try again.');
         this.submitting.set(false);
       }
@@ -202,16 +194,13 @@ export class BankDetails implements OnInit {
 
   private pollSellerVerification() {
     this.kycState.set('pending');
-    this.auth.getToken(this.sellerEmail()).pipe(
-      switchMap(token =>
-        interval(3000).pipe(
-          switchMap(() => this.txService.getById(this.transactionId(), token)),
-          takeWhile(tx =>
-            tx.Seller?.LivenessStatus === 'Pending' &&
-            tx.Seller?.IdCheckStatus !== 'Failed', true),
-          take(20)
-        )
-      )
+    interval(3000).pipe(
+      switchMap(() => this.txService.getById(this.transactionId())),
+      takeWhile(tx =>
+        tx.Seller?.LivenessStatus !== 'Approved' &&
+        tx.Seller?.LivenessStatus !== 'Failed' &&
+        tx.Seller?.IdCheckStatus !== 'Failed', true),
+      take(20)
     ).subscribe({
       next: tx => {
         if (tx.Seller?.LivenessStatus === 'Approved' && tx.Seller?.IdCheckStatus === 'Approved') {

@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
@@ -19,13 +19,36 @@ export interface CreateTransactionRequest {
   FeePayer: 'Buyer' | 'Seller' | 'Split';
 }
 
-export interface CreateTransactionResponse {
-  DealReference: string;
+export interface UserSummary {
   Id: string;
+  FullName: string;
+  Email: string;
+  Phone: string;
+  BankVerificationStatus: string;
+  IdCheckStatus: string;
+  AmlStatus: string;
+  LivenessStatus: string;
+}
+
+export interface CreateTransactionResponse {
+  Id: string;
+  DealReference: string;
   Status: string;
+  ItemTitle: string;
+  ItemDescription: string;
+  SellerLocation: string;
+  ItemValue: number;
+  PlatformFee: number;
+  BuyerFee: number;
+  SellerFee: number;
+  TotalCheckoutAmount: number;
+  ServiceType: string;
+  Version: number;
   PaymentRedirectUrl: string | null;
-  Buyer?: { Id: string; FullName: string; Email: string; IdCheckStatus: string; AmlStatus: string; LivenessStatus: string; };
-  Seller?: { Id: string; FullName: string; Email: string; IdCheckStatus?: string; AmlStatus?: string; LivenessStatus?: string; };
+  CreatedAt: string;
+  InspectionWindowEndsAt: string | null;
+  Buyer?: UserSummary;
+  Seller?: UserSummary;
 }
 
 export interface OzowBank {
@@ -41,33 +64,38 @@ export interface BankDetailsRequest {
   IdNumber: string;
 }
 
+export interface SmileSession {
+  status?: string;
+  token?: string;
+  product?: string;
+  environment?: string;
+  callbackUrl?: string;
+  partnerId?: string;
+  userDetails?: { given_names: string; last_name: string; email: string; phone_number: string };
+  idInfo?: { id_number: string };
+  partnerParams?: { internal_reference: string; deal_reference: string; verification_type: string };
+}
+
 export interface FeePreview {
   itemValue: number;
-  serviceType: string;
-  feePayer: string;
-  escrowFee: number;
-  buyerPays: number;
-  sellerReceives: number;
+  platformFee: number;
+  buyerFee: number;
+  sellerFee: number;
+  totalCheckoutAmount: number;
+  sellerPayout: number;
 }
 
 @Injectable({ providedIn: 'root' })
 export class TransactionService {
   private http = inject(HttpClient);
 
-  create(body: CreateTransactionRequest, token: string): Observable<CreateTransactionResponse> {
-    const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
-    return this.http.post<CreateTransactionResponse>(
-      `${environment.apiBase}/api/transactions`,
-      body,
-      { headers }
-    );
+  create(body: CreateTransactionRequest): Observable<CreateTransactionResponse> {
+    return this.http.post<CreateTransactionResponse>(`${environment.apiBase}/api/transactions`, body);
   }
 
-  feePreview(itemValue: number, serviceType: string, feePayer: string, token: string): Observable<FeePreview> {
-    const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
+  feePreview(itemValue: number, serviceType: string, feePayer: string): Observable<FeePreview> {
     return this.http.get<FeePreview>(
-      `${environment.apiBase}/api/transactions/fee-preview?itemValue=${itemValue}&serviceType=${serviceType}&feePayer=${feePayer}`,
-      { headers }
+      `${environment.apiBase}/api/transactions/fee-preview?itemValue=${itemValue}&serviceType=${serviceType}&feePayer=${feePayer}`
     );
   }
 
@@ -75,116 +103,58 @@ export class TransactionService {
     return this.http.get<OzowBank[]>(`${environment.apiBase}/api/users/banks`);
   }
 
-  saveBankDetails(userId: string, body: BankDetailsRequest, token: string): Observable<{ userId: string; bankVerificationStatus: string }> {
-    const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
+  saveBankDetails(userId: string, body: BankDetailsRequest): Observable<{ userId: string; bankVerificationStatus: string }> {
     return this.http.post<{ userId: string; bankVerificationStatus: string }>(
-      `${environment.apiBase}/api/users/${userId}/bank-details`,
-      body,
-      { headers }
+      `${environment.apiBase}/api/users/${userId}/bank-details`, body
     );
   }
 
-  startBuyerKyc(txId: string, token: string): Observable<{ idCheck: string; aml: string; jobId?: string }> {
-    const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
-    return this.http.post<{ idCheck: string; aml: string; jobId?: string }>(
-      `${environment.apiBase}/api/transactions/${txId}/start-buyer-kyc`,
-      {},
-      { headers }
+  startLogistics(txId: string, version: number): Observable<CreateTransactionResponse> {
+    return this.http.post<CreateTransactionResponse>(
+      `${environment.apiBase}/api/transactions/${txId}/start-logistics`,
+      { actor: 'seller', expectedVersion: version }
     );
   }
 
-  getById(txId: string, token: string): Observable<CreateTransactionResponse> {
-    const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
-    return this.http.get<CreateTransactionResponse>(
-      `${environment.apiBase}/api/transactions/${txId}`,
-      { headers }
-    );
+  getById(txId: string): Observable<CreateTransactionResponse> {
+    return this.http.get<CreateTransactionResponse>(`${environment.apiBase}/api/transactions/${txId}`);
   }
 
-  getPaymentLink(txId: string, token: string): Observable<{
-    txId: string;
-    dealReference: string;
-    totalAmount: number;
-    sellerId: string;
-    sellerEmail: string;
-    redirectUrl: string;
+  getPaymentLink(txId: string): Observable<{
+    txId: string; dealReference: string; totalAmount: number;
+    sellerId: string; sellerEmail: string; redirectUrl: string;
   }> {
-    const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
     return this.http.post<{
-      txId: string;
-      dealReference: string;
-      totalAmount: number;
-      sellerId: string;
-      sellerEmail: string;
-      redirectUrl: string;
-    }>(
-      `${environment.apiBase}/api/transactions/${txId}/payment-link`,
-      {},
-      { headers }
-    );
+      txId: string; dealReference: string; totalAmount: number;
+      sellerId: string; sellerEmail: string; redirectUrl: string;
+    }>(`${environment.apiBase}/api/transactions/${txId}/payment-link`, {});
   }
 
-  startSellerKyc(txId: string, token: string): Observable<{
-    status?: string;
-    token?: string;
-    product?: string;
-    environment?: string;
-    callbackUrl?: string;
-    partnerId?: string;
-    userDetails?: { given_names: string; last_name: string; email: string; phone_number: string };
-    idInfo?: { id_number: string };
-    partnerParams?: { internal_reference: string; deal_reference: string; verification_type: string };
-  }> {
-    const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
-    return this.http.post<{
-      status?: string;
-      token?: string;
-      product?: string;
-      environment?: string;
-      callbackUrl?: string;
-      partnerId?: string;
-      userDetails?: { given_names: string; last_name: string; email: string; phone_number: string };
-      idInfo?: { id_number: string };
-      partnerParams?: { internal_reference: string; deal_reference: string; verification_type: string };
-    }>(
-      `${environment.apiBase}/api/transactions/${txId}/start-seller-kyc`,
-      {},
-      { headers }
-    );
+  startSellerKyc(txId: string): Observable<SmileSession> {
+    return this.http.post<SmileSession>(`${environment.apiBase}/api/transactions/${txId}/start-seller-kyc`, {});
   }
 
-  getByRef(ref: string, token: string): Observable<CreateTransactionResponse> {
-    const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
-    return this.http.get<CreateTransactionResponse>(
-      `${environment.apiBase}/api/transactions/ref/${ref}`,
-      { headers }
-    );
+  getByRef(ref: string): Observable<CreateTransactionResponse> {
+    return this.http.get<CreateTransactionResponse>(`${environment.apiBase}/api/transactions/ref/${ref}`);
   }
 
-  markDelivered(txId: string, version: number, token: string): Observable<CreateTransactionResponse> {
-    const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
+  markDelivered(txId: string, version: number): Observable<CreateTransactionResponse> {
     return this.http.post<CreateTransactionResponse>(
       `${environment.apiBase}/api/transactions/${txId}/mark-delivered`,
-      { actor: 'seller', expectedVersion: version },
-      { headers }
+      { actor: 'seller', expectedVersion: version }
     );
   }
 
-  accept(txId: string, version: number, token: string): Observable<CreateTransactionResponse> {
-    const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
+  accept(txId: string, version: number): Observable<CreateTransactionResponse> {
     return this.http.post<CreateTransactionResponse>(
       `${environment.apiBase}/api/transactions/${txId}/accept`,
-      { actor: 'buyer', expectedVersion: version },
-      { headers }
+      { actor: 'buyer', expectedVersion: version }
     );
   }
 
-  reject(txId: string, reason: string, token: string): Observable<CreateTransactionResponse> {
-    const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
+  reject(txId: string, reason: string): Observable<CreateTransactionResponse> {
     return this.http.post<CreateTransactionResponse>(
-      `${environment.apiBase}/api/transactions/${txId}/reject`,
-      { reason },
-      { headers }
+      `${environment.apiBase}/api/transactions/${txId}/reject`, { Reason: reason }
     );
   }
 }

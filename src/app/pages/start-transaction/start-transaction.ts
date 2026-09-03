@@ -1,10 +1,11 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { switchMap, interval, takeWhile, take, filter, throwIfEmpty } from 'rxjs';
+import { switchMap, interval, takeWhile, take, tap } from 'rxjs';
 import { AuthService } from '../../services/auth';
 import { TransactionService } from '../../services/transaction';
 import { environment } from '../../../environments/environment';
+import { calcStandardFee, calcExpressFee, formatZar } from '../../utils/fee';
 
 @Component({
   selector: 'app-start-transaction',
@@ -49,15 +50,8 @@ export class StartTransaction {
     consent:         [false, Validators.requiredTrue],
   });
 
-  standardFee = computed(() => {
-    const v = this.form.get('itemValue')?.value ?? 0;
-    return v > 0 ? Math.max(v * 0.025, 150) : 0;
-  });
-
-  expressFee = computed(() => {
-    const v = this.form.get('itemValue')?.value ?? 0;
-    return v > 0 ? Math.max(v * 0.015, 150) + 250 : 0;
-  });
+  standardFee = computed(() => calcStandardFee(this.form.get('itemValue')?.value ?? 0));
+  expressFee = computed(() => calcExpressFee(this.form.get('itemValue')?.value ?? 0));
 
   activeFee = computed(() =>
     this.form.get('serviceType')?.value === 'VerifiedExpress'
@@ -71,9 +65,7 @@ export class StartTransaction {
     { value: 'Split', label: '50/50 Split' },
   ];
 
-  fmt(val: number): string {
-    return 'R' + val.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  }
+  fmt = formatZar;
 
   isInvalid(field: string): boolean {
     const c = this.form.get(field);
@@ -100,7 +92,7 @@ export class StartTransaction {
 
     // Step 1: create transaction
     this.auth.getToken(v.buyerEmail!).pipe(
-      switchMap(token =>
+      switchMap(() =>
         this.txService.create({
           BuyerFullName:   v.buyerFullName!,
           BuyerEmail:      v.buyerEmail!,
@@ -115,25 +107,27 @@ export class StartTransaction {
           SellerLocation:  v.sellerLocation!.trim(),
           ServiceType:     v.serviceType!,
           FeePayer:        v.feePayer!,
-        }, token).pipe(
+        }).pipe(
           switchMap(tx => {
             this.transactionId.set(tx.Id);
             this.dealReference.set(tx.DealReference);
             this.sellerId.set(tx.Seller?.Id ?? null);
             this.sellerEmail.set(v.sellerEmail!);
             this.kycStep.set('kyc');
-            // KYC runs inline on deal creation — poll until IdCheckStatus resolves
             return interval(3000).pipe(
-              switchMap(() => this.txService.getById(tx.Id, token)),
+              switchMap(() => this.txService.getById(tx.Id)),
               takeWhile(t => t.Buyer?.IdCheckStatus === 'Pending' || t.Buyer?.AmlStatus === 'Pending', true),
-              take(20), // max ~60s
-              filter(t => t.Buyer?.IdCheckStatus !== 'Pending' && t.Buyer?.AmlStatus !== 'Pending'),
-              throwIfEmpty(() => new Error('Identity verification timed out. Please try again.')),
+              take(20),
+              tap(t => {
+                if (t.Buyer?.IdCheckStatus === 'Pending' || t.Buyer?.AmlStatus === 'Pending') return;
+                if (t.Buyer?.IdCheckStatus !== 'Approved' || t.Buyer?.AmlStatus !== 'Approved')
+                  throw { error: { error: 'Identity or AML verification failed. Please check the submitted details.' } };
+              }),
               switchMap(t => {
                 if (t.Buyer?.IdCheckStatus !== 'Approved' || t.Buyer?.AmlStatus !== 'Approved')
                   throw { error: { error: 'Identity or AML verification failed. Please check the submitted details.' } };
                 this.kycStep.set('payment');
-                return this.txService.getPaymentLink(tx.Id, token);
+                return this.txService.getPaymentLink(tx.Id);
               })
             );
           })
@@ -146,6 +140,7 @@ export class StartTransaction {
           txId: res.txId,
           sellerId: res.sellerId,
           sellerEmail: res.sellerEmail,
+          buyerEmail: v.buyerEmail!,
         }));
         this.submitting.set(false);
         window.location.href = (res as any).redirectUrl;

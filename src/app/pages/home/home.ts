@@ -1,6 +1,7 @@
 import { Component, signal, computed } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { calcStandardFee, calcExpressFee, formatZar } from '../../utils/fee';
 
 @Component({
   selector: 'app-home',
@@ -11,21 +12,9 @@ import { FormsModule } from '@angular/forms';
 export class Home {
   dealAmount = signal<number | null>(null);
 
-  standardFee = computed(() => {
-    const amt = this.dealAmount() ?? 0;
-    if (amt <= 0) return 0;
-    return Math.max(amt * 0.025, 150);
-  });
-
-  expressFee = computed(() => {
-    const amt = this.dealAmount() ?? 0;
-    if (amt <= 0) return 0;
-    return Math.max(amt * 0.015, 150) + 250;
-  });
-
-  formatCurrency(val: number): string {
-    return 'R' + val.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  }
+  standardFee = computed(() => calcStandardFee(this.dealAmount() ?? 0));
+  expressFee = computed(() => calcExpressFee(this.dealAmount() ?? 0));
+  formatCurrency = formatZar;
 
   onAmountChange(val: string) {
     this.dealAmount.set(parseFloat(val) || null);

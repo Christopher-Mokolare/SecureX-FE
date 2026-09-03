@@ -1,5 +1,5 @@
 export const environment = {
   production: false,
-  apiBase: 'http://localhost:8080',
+  apiBase: 'https://securex-api-staging.onrender.com',
   smileIdSandbox: true
 };
