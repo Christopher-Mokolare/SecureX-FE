@@ -10,8 +10,8 @@ const BUYER_EMAIL = 'amina.clearwater@example.com';
 const BUYER_PHONE = '0821234567';
 const BUYER_ID    = '0000000000000';
 
-const SELLER_NAME  = 'Thapelo Mokwena';
-const SELLER_EMAIL = 'thapelo.mokwena@example.com';
+const SELLER_NAME  = 'Thomas Tom';
+const SELLER_EMAIL = 'thomas.tom@example.com';
 const SELLER_PHONE = '0834567890';
 
 if (!fs.existsSync(OUT)) fs.mkdirSync(OUT, { recursive: true });
@@ -116,7 +116,9 @@ async function shot(page, name) {
     await shot(page, '12-bank-details-form');
 
     await page.waitForSelector('select[formcontrolname="bankGroupId"]', { timeout: 10000 });
-    await page.selectOption('select[formcontrolname="bankGroupId"]', { label: /fnb|first national/i });
+    const opts = await page.locator('select[formcontrolname="bankGroupId"] option').allTextContents();
+    const fnbLabel = opts.find(o => /fnb|first national/i.test(o));
+    if (fnbLabel) await page.selectOption('select[formcontrolname="bankGroupId"]', { label: fnbLabel.trim() });
     await page.fill('[formcontrolname="accountNumber"]', '62345678901');
     await page.fill('[formcontrolname="idNumber"]',      '0000000000000');
     await shot(page, '13-bank-details-filled');

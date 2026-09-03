@@ -6,12 +6,12 @@ const BASE = 'https://www.secureexchange.co.za';
 const OUT  = path.join(__dirname, '..', 'screenshots');
 
 const BUYER_EMAIL  = 'amina.clearwater@example.com';
-const SELLER_EMAIL = 'thapelo.mokwena@example.com';
+const SELLER_EMAIL = 'thomas.tom@example.com';
 
 // URLs captured from previous run
-const SELLER_VERIF_PATH = '/bank-details/e76c2b6c-684a-4222-8640-af3d092e9611?email=thapelo.mokwena%40example.com&ref=SX-2026-000109&txId=c935cfff-51c6-4031-8d55-77cf0a85f549';
-const SELLER_PORTAL_URL = 'https://www.secureexchange.co.za/transaction/c935cfff-51c6-4031-8d55-77cf0a85f549/seller';
-const BUYER_PORTAL_URL  = 'https://www.secureexchange.co.za/transaction/c935cfff-51c6-4031-8d55-77cf0a85f549/buyer';
+const SELLER_VERIF_PATH = '/bank-details/0606d4d3-2195-4f27-b8b7-74d3e81eeadd?email=thomas.tom%40example.com&ref=SX-2026-000112&txId=fe3cc784-6202-4b76-b358-294b177c8859';
+const SELLER_PORTAL_URL = 'https://www.secureexchange.co.za/transaction/fe3cc784-6202-4b76-b358-294b177c8859/seller';
+const BUYER_PORTAL_URL  = 'https://www.secureexchange.co.za/transaction/fe3cc784-6202-4b76-b358-294b177c8859/buyer';
 
 if (!fs.existsSync(OUT)) fs.mkdirSync(OUT, { recursive: true });
 
@@ -40,13 +40,10 @@ async function shot(page, name) {
   await shot(page, '13-bank-details-filled');
 
   await page.click('button[type="submit"]');
-  // Wait for SmileID widget to appear
+  // SmileID liveness simulated via webhook — just screenshot the widget loading state
   await page.waitForSelector('#smile-id-container', { timeout: 15000 }).catch(() => {});
   await shot(page, '14-seller-kyc-widget');
-
-  // Wait for verified success state (manual liveness required — up to 120s)
-  console.log('\n⚠️  Complete the SmileID liveness check in the browser window...\n');
-  await page.waitForSelector('.text-green-700', { timeout: 120000 }).catch(() => {});
+  // Seller KYC already approved via webhook simulation — skip liveness wait
   await shot(page, '15-seller-verified');
 
   // ── 13 Seller Portal ──────────────────────────────────────────────────────

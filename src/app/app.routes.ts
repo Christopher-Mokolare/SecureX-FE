@@ -7,6 +7,8 @@ import { BankDetails } from './pages/bank-details/bank-details';
 import { PaymentReturn } from './pages/payment-return/payment-return';
 import { TransactionSeller } from './pages/transaction-seller/transaction-seller';
 import { TransactionBuyer } from './pages/transaction-buyer/transaction-buyer';
+import { Admin } from './pages/admin/admin';
+import { adminGuard } from './guards/admin.guard';
 
 export const routes: Routes = [
   { path: '', component: Home },
@@ -16,5 +18,6 @@ export const routes: Routes = [
   { path: 'transaction/:txId/seller', component: TransactionSeller },
   { path: 'transaction/:txId/buyer', component: TransactionBuyer },
   { path: 'terms', component: Terms },
+  { path: 'admin', component: Admin },
   { path: '**', component: NotFound },
 ];

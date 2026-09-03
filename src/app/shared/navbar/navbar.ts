@@ -1,5 +1,6 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+import { AuthService } from '../../services/auth';
 
 @Component({
   selector: 'app-navbar',
@@ -14,6 +15,9 @@ import { Router, RouterLink } from '@angular/router';
           <div class="hidden md:flex items-center space-x-6">
             <a href="javascript:void(0)" (click)="scrollTo('how-it-works')" class="text-gray-200 hover:text-white hover:underline cursor-pointer">How it Works</a>
             <a href="javascript:void(0)" (click)="scrollTo('pricing')" class="text-gray-200 hover:text-white hover:underline cursor-pointer">Pricing</a>
+            @if (auth.isAdmin()) {
+              <a routerLink="/admin" class="text-yellow-300 hover:text-yellow-100 font-medium">Admin</a>
+            }
             <a routerLink="/start"
                class="bg-gradient-to-r from-green-500 to-blue-600 text-white px-4 py-2 rounded-md font-medium shadow hover:from-green-600 hover:to-blue-700 transition">
               Start Transaction
@@ -33,6 +37,9 @@ import { Router, RouterLink } from '@angular/router';
         <div class="md:hidden bg-blue-800 border-t border-blue-700">
           <a href="javascript:void(0)" (click)="scrollTo('how-it-works'); menuOpen.set(false)" class="block py-3 px-4 text-gray-200 hover:bg-blue-700">How it Works</a>
           <a href="javascript:void(0)" (click)="scrollTo('pricing'); menuOpen.set(false)" class="block py-3 px-4 text-gray-200 hover:bg-blue-700">Pricing</a>
+          @if (auth.isAdmin()) {
+            <a routerLink="/admin" (click)="menuOpen.set(false)" class="block py-3 px-4 text-yellow-300 font-bold hover:bg-blue-700">Admin</a>
+          }
           <a routerLink="/start" (click)="menuOpen.set(false)" class="block py-3 px-4 text-green-400 font-bold hover:bg-blue-700">Start Transaction</a>
         </div>
       }
@@ -41,6 +48,8 @@ import { Router, RouterLink } from '@angular/router';
 })
 export class Navbar {
   menuOpen = signal(false);
+
+  auth = inject(AuthService);
 
   constructor(private router: Router) {}
 

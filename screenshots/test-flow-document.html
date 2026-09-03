@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SecureX — End-to-End Test Flow</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; color: #1e293b; }
+    header { background: #1d4ed8; color: white; padding: 40px; text-align: center; }
+    header h1 { font-size: 2rem; font-weight: 700; }
+    header p { margin-top: 8px; opacity: 0.85; font-size: 0.95rem; }
+    .meta { display: flex; justify-content: center; gap: 32px; margin-top: 20px; flex-wrap: wrap; }
+    .meta span { background: rgba(255,255,255,0.15); padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; }
+    .toc { max-width: 900px; margin: 40px auto; padding: 0 24px; }
+    .toc h2 { font-size: 1.1rem; font-weight: 600; margin-bottom: 16px; color: #475569; text-transform: uppercase; letter-spacing: 0.05em; }
+    .toc ol { padding-left: 20px; }
+    .toc li { margin: 6px 0; }
+    .toc a { color: #1d4ed8; text-decoration: none; font-size: 0.9rem; }
+    .toc a:hover { text-decoration: underline; }
+    .step { max-width: 900px; margin: 0 auto 60px; padding: 0 24px; }
+    .step-header { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 2px solid #e2e8f0; }
+    .step-num { background: #1d4ed8; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; flex-shrink: 0; }
+    .step-info h2 { font-size: 1.25rem; font-weight: 700; color: #0f172a; }
+    .step-info p { margin-top: 4px; color: #64748b; font-size: 0.9rem; line-height: 1.5; }
+    .step-info .url { font-family: monospace; font-size: 0.8rem; background: #f1f5f9; padding: 2px 8px; border-radius: 4px; color: #475569; display: inline-block; margin-top: 6px; }
+    .badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; margin-left: 8px; vertical-align: middle; }
+    .badge-buyer { background: #dbeafe; color: #1d4ed8; }
+    .badge-seller { background: #dcfce7; color: #15803d; }
+    .badge-system { background: #fef3c7; color: #92400e; }
+    .screenshot { width: 100%; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.12); border: 1px solid #e2e8f0; display: block; }
+    .screenshot-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .screenshot-pair .caption { text-align: center; font-size: 0.78rem; color: #94a3b8; margin-top: 8px; }
+    .data-table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.875rem; }
+    .data-table th { background: #f1f5f9; padding: 8px 12px; text-align: left; font-weight: 600; color: #475569; border: 1px solid #e2e8f0; }
+    .data-table td { padding: 8px 12px; border: 1px solid #e2e8f0; font-family: monospace; color: #334155; }
+    .note { background: #fef9c3; border-left: 4px solid #eab308; padding: 12px 16px; border-radius: 0 8px 8px 0; font-size: 0.85rem; color: #713f12; margin: 16px 0; }
+    .status-pill { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 0.78rem; font-weight: 600; }
+    .status-green { background: #dcfce7; color: #15803d; }
+    .status-blue { background: #dbeafe; color: #1d4ed8; }
+    .divider { max-width: 900px; margin: 0 auto 40px; padding: 0 24px; }
+    .divider hr { border: none; border-top: 1px solid #e2e8f0; }
+    footer { text-align: center; padding: 40px; color: #94a3b8; font-size: 0.8rem; background: #f1f5f9; margin-top: 60px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>SecureX — End-to-End Test Flow</h1>
+  <p>Full transaction lifecycle from deal creation to buyer acceptance</p>
+  <div class="meta">
+    <span>📅 3 September 2026</span>
+    <span>🔖 Deal: SX-2026-000110</span>
+    <span>🌐 secureexchange.co.za</span>
+    <span>🧪 Sandbox / Staging</span>
+  </div>
+</header>
+
+<div class="toc">
+  <h2>Table of Contents</h2>
+  <ol>
+    <li><a href="#step1">Home Page</a></li>
+    <li><a href="#step2">Start Transaction — Empty Form</a></li>
+    <li><a href="#step3">Deal Basics Filled</a></li>
+    <li><a href="#step4">Financials</a></li>
+    <li><a href="#step5">Buyer Details</a></li>
+    <li><a href="#step6">Seller Details</a></li>
+    <li><a href="#step7">Consent &amp; Fee Summary</a></li>
+    <li><a href="#step8">KYC Verification in Progress</a></li>
+    <li><a href="#step9">Payment Redirect</a></li>
+    <li><a href="#step10">Ozow Payment Page</a></li>
+    <li><a href="#step11">Payment Return</a></li>
+    <li><a href="#step12">Seller Bank Details — Empty Form</a></li>
+    <li><a href="#step13">Seller Bank Details — Filled</a></li>
+    <li><a href="#step14">Seller KYC Widget</a></li>
+    <li><a href="#step15">Seller Verified</a></li>
+    <li><a href="#step16">Seller Portal — Auth</a></li>
+    <li><a href="#step17">Seller Portal — Funds Secured</a></li>
+    <li><a href="#step18">Seller Portal — Logistics Pending</a></li>
+    <li><a href="#step19">Seller Portal — Marked as Delivered</a></li>
+    <li><a href="#step20">Buyer Portal — Auth</a></li>
+    <li><a href="#step21">Buyer Portal — Item Delivered</a></li>
+    <li><a href="#step22">Buyer Portal — Payment Released</a></li>
+  </ol>
+</div>
+
+<!-- STEP 1 -->
+<div class="step" id="step1">
+  <div class="step-header">
+    <div class="step-num">1</div>
+    <div class="step-info">
+      <h2>Home Page</h2>
+      <p>Landing page with fee calculator and product overview. Buyer clicks "Start a Deal" to begin.</p>
+      <span class="url">https://www.secureexchange.co.za/</span>
+    </div>
+  </div>
+  <img src="01-home.png" class="screenshot" alt="Home page">
+</div>
+<div class="divider"><hr></div>
+
+<!-- STEP 2 -->
+<div class="step" id="step2">
+  <div class="step-header">
+    <div class="step-num">2</div>
+    <div class="step-info">
+      <h2>Start Transaction — Empty Form <span class="badge badge-buyer">Buyer</span></h2>
+      <p>The transaction creation form. Buyer fills in deal details, financials, buyer and seller information.</p>
+      <span class="url">https://www.secureexchange.co.za/start</span>
+    </div>
+  </div>
+  <img src="02-start-empty.png" class="screenshot" alt="Start transaction empty form">
+</div>
+<div class="divider"><hr></div>
+
+<!-- STEP 3 -->
+<div class="step" id="step3">
+  <div class="step-header">
+    <div class="step-num">3</div>
+    <div class="step-info">
+      <h2>Deal Basics Filled <span class="badge badge-buyer">Buyer</span></h2>
+      <p>Item title, description, agreed price and seller location entered.</p>
+      <table class="data-table" style="margin-top:12px">
+        <tr><th>Field</th><th>Value</th></tr>
+        <tr><td>Item Title</td><td>iPhone 15 Pro</td></tr>
+        <tr><td>Description</td><td>Phone has minor scratches on the back, screen is perfect.</td></tr>
+        <tr><td>Agreed Price</td><td>R 5,000.00</td></tr>
+        <tr><td>Seller Location</td><td>Sandton, Johannesburg</td></tr>
+      </table>
+    </div>
+  </div>
+  <img src="03-deal-basics-filled.png" class="screenshot" alt="Deal basics filled">
+</div>
+<div class="divider"><hr></div>
+
+<!-- STEP 4 -->
+<div class="step" id="step4">
+  <div class="step-header">
+    <div class="step-num">4</div>
+    <div class="step-info">
+      <h2>Financials <span class="badge badge-buyer">Buyer</span></h2>
+      <p>Service type set to Standard Escrow (2.5%, min R150). Fee payer set to Buyer. Fee preview shown.</p>
+      <table class="data-table" style="margin-top:12px">
+        <tr><th>Field</th><th>Value</th></tr>
+        <tr><td>Service Type</td><td>Standard Escrow</td></tr>
+        <tr><td>Fee Payer</td><td>Buyer pays</td></tr>
+        <tr><td>Platform Fee</td><td>R 150.00</td></tr>
+        <tr><td>Total Checkout</td><td>R 5,150.00</td></tr>
+      </table>
+    </div>
+  </div>
+  <img src="04-financials.png" class="screenshot" alt="Financials section">
+</div>
+<div class="divider"><hr></div>
+
+<!-- STEP 5 -->
+<div class="step" id="step5">
+  <div class="step-header">
+    <div class="step-num">5</div>
+    <div class="step-info">
+      <h2>Buyer Details <span class="badge badge-buyer">Buyer</span></h2>
+      <p>Buyer identity filled using the sandbox "Fill test identity" button. Phone added manually.</p>
+      <table class="data-table" style="margin-top:12px">
+        <tr><th>Field</th><th>Value</th></tr>
+        <tr><td>Full Name</td><td>Amina Fatou Clearwater</td></tr>
+        <tr><td>Email</td><td>amina.clearwater@example.com</td></tr>
+        <tr><td>Phone</td><td>0821234567</td></tr>
+        <tr><td>SA ID Number</td><td>0000000000000</td></tr>
+      </table>
+    </div>
+  </div>
+  <img src="05-buyer-details.png" class="screenshot" alt="Buyer details">
+</div>
+<div class="divider"><hr></div>
+
+<!-- STEP 6 -->
+<div class="step" id="step6">
+  <div class="step-header">
+    <div class="step-num">6</div>
+    <div class="step-info">
+      <h2>Seller Details <span class="badge badge-buyer">Buyer</span></h2>
+      <p>Seller contact details entered by the buyer at deal creation time.</p>
+      <table class="data-table" style="margin-top:12px">
+        <tr><th>Field</th><th>Value</th></tr>
+        <tr><td>Full Name</td><td>Thapelo Mokwena</td></tr>
+        <tr><td>Email</td><td>thapelo.mokwena@example.com</td></tr>
+        <tr><td>Phone</td><td>0834567890</td></tr>
+      </table>
+    </div>
+  </div>
+  <img src="06-seller-details.png" class="screenshot" alt="Seller details">
+</div>
+<div class="divider"><hr></div>
+
+<!-- STEP 7 -->
+<div class="step" id="step7">
+  <div class="step-header">
+    <div class="step-num">7</div>
+    <div class="step-info">
+      <h2>Consent &amp; Fee Summary <span class="badge badge-buyer">Buyer</span></h2>
+      <p>Buyer accepts Terms &amp; Conditions. Fee summary displayed before submission.</p>
+    </div>
+  </div>
+  <img src="07-consent-fee-summary.png" class="screenshot" alt="Consent and fee summary">
+</div>
+<div class="divider"><hr></div>
+
+<!-- STEP 8 -->
+<div class="step" id="step8">
+  <div class="step-header">
+    <div class="step-num">8</div>
+    <div class="step-info">
+      <h2>KYC Verification in Progress <span class="badge badge-system">System</span></h2>
+      <p>After submission, the system runs SmileID Enhanced KYC + AML screening on the buyer. The button shows "Verifying identity…" while polling every 3 seconds.</p>
+    </div>
+  </div>
+  <img src="08-kyc-verifying.png" class="screenshot" alt="KYC verifying">
+</div>
+<div class="divider"><hr></div>
+
+<!-- STEP 9 -->
+<div class="step" id="step9">
+  <div class="step-header">
+    <div class="step-num">9</div>
+    <div class="step-info">
+      <h2>Payment Redirect <span class="badge badge-system">System</span></h2>
+      <p>KYC approved. System generates Ozow payment link and redirects buyer to the payment page.</p>
+    </div>
+  </div>
+  <img src="09-payment-step-or-redirect.png" class="screenshot" alt="Payment redirect">
+</div>
+<div class="divider"><hr></div>
+
+<!-- STEP 10 -->
+<div class="step" id="step10">
+  <div class="step-header">
+    <div class="step-num">10</div>
+    <div class="step-info">
+      <h2>Ozow Payment Page <span class="badge badge-buyer">Buyer</span></h2>
+      <p>Buyer completes payment on Ozow's hosted staging payment page. Amount: R 5,150.00 (item + fee).</p>
+      <span class="url">https://stagingpay.ozow.com/...</span>
+    </div>
+  </div>
+  <img src="10-ozow-payment-page.png" class="screenshot" alt="Ozow payment page">
+</div>
+<div class="divider"><hr></div>
+
+<!-- STEP 11 -->
+<div class="step" id="step11">
+  <div class="step-header">
+    <div class="step-num">11</div>
+    <div class="step-info">
+      <h2>Payment Return <span class="badge badge-system">System</span></h2>
+      <p>Ozow redirects back to SecureX after successful payment. Page shows deal reference, seller verification link, and portal links for both parties.</p>
+      <span class="url">https://www.secureexchange.co.za/payment-return</span>
+      <div class="note" style="margin-top:12px">⚠️ The seller verification link and both portal links are shown here. These should be shared with the respective parties.</div>
+    </div>
+  </div>
+  <img src="11-payment-return.png" class="screenshot" alt="Payment return">
+</div>
+<div class="divider"><hr></div>
+
+<!-- STEP 12 -->
+<div class="step" id="step12">
+  <div class="step-header">
+    <div class="step-num">12</div>
+    <div class="step-info">
+      <h2>Seller Bank Details — Empty Form <span class="badge badge-seller">Seller</span></h2>
+      <p>Seller opens their verification link. Bank dropdown is populated from the Ozow banks API. Seller must submit bank details before KYC can proceed.</p>
+      <span class="url">https://www.secureexchange.co.za/bank-details/:sellerId</span>
+    </div>
+  </div>
+  <img src="12-bank-details-form.png" class="screenshot" alt="Bank details empty form">
+</div>
+<div class="divider"><hr></div>
+
+<!-- STEP 13 -->
+<div class="step" id="step13">
+  <div class="step-header">
+    <div class="step-num">13</div>
+    <div class="step-info">
+      <h2>Seller Bank Details — Filled <span class="badge badge-seller">Seller</span></h2>
+      <p>Seller selects FNB, enters account number and SA ID number. Branch code is auto-filled.</p>
+      <table class="data-table" style="margin-top:12px">
+        <tr><th>Field</th><th>Value</th></tr>
+        <tr><td>Bank</td><td>FNB (First National Bank)</td></tr>
+        <tr><td>Account Number</td><td>62345678901</td></tr>
+        <tr><td>SA ID Number</td><td>0000000000000</td></tr>
+        <tr><td>Branch Code</td><td>250655 (auto-filled)</td></tr>
+      </table>
+    </div>
+  </div>
+  <img src="13-bank-details-filled.png" class="screenshot" alt="Bank details filled">
+</div>
+<div class="divider"><hr></div>
+
+<!-- STEP 14 -->
+<div class="step" id="step14">
+  <div class="step-header">
+    <div class="step-num">14</div>
+    <div class="step-info">
+      <h2>Seller KYC Widget <span class="badge badge-seller">Seller</span></h2>
+      <p>SmileID biometric KYC widget loads after bank details are saved. Seller completes liveness detection and identity verification. Country (ZA) and ID type (NATIONAL_ID) are pre-selected from the session token.</p>
+    </div>
+  </div>
+  <img src="14-seller-kyc-widget.png" class="screenshot" alt="Seller KYC widget">
+</div>
+<div class="divider"><hr></div>
+
+<!-- STEP 15 -->
+<div class="step" id="step15">
+  <div class="step-header">
+    <div class="step-num">15</div>
+    <div class="step-info">
+      <h2>Seller Verified <span class="badge badge-seller">Seller</span></h2>
+      <p>SmileID liveness and identity check passed. Seller is verified and will receive payout once the buyer accepts the item.</p>
+      <div style="margin-top:8px">
+        <span class="status-pill status-green">✅ Liveness: Approved</span>
+        &nbsp;
+        <span class="status-pill status-green">✅ ID Check: Approved</span>
+        &nbsp;
+        <span class="status-pill status-green">✅ AML: Approved</span>
+      </div>
+    </div>
+  </div>
+  <img src="15-seller-verified.png" class="screenshot" alt="Seller verified">
+</div>
+<div class="divider"><hr></div>
+
+<!-- STEP 16 -->
+<div class="step" id="step16">
+  <div class="step-header">
+    <div class="step-num">16</div>
+    <div class="step-info">
+      <h2>Seller Portal — Auth <span class="badge badge-seller">Seller</span></h2>
+      <p>Seller opens their portal link and authenticates with their email address.</p>
+      <span class="url">https://www.secureexchange.co.za/transaction/:txId/seller</span>
+    </div>
+  </div>
+  <img src="16-seller-portal-auth.png" class="screenshot" alt="Seller portal auth">
+</div>
+<div class="divider"><hr></div>
+
+<!-- STEP 17 -->
+<div class="step" id="step17">
+  <div class="step-header">
+    <div class="step-num">17</div>
+    <div class="step-info">
+      <h2>Seller Portal — Funds Secured <span class="badge badge-seller">Seller</span></h2>
+      <p>Transaction loaded. Status is <strong>FundsSecured</strong> — buyer's payment is held in escrow. Seller confirms logistics are arranged.</p>
+      <div style="margin-top:8px"><span class="status-pill status-blue">FundsSecured</span></div>
+    </div>
+  </div>
+  <img src="17-seller-funds-secured.png" class="screenshot" alt="Seller funds secured">
+</div>
+<div class="divider"><hr></div>
+
+<!-- STEP 18 -->
+<div class="step" id="step18">
+  <div class="step-header">
+    <div class="step-num">18</div>
+    <div class="step-info">
+      <h2>Seller Portal — Logistics Pending <span class="badge badge-seller">Seller</span></h2>
+      <p>Seller clicked "Confirm Logistics Arranged". Status advances to <strong>LogisticsPending</strong>. Seller can now mark the item as delivered once it arrives.</p>
+      <div style="margin-top:8px"><span class="status-pill status-blue">LogisticsPending</span></div>
+    </div>
+  </div>
+  <img src="18-seller-logistics-pending.png" class="screenshot" alt="Seller logistics pending">
+</div>
+<div class="divider"><hr></div>
+
+<!-- STEP 19 -->
+<div class="step" id="step19">
+  <div class="step-header">
+    <div class="step-num">19</div>
+    <div class="step-info">
+      <h2>Seller Portal — Marked as Delivered <span class="badge badge-seller">Seller</span></h2>
+      <p>Seller clicked "Mark as Delivered". Buyer is notified and has 24 hours to inspect and accept or reject the item.</p>
+    </div>
+  </div>
+  <img src="19-seller-marked-delivered.png" class="screenshot" alt="Seller marked delivered">
+</div>
+<div class="divider"><hr></div>
+
+<!-- STEP 20 -->
+<div class="step" id="step20">
+  <div class="step-header">
+    <div class="step-num">20</div>
+    <div class="step-info">
+      <h2>Buyer Portal — Auth <span class="badge badge-buyer">Buyer</span></h2>
+      <p>Buyer opens their portal link and authenticates with their email address.</p>
+      <span class="url">https://www.secureexchange.co.za/transaction/:txId/buyer</span>
+    </div>
+  </div>
+  <img src="20-buyer-portal-auth.png" class="screenshot" alt="Buyer portal auth">
+</div>
+<div class="divider"><hr></div>
+
+<!-- STEP 21 -->
+<div class="step" id="step21">
+  <div class="step-header">
+    <div class="step-num">21</div>
+    <div class="step-info">
+      <h2>Buyer Portal — Item Delivered <span class="badge badge-buyer">Buyer</span></h2>
+      <p>Transaction loaded. Status is <strong>ItemDelivered</strong>. Buyer sees a 24-hour countdown inspection window and can Accept or Reject the item.</p>
+      <div style="margin-top:8px"><span class="status-pill status-blue">ItemDelivered</span></div>
+    </div>
+  </div>
+  <img src="21-buyer-item-delivered.png" class="screenshot" alt="Buyer item delivered">
+</div>
+<div class="divider"><hr></div>
+
+<!-- STEP 22 -->
+<div class="step" id="step22">
+  <div class="step-header">
+    <div class="step-num">22</div>
+    <div class="step-info">
+      <h2>Buyer Portal — Payment Released <span class="badge badge-buyer">Buyer</span></h2>
+      <p>Buyer clicked "Accept &amp; Release Payment". Transaction status advances to <strong>Completed</strong>. Payout is triggered to the seller's verified bank account.</p>
+      <div style="margin-top:8px"><span class="status-pill status-green">✅ Completed</span></div>
+    </div>
+  </div>
+  <img src="22-buyer-payment-released.png" class="screenshot" alt="Buyer payment released">
+</div>
+
+<footer>
+  SecureX — End-to-End Test Flow Document &nbsp;|&nbsp; Generated 3 September 2026 &nbsp;|&nbsp; Deal SX-2026-000110
+</footer>
+
+</body>
+</html>
