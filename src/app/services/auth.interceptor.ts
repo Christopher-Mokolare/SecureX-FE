@@ -1,4 +1,4 @@
-import { HttpInterceptorFn } from '@angular/common/http';
+import { HttpInterceptorFn, HttpResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { map } from 'rxjs';
 import { AuthService } from './auth';
@@ -22,8 +22,8 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     ? req
     : req.clone({ setHeaders: { Authorization: `Bearer ${token}` } });
   return next(authed).pipe(map(event => {
-    if ((event as any).body !== undefined) {
-      return { ...event, body: toCamel((event as any).body) } as typeof event;
+    if (event instanceof HttpResponse && event.body !== null) {
+      return event.clone({ body: toCamel(event.body) });
     }
     return event;
   }));
