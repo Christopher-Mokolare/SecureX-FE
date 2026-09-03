@@ -30,6 +30,36 @@
       <p class="text-xs text-gray-500 mb-5">The seller must submit bank details and complete identity/liveness verification before payout.</p>
     }
 
+    @if (isComplete() && transactionId()) {
+      <div class="bg-blue-50 border border-blue-200 rounded-xl p-5 mb-5 text-left">
+        <p class="text-blue-800 font-semibold text-sm mb-3">📤 Share these links with the parties</p>
+
+        <div class="mb-3">
+          <p class="text-xs text-gray-500 mb-1">Seller link — to confirm delivery & receive payout</p>
+          <div class="flex items-center gap-2">
+            <input readonly [value]="sellerPortalUrl()"
+              class="flex-1 text-xs bg-white border border-gray-300 rounded-lg px-3 py-2 font-mono text-gray-700 truncate">
+            <button (click)="copy('seller')"
+              class="shrink-0 bg-blue-600 text-white text-xs px-3 py-2 rounded-lg hover:bg-blue-700 transition">
+              {{ copied() === 'seller' ? '✅ Copied' : 'Copy' }}
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <p class="text-xs text-gray-500 mb-1">Buyer link — to accept or reject the item</p>
+          <div class="flex items-center gap-2">
+            <input readonly [value]="buyerPortalUrl()"
+              class="flex-1 text-xs bg-white border border-gray-300 rounded-lg px-3 py-2 font-mono text-gray-700 truncate">
+            <button (click)="copy('buyer')"
+              class="shrink-0 bg-blue-600 text-white text-xs px-3 py-2 rounded-lg hover:bg-blue-700 transition">
+              {{ copied() === 'buyer' ? '✅ Copied' : 'Copy' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+
     <a routerLink="/"
        class="block w-full bg-gradient-to-r from-green-500 to-blue-600 text-white py-3 rounded-lg font-bold hover:from-green-600 hover:to-blue-700 transition">
       Back to Home

@@ -72,7 +72,7 @@ export interface SmileSession {
   callbackUrl?: string;
   partnerId?: string;
   userDetails?: { given_names: string; last_name: string; email: string; phone_number: string };
-  idInfo?: { id_number: string };
+  idInfo?: { ZA?: { NATIONAL_ID?: { id_number: string } } };
   partnerParams?: { internal_reference: string; deal_reference: string; verification_type: string };
 }
 
