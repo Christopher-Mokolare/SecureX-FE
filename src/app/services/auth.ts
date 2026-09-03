@@ -6,20 +6,33 @@ import { environment } from '../../environments/environment';
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private http = inject(HttpClient);
-  private cachedToken: string | null = null;
+  private readonly KEY = 'sx_token';
 
   getToken(email: string, password?: string): Observable<string> {
     const body: Record<string, string> = { Email: email };
     if (password) body['Password'] = password;
     return this.http
       .post<{ token: string }>(`${environment.apiBase}/api/auth/token`, body)
-      .pipe(map(r => r.token), tap(t => this.cachedToken = t));
+      .pipe(map(r => r.token), tap(t => sessionStorage.setItem(this.KEY, t)));
   }
 
-  getCachedToken(): string | null { return this.cachedToken; }
+  getCachedToken(): string | null {
+    const token = sessionStorage.getItem(this.KEY);
+    if (!token) return null;
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      if (payload.exp && payload.exp * 1000 < Date.now()) {
+        sessionStorage.removeItem(this.KEY);
+        return null;
+      }
+    } catch { return null; }
+    return token;
+  }
+
+  clearToken() { sessionStorage.removeItem(this.KEY); }
 
   isAdmin(): boolean {
-    const token = this.cachedToken;
+    const token = this.getCachedToken();
     if (!token) return false;
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
