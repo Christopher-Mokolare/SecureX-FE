@@ -176,6 +176,7 @@ export class BankDetails implements OnInit {
         id_number: String(session.idInfo?.id_number ?? '').trim(),
         country: 'ZA',
         id_type: 'NATIONAL_ID',
+        entered: true,
       },
       partner_details: {
         partner_id: session.partnerId ?? '8811',
