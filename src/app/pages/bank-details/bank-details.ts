@@ -3,6 +3,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { interval, switchMap, take, takeWhile } from 'rxjs';
 import { TransactionService, OzowBank, SmileSession } from '../../services/transaction';
+import { AuthService } from '../../services/auth';
 import { environment } from '../../../environments/environment';
 
 @Component({
@@ -17,6 +18,7 @@ export class BankDetails implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private fb = inject(FormBuilder);
   private txService = inject(TransactionService);
+  private authService = inject(AuthService);
 
   sellerId = signal<string>('');
   sellerEmail = signal<string>('');
@@ -46,10 +48,16 @@ export class BankDetails implements OnInit, OnDestroy {
     this.dealReference.set(params['ref'] ?? '');
     this.transactionId.set(params['txId'] ?? '');
 
-    this.txService.getBanks().subscribe({
+    const loadBanks = () => this.txService.getBanks().subscribe({
       next: banks => { this.banks.set(banks); this.loadingBanks.set(false); },
       error: () => { this.loadingBanks.set(false); }
     });
+    const email = this.sellerEmail();
+    if (email) {
+      this.authService.getToken(email).subscribe({ next: () => loadBanks(), error: () => loadBanks() });
+    } else {
+      loadBanks();
+    }
 
     this.messageListener = (event: MessageEvent) => {
       if (this.allowedOrigin !== '*' && event.origin !== this.allowedOrigin) return;
@@ -164,9 +172,7 @@ export class BankDetails implements OnInit, OnDestroy {
         ...session.userDetails,
         phone_number: this.normalizeSmilePhone(session.userDetails.phone_number),
       } : undefined,
-      id_info: session.idInfo ?? {
-        ZA: { NATIONAL_ID: { id_number: '' } }
-      },
+      id_info: session.idInfo ?? { ZA: { NATIONAL_ID: { id_number: '' } } },
       partner_details: {
         partner_id: session.partnerId ?? '8811',
         name: 'SecureX',
