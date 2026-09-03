@@ -164,11 +164,8 @@ export class BankDetails implements OnInit, OnDestroy {
         ...session.userDetails,
         phone_number: this.normalizeSmilePhone(session.userDetails.phone_number),
       } : undefined,
-      id_info: {
-        id_number: String(session.idInfo?.id_number ?? '').trim(),
-        country: 'ZA',
-        id_type: 'NATIONAL_ID',
-        entered: true,
+      id_info: session.idInfo ?? {
+        ZA: { NATIONAL_ID: { id_number: '' } }
       },
       partner_details: {
         partner_id: session.partnerId ?? '8811',
