@@ -1,0 +1,139 @@
+<!-- Auth step -->
+@if (step() === 'auth') {
+  <div class="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+    <div class="bg-white rounded-2xl shadow-lg p-10 max-w-md w-full">
+      <div class="text-center mb-8">
+        <a routerLink="/" class="font-bold text-2xl text-blue-900">SecureX</a>
+        <h1 class="text-2xl font-bold text-gray-900 mt-4">Seller Portal</h1>
+        <p class="text-gray-500 text-sm mt-2">Enter your email to access your transaction.</p>
+      </div>
+
+      @if (error()) {
+        <div class="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 mb-4 text-sm">{{ error() }}</div>
+      }
+
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-1">Your Email *</label>
+          <input type="email" [(ngModel)]="email" (ngModelChange)="email.set($event)"
+            placeholder="seller@example.com"
+            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+        </div>
+        <button (click)="load()" [disabled]="submitting() || !email()"
+          class="w-full bg-gradient-to-r from-green-500 to-blue-600 text-white py-4 rounded-lg font-bold text-lg hover:from-green-600 hover:to-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed">
+          {{ submitting() ? 'Loading…' : 'Access Transaction' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Loaded step -->
+@if (step() === 'loaded' && tx()) {
+  <div class="min-h-screen bg-gray-50 py-12 px-4">
+    <div class="max-w-lg mx-auto">
+
+      <div class="text-center mb-8">
+        <a routerLink="/" class="font-bold text-2xl text-blue-900">SecureX</a>
+        <h1 class="text-2xl font-bold text-gray-900 mt-4">Your Transaction</h1>
+        <p class="text-gray-500 text-sm mt-1 font-mono font-bold">{{ tx()!.DealReference }}</p>
+      </div>
+
+      @if (error()) {
+        <div class="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 mb-4 text-sm">{{ error() }}</div>
+      }
+
+      <!-- Deal summary -->
+      <div class="bg-white rounded-2xl shadow-md p-6 mb-6 space-y-3">
+        <div class="flex justify-between text-sm">
+          <span class="text-gray-500">Item</span>
+          <span class="font-semibold text-gray-800">{{ tx()!.ItemTitle }}</span>
+        </div>
+        <div class="flex justify-between text-sm">
+          <span class="text-gray-500">Item Value</span>
+          <span class="font-semibold text-gray-800">{{ fmt(tx()!.ItemValue) }}</span>
+        </div>
+        <div class="flex justify-between text-sm">
+          <span class="text-gray-500">Platform Fee (your share)</span>
+          <span class="text-red-600 font-semibold">- {{ fmt(tx()!.SellerFee) }}</span>
+        </div>
+        <div class="border-t pt-3 flex justify-between">
+          <span class="font-bold text-gray-800">You Receive</span>
+          <span class="font-bold text-green-700 text-lg">{{ fmt(sellerPayout) }}</span>
+        </div>
+        <div class="flex justify-between text-sm">
+          <span class="text-gray-500">Status</span>
+          <span class="font-semibold text-blue-700">{{ tx()!.Status }}</span>
+        </div>
+        <div class="flex justify-between text-sm">
+          <span class="text-gray-500">Buyer</span>
+          <span class="font-semibold text-gray-800">{{ tx()!.Buyer?.FullName }}</span>
+        </div>
+        <div class="flex justify-between text-sm">
+          <span class="text-gray-500">Location</span>
+          <span class="font-semibold text-gray-800">{{ tx()!.SellerLocation }}</span>
+        </div>
+      </div>
+
+      <!-- Status-based actions -->
+      @if (canStartLogistics) {
+        <div class="bg-blue-50 border border-blue-200 rounded-xl p-5 mb-4">
+          <p class="text-blue-800 font-semibold mb-1">Funds are secured in escrow ✅</p>
+          <p class="text-blue-700 text-sm mb-4">Confirm you have arranged delivery/logistics to proceed.</p>
+          <button (click)="startLogistics()" [disabled]="submitting()"
+            class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed">
+            {{ submitting() ? 'Processing…' : 'Confirm Logistics Arranged' }}
+          </button>
+        </div>
+      }
+
+      @if (canMarkDelivered) {
+        <div class="bg-green-50 border border-green-200 rounded-xl p-5 mb-4">
+          <p class="text-green-800 font-semibold mb-1">Logistics in progress 🚚</p>
+          <p class="text-green-700 text-sm mb-4">Once the item has been delivered, mark it as delivered. The buyer will have 24 hours to inspect and accept.</p>
+          <button (click)="markDelivered()" [disabled]="submitting()"
+            class="w-full bg-green-600 text-white py-3 rounded-lg font-bold hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed">
+            {{ submitting() ? 'Processing…' : 'Mark as Delivered' }}
+          </button>
+        </div>
+      }
+
+      @if (status === 'ItemDelivered') {
+        <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-5 mb-4 text-center">
+          <p class="text-yellow-800 font-semibold">⏳ Awaiting buyer inspection</p>
+          <p class="text-yellow-700 text-sm mt-1">The buyer has 24 hours to accept or reject the item.</p>
+        </div>
+      }
+
+      @if (status === 'Completed') {
+        <div class="bg-green-50 border border-green-200 rounded-xl p-5 mb-4 text-center">
+          <p class="text-green-800 font-bold text-lg">🎉 Transaction Complete</p>
+          <p class="text-green-700 text-sm mt-1">The buyer accepted the item. Your payout of {{ fmt(sellerPayout) }} is being processed.</p>
+        </div>
+      }
+
+      @if (status === 'RequiresRefund') {
+        <div class="bg-red-50 border border-red-200 rounded-xl p-5 mb-4 text-center">
+          <p class="text-red-800 font-bold">⚠️ Item Disputed</p>
+          <p class="text-red-700 text-sm mt-1">The buyer has raised a dispute. SecureX will review and resolve this.</p>
+        </div>
+      }
+
+      <a routerLink="/" class="block text-center text-blue-600 underline text-sm mt-4">Back to Home</a>
+    </div>
+  </div>
+}
+
+<!-- Done step -->
+@if (step() === 'done') {
+  <div class="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+    <div class="bg-white rounded-2xl shadow-lg p-10 max-w-md w-full text-center">
+      <div class="text-6xl mb-4">🚚</div>
+      <h1 class="text-2xl font-bold text-green-700 mb-2">Marked as Delivered!</h1>
+      <p class="text-gray-600 mb-2">The buyer has been notified and has 24 hours to inspect the item.</p>
+      <p class="text-gray-500 text-sm mb-6">Deal: <span class="font-mono font-bold">{{ tx()?.DealReference }}</span></p>
+      <p class="text-gray-500 text-sm">You will receive <span class="font-bold text-green-700">{{ fmt(sellerPayout) }}</span> once the buyer accepts.</p>
+      <a routerLink="/" class="block mt-6 text-blue-600 underline text-sm">Back to Home</a>
+    </div>
+  </div>
+}

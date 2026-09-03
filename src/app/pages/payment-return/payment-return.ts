@@ -69,4 +69,24 @@ export class PaymentReturn implements OnInit {
     });
     return `/bank-details/${encodeURIComponent(this.sellerId())}?${params.toString()}`;
   }
+
+  sellerPortalUrl(): string {
+    if (!this.transactionId()) return '';
+    return `${window.location.origin}/transaction/${this.transactionId()}/seller`;
+  }
+
+  buyerPortalUrl(): string {
+    if (!this.transactionId()) return '';
+    return `${window.location.origin}/transaction/${this.transactionId()}/buyer`;
+  }
+
+  copied = signal<'seller' | 'buyer' | null>(null);
+
+  copy(type: 'seller' | 'buyer') {
+    const url = type === 'seller' ? this.sellerPortalUrl() : this.buyerPortalUrl();
+    navigator.clipboard.writeText(url).then(() => {
+      this.copied.set(type);
+      setTimeout(() => this.copied.set(null), 2000);
+    });
+  }
 }
