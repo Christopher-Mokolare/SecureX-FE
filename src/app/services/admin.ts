@@ -79,6 +79,8 @@ export interface AdminStats {
   totalFeesCollected: number;
   openDisputes: number;
   totalUsers: number;
+  fundsInEscrow: number;
+  pendingPayouts: number;
   transactionsByStatus: TxStatusCount[];
 }
 
@@ -112,6 +114,10 @@ export class AdminService {
 
   retryPayout(txId: string): Observable<void> {
     return this.http.post<void>(`${this.base}/transactions/${txId}/retry-payout`, {});
+  }
+
+  advanceTransaction(txId: string, toStatus: string, reason?: string): Observable<AdminTransaction> {
+    return this.http.post<AdminTransaction>(`${this.base}/transactions/${txId}/advance`, { ToStatus: toStatus, Reason: reason ?? null });
   }
 
   getUsers(params: { page?: number; size?: number; search?: string; kycStatus?: string; suspended?: boolean }): Observable<PagedResult<AdminUser>> {

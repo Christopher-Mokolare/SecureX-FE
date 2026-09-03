@@ -36,6 +36,8 @@ export class Admin implements OnInit {
   detail = signal<TransactionDetail | null>(null);
   detailLoading = signal(false);
   disputeDecision = signal('release-to-seller');
+  advanceToStatus = signal('');
+  advanceReason = signal('');
   actionMsg = signal('');
 
   // users
@@ -130,6 +132,32 @@ export class Admin implements OnInit {
       next: () => { this.actionMsg.set('Payout resubmitted'); this.openDetail(d.transaction); },
       error: (e) => this.actionMsg.set(e.error?.error ?? 'Failed to retry payout'),
     });
+  }
+
+  advanceTransaction() {
+    const d = this.detail();
+    if (!d || !this.advanceToStatus()) return;
+    this.svc.advanceTransaction(d.transaction.id, this.advanceToStatus(), this.advanceReason()).subscribe({
+      next: updated => {
+        this.actionMsg.set(`Advanced to ${this.advanceToStatus()}`);
+        this.advanceToStatus.set('');
+        this.advanceReason.set('');
+        this.detail.update(v => v ? { ...v, transaction: updated } : v);
+        this.loadTransactions();
+      },
+      error: (e) => this.actionMsg.set(e.error?.error ?? 'Failed to advance transaction'),
+    });
+  }
+
+  allowedAdvances(status: string): string[] {
+    const map: Record<string, string[]> = {
+      PaymentPending:   ['FundsSecured'],
+      FundsSecured:     ['LogisticsPending'],
+      LogisticsPending: ['ItemDelivered'],
+      ItemDelivered:    ['Completed', 'RequiresRefund'],
+      RequiresRefund:   ['Completed', 'Refunded'],
+    };
+    return map[status] ?? [];
   }
 
   exportCsv() {
