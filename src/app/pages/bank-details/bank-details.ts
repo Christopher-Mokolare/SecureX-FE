@@ -86,14 +86,32 @@ export class BankDetails implements OnInit, OnDestroy {
     const v = this.form.value;
     const bank = this.selectedBank;
 
+    if (environment.smileIdSandbox) {
+      this.txService.saveBankDetails(this.sellerId(), {
+        accountNumber: v.accountNumber!,   
+        branchCode:    bank?.branchCode ?? '',  
+        bankGroupId:   v.bankGroupId!,     
+        idNumber:      v.idNumber!,        
+      }).subscribe({
+        next: () => {
+          this.simulateSellerVerification();
+        },
+        error: (err) => {
+          this.errorMessage.set(err?.error?.Error ?? err?.error?.error ?? 'Failed to save bank details.');
+          this.submitting.set(false);
+        }
+      });
+      return;
+    }
+
     this.txService.saveBankDetails(this.sellerId(), {
-          accountNumber: v.accountNumber!,   
-          branchCode:    bank?.branchCode ?? '',  
-          bankGroupId:   v.bankGroupId!,     
-          idNumber:      v.idNumber!,        
-        }).pipe(
-          switchMap(() => this.txService.startSellerKyc(this.transactionId()))
-        ).subscribe({
+      accountNumber: v.accountNumber!,   
+      branchCode:    bank?.branchCode ?? '',  
+      bankGroupId:   v.bankGroupId!,     
+      idNumber:      v.idNumber!,        
+    }).pipe(
+      switchMap(() => this.txService.startSellerKyc(this.transactionId()))
+    ).subscribe({
       next: (res: SmileSession) => {
         this.submitting.set(false);
         if ('status' in res && res.status === 'Approved') {
@@ -108,6 +126,34 @@ export class BankDetails implements OnInit, OnDestroy {
         this.errorMessage.set(err?.error?.Error ?? err?.error?.error ?? 'Submission failed. Please try again.');
         this.submitting.set(false);
       }
+    });
+  }
+
+  private simulateSellerVerification() {
+    const payload = {
+      status: "clear",
+      partner_params: {
+        internal_reference: this.transactionId(),
+        deal_reference: this.dealReference(),
+        verification_type: "seller_liveness"
+      }
+    };
+
+    fetch(`${environment.apiBase}/api/transactions/kyc-webhook`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).then(response => {
+      if (response.ok) {
+        this.pollSellerVerification();
+        this.kycState.set('pending');
+      } else {
+        this.errorMessage.set('Failed to verify seller. Please try again.');
+        this.submitting.set(false);
+      }
+    }).catch(() => {
+      this.errorMessage.set('Network error. Please try again.');
+      this.submitting.set(false);
     });
   }
 
@@ -141,7 +187,7 @@ export class BankDetails implements OnInit, OnDestroy {
 
   private launchSmileIdSdk(session: SmileSession) {
     const container = document.getElementById('smile-id-container');
-    if (!container) { console.warn('SecureX: Smile ID container not found'); return; }
+    if (!container) { return; }
 
     container.innerHTML = '';
 
@@ -209,13 +255,16 @@ export class BankDetails implements OnInit, OnDestroy {
         if (tx.seller?.livenessStatus === 'Approved' && tx.seller?.idCheckStatus === 'Approved') { 
           this.kycState.set('approved');
           this.verified.set('Approved');
+          this.submitting.set(false);
         } else if (tx.seller?.livenessStatus === 'Failed' || tx.seller?.idCheckStatus === 'Failed') {  
           this.kycState.set('failed');
+          this.submitting.set(false);
         }
       },
       error: () => {
         this.errorMessage.set('Unable to confirm verification status. Please refresh and try again.');
         this.kycState.set('failed');
+        this.submitting.set(false);
       }
     });
   }

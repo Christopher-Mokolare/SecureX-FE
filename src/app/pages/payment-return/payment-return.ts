@@ -33,10 +33,11 @@ export class PaymentReturn implements OnInit {
     this.isComplete.set(p['Status'] === 'Complete');
 
     const ref = p['TransactionReference'] as string | undefined;
+    const optional3 = p['Optional3'] as string | undefined;
+    const stored = this.tryGetStored();
+
     if (ref) {
-      // Resolve seller state from backend — source of truth
-      const stored = this.tryGetStored();
-      const email = stored?.buyerEmail ?? '';
+      const email = stored?.buyerEmail ?? optional3 ?? '';
       this.auth.getToken(email).pipe(
         switchMap(() => this.txService.getByRef(ref))
       ).subscribe({
@@ -44,11 +45,14 @@ export class PaymentReturn implements OnInit {
           this.transactionId.set(tx.id);
           this.sellerId.set(tx.seller?.id ?? '');
           this.sellerEmail.set(tx.seller?.email ?? '');
+        },
+        error: () => {
+          this.transactionId.set(stored?.txId ?? '');
+          this.sellerId.set(stored?.sellerId ?? '');
+          this.sellerEmail.set(stored?.sellerEmail ?? '');
         }
       });
     } else {
-      // Fallback: sessionStorage (no Ozow ref available)
-      const stored = this.tryGetStored();
       this.transactionId.set(stored?.txId ?? '');
       this.sellerId.set(stored?.sellerId ?? '');
       this.sellerEmail.set(stored?.sellerEmail ?? '');

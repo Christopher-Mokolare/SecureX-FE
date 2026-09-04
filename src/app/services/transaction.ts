@@ -94,25 +94,52 @@ export class TransactionService {
     return this.http.post<CreateTransactionResponse>(`${environment.apiBase}/api/transactions`, body).pipe(
       map(res => {
         const response = res as any;
+        const getValue = (obj: any, ...keys: string[]) => {
+          for (const key of keys) {
+            if (obj[key] !== undefined && obj[key] !== null) {
+              return obj[key];
+            }
+          }
+          return undefined;
+        };
+        
         return {
-          id: response.id ?? response.Id,
-          dealReference: response.dealReference ?? response.DealReference,
-          status: response.status ?? response.Status,
-          itemTitle: response.itemTitle ?? response.ItemTitle,
-          itemDescription: response.itemDescription ?? response.ItemDescription,
-          sellerLocation: response.sellerLocation ?? response.SellerLocation,
-          itemValue: response.itemValue ?? response.ItemValue,
-          platformFee: response.platformFee ?? response.PlatformFee,
-          buyerFee: response.buyerFee ?? response.BuyerFee,
-          sellerFee: response.sellerFee ?? response.SellerFee,
-          totalCheckoutAmount: response.totalCheckoutAmount ?? response.TotalCheckoutAmount,
-          serviceType: response.serviceType ?? response.ServiceType,
-          version: response.version ?? response.Version,
-          paymentRedirectUrl: response.paymentRedirectUrl ?? response.PaymentRedirectUrl,
-          createdAt: response.createdAt ?? response.CreatedAt,
-          inspectionWindowEndsAt: response.inspectionWindowEndsAt ?? response.InspectionWindowEndsAt,
-          buyer: response.buyer ?? response.Buyer,
-          seller: response.seller ?? response.Seller,
+          id: getValue(response, 'id', 'Id'),
+          dealReference: getValue(response, 'dealReference', 'DealReference'),
+          status: getValue(response, 'status', 'Status'),
+          itemTitle: getValue(response, 'itemTitle', 'ItemTitle'),
+          itemDescription: getValue(response, 'itemDescription', 'ItemDescription'),
+          sellerLocation: getValue(response, 'sellerLocation', 'SellerLocation'),
+          itemValue: getValue(response, 'itemValue', 'ItemValue') || 0,
+          platformFee: getValue(response, 'platformFee', 'PlatformFee') || 0,
+          buyerFee: getValue(response, 'buyerFee', 'BuyerFee') || 0,
+          sellerFee: getValue(response, 'sellerFee', 'SellerFee') || 0,
+          totalCheckoutAmount: getValue(response, 'totalCheckoutAmount', 'TotalCheckoutAmount') || 0,
+          serviceType: getValue(response, 'serviceType', 'ServiceType'),
+          version: getValue(response, 'version', 'Version') || 0,
+          paymentRedirectUrl: getValue(response, 'paymentRedirectUrl', 'PaymentRedirectUrl') || null,
+          createdAt: getValue(response, 'createdAt', 'CreatedAt'),
+          inspectionWindowEndsAt: getValue(response, 'inspectionWindowEndsAt', 'InspectionWindowEndsAt') || null,
+          buyer: response.buyer || response.Buyer ? {
+            id: getValue(response.buyer || response.Buyer, 'id', 'Id'),
+            fullName: getValue(response.buyer || response.Buyer, 'fullName', 'FullName'),
+            email: getValue(response.buyer || response.Buyer, 'email', 'Email'),
+            phone: getValue(response.buyer || response.Buyer, 'phone', 'Phone'),
+            bankVerificationStatus: getValue(response.buyer || response.Buyer, 'bankVerificationStatus', 'BankVerificationStatus'),
+            idCheckStatus: getValue(response.buyer || response.Buyer, 'idCheckStatus', 'IdCheckStatus'),
+            amlStatus: getValue(response.buyer || response.Buyer, 'amlStatus', 'AmlStatus'),
+            livenessStatus: getValue(response.buyer || response.Buyer, 'livenessStatus', 'LivenessStatus')
+          } : undefined,
+          seller: response.seller || response.Seller ? {
+            id: getValue(response.seller || response.Seller, 'id', 'Id'),
+            fullName: getValue(response.seller || response.Seller, 'fullName', 'FullName'),
+            email: getValue(response.seller || response.Seller, 'email', 'Email'),
+            phone: getValue(response.seller || response.Seller, 'phone', 'Phone'),
+            bankVerificationStatus: getValue(response.seller || response.Seller, 'bankVerificationStatus', 'BankVerificationStatus'),
+            idCheckStatus: getValue(response.seller || response.Seller, 'idCheckStatus', 'IdCheckStatus'),
+            amlStatus: getValue(response.seller || response.Seller, 'amlStatus', 'AmlStatus'),
+            livenessStatus: getValue(response.seller || response.Seller, 'livenessStatus', 'LivenessStatus')
+          } : undefined
         };
       })
     );
@@ -138,34 +165,14 @@ export class TransactionService {
     return this.http.post<CreateTransactionResponse>(
       `${environment.apiBase}/api/transactions/${txId}/start-logistics`,
       { actor: 'seller', expectedVersion: version }
+    ).pipe(
+      map(res => this.mapTransactionResponse(res))
     );
   }
 
   getById(txId: string): Observable<CreateTransactionResponse> {
     return this.http.get<CreateTransactionResponse>(`${environment.apiBase}/api/transactions/${txId}`).pipe(
-      map(res => {
-        const response = res as any;
-        return {
-          id: response.id ?? response.Id,
-          dealReference: response.dealReference ?? response.DealReference,
-          status: response.status ?? response.Status,
-          itemTitle: response.itemTitle ?? response.ItemTitle,
-          itemDescription: response.itemDescription ?? response.ItemDescription,
-          sellerLocation: response.sellerLocation ?? response.SellerLocation,
-          itemValue: response.itemValue ?? response.ItemValue,
-          platformFee: response.platformFee ?? response.PlatformFee,
-          buyerFee: response.buyerFee ?? response.BuyerFee,
-          sellerFee: response.sellerFee ?? response.SellerFee,
-          totalCheckoutAmount: response.totalCheckoutAmount ?? response.TotalCheckoutAmount,
-          serviceType: response.serviceType ?? response.ServiceType,
-          version: response.version ?? response.Version,
-          paymentRedirectUrl: response.paymentRedirectUrl ?? response.PaymentRedirectUrl,
-          createdAt: response.createdAt ?? response.CreatedAt,
-          inspectionWindowEndsAt: response.inspectionWindowEndsAt ?? response.InspectionWindowEndsAt,
-          buyer: response.buyer ?? response.Buyer,
-          seller: response.seller ?? response.Seller,
-        };
-      })
+      map(res => this.mapTransactionResponse(res))
     );
   }
 
@@ -185,29 +192,7 @@ export class TransactionService {
 
   getByRef(ref: string): Observable<CreateTransactionResponse> {
     return this.http.get<CreateTransactionResponse>(`${environment.apiBase}/api/transactions/ref/${ref}`).pipe(
-      map(res => {
-        const response = res as any;
-        return {
-          id: response.id ?? response.Id,
-          dealReference: response.dealReference ?? response.DealReference,
-          status: response.status ?? response.Status,
-          itemTitle: response.itemTitle ?? response.ItemTitle,
-          itemDescription: response.itemDescription ?? response.ItemDescription,
-          sellerLocation: response.sellerLocation ?? response.SellerLocation,
-          itemValue: response.itemValue ?? response.ItemValue,
-          platformFee: response.platformFee ?? response.PlatformFee,
-          buyerFee: response.buyerFee ?? response.BuyerFee,
-          sellerFee: response.sellerFee ?? response.SellerFee,
-          totalCheckoutAmount: response.totalCheckoutAmount ?? response.TotalCheckoutAmount,
-          serviceType: response.serviceType ?? response.ServiceType,
-          version: response.version ?? response.Version,
-          paymentRedirectUrl: response.paymentRedirectUrl ?? response.PaymentRedirectUrl,
-          createdAt: response.createdAt ?? response.CreatedAt,
-          inspectionWindowEndsAt: response.inspectionWindowEndsAt ?? response.InspectionWindowEndsAt,
-          buyer: response.buyer ?? response.Buyer,
-          seller: response.seller ?? response.Seller,
-        };
-      })
+      map(res => this.mapTransactionResponse(res))
     );
   }
 
@@ -215,6 +200,8 @@ export class TransactionService {
     return this.http.post<CreateTransactionResponse>(
       `${environment.apiBase}/api/transactions/${txId}/mark-delivered`,
       { actor: 'seller', expectedVersion: version }
+    ).pipe(
+      map(res => this.mapTransactionResponse(res))
     );
   }
 
@@ -222,12 +209,66 @@ export class TransactionService {
     return this.http.post<CreateTransactionResponse>(
       `${environment.apiBase}/api/transactions/${txId}/accept`,
       { actor: 'buyer', expectedVersion: version }
+    ).pipe(
+      map(res => this.mapTransactionResponse(res))
     );
   }
 
   reject(txId: string, reason: string): Observable<CreateTransactionResponse> {
     return this.http.post<CreateTransactionResponse>(
       `${environment.apiBase}/api/transactions/${txId}/reject`, { Reason: reason }
+    ).pipe(
+      map(res => this.mapTransactionResponse(res))
     );
+  }
+
+  private mapTransactionResponse(response: any): CreateTransactionResponse {
+    const getValue = (obj: any, ...keys: string[]) => {
+      for (const key of keys) {
+        if (obj && obj[key] !== undefined && obj[key] !== null) {
+          return obj[key];
+        }
+      }
+      return undefined;
+    };
+    
+    return {
+      id: getValue(response, 'id', 'Id'),
+      dealReference: getValue(response, 'dealReference', 'DealReference'),
+      status: getValue(response, 'status', 'Status'),
+      itemTitle: getValue(response, 'itemTitle', 'ItemTitle'),
+      itemDescription: getValue(response, 'itemDescription', 'ItemDescription'),
+      sellerLocation: getValue(response, 'sellerLocation', 'SellerLocation'),
+      itemValue: getValue(response, 'itemValue', 'ItemValue') || 0,
+      platformFee: getValue(response, 'platformFee', 'PlatformFee') || 0,
+      buyerFee: getValue(response, 'buyerFee', 'BuyerFee') || 0,
+      sellerFee: getValue(response, 'sellerFee', 'SellerFee') || 0,
+      totalCheckoutAmount: getValue(response, 'totalCheckoutAmount', 'TotalCheckoutAmount') || 0,
+      serviceType: getValue(response, 'serviceType', 'ServiceType'),
+      version: getValue(response, 'version', 'Version') || 0,
+      paymentRedirectUrl: getValue(response, 'paymentRedirectUrl', 'PaymentRedirectUrl') || null,
+      createdAt: getValue(response, 'createdAt', 'CreatedAt'),
+      inspectionWindowEndsAt: getValue(response, 'inspectionWindowEndsAt', 'InspectionWindowEndsAt') || null,
+      buyer: response.buyer || response.Buyer ? {
+        id: getValue(response.buyer || response.Buyer, 'id', 'Id'),
+        fullName: getValue(response.buyer || response.Buyer, 'fullName', 'FullName'),
+        email: getValue(response.buyer || response.Buyer, 'email', 'Email'),
+        phone: getValue(response.buyer || response.Buyer, 'phone', 'Phone'),
+        bankVerificationStatus: getValue(response.buyer || response.Buyer, 'bankVerificationStatus', 'BankVerificationStatus'),
+        idCheckStatus: getValue(response.buyer || response.Buyer, 'idCheckStatus', 'IdCheckStatus'),
+        amlStatus: getValue(response.buyer || response.Buyer, 'amlStatus', 'AmlStatus'),
+        livenessStatus: getValue(response.buyer || response.Buyer, 'livenessStatus', 'LivenessStatus')
+      } : undefined,
+      seller: response.seller || response.Seller ? {
+        id: getValue(response.seller || response.Seller, 'id', 'Id'),
+        fullName: getValue(response.seller || response.Seller, 'fullName', 'FullName'),
+        email: getValue(response.seller || response.Seller, 'email', 'Email'),
+        phone: getValue(response.seller || response.Seller, 'phone', 'Phone'),
+        bankVerificationStatus: getValue(response.seller || response.Seller, 'bankVerificationStatus', 'BankVerificationStatus'),
+        idCheckStatus: getValue(response.seller || response.Seller, 'idCheckStatus', 'IdCheckStatus'),
+        amlStatus: getValue(response.seller || response.Seller, 'amlStatus', 'AmlStatus'),
+        livenessStatus: getValue(response.seller || response.Seller, 'livenessStatus', 'LivenessStatus')
+      } : undefined
+    };
   }
 }
