@@ -37,7 +37,7 @@ export class TransactionSeller implements OnInit {
       switchMap(() => this.txService.getById(this.txId()))
     ).subscribe({
       next: tx => {
-        if (tx.Seller?.Email?.toLowerCase() !== this.email().toLowerCase()) {
+        if (tx.seller?.email?.toLowerCase() !== this.email().toLowerCase()) {
           this.error.set('This email does not match the seller on this transaction.');
           this.submitting.set(false);
           return;
@@ -58,7 +58,7 @@ export class TransactionSeller implements OnInit {
     if (!tx) return;
     this.submitting.set(true);
     this.error.set(null);
-    this.txService.startLogistics(tx.Id, tx.Version).subscribe({
+    this.txService.startLogistics(tx.id, tx.version).subscribe({
       next: updated => { this.tx.set(updated); this.submitting.set(false); },
       error: err => {
         this.error.set(err?.error?.Error ?? err?.error?.error ?? 'Failed. Please try again.');
@@ -72,7 +72,7 @@ export class TransactionSeller implements OnInit {
     if (!tx) return;
     this.submitting.set(true);
     this.error.set(null);
-    this.txService.markDelivered(tx.Id, tx.Version).subscribe({
+    this.txService.markDelivered(tx.id, tx.version).subscribe({
       next: updated => { this.tx.set(updated); this.submitting.set(false); this.step.set('done'); },
       error: err => {
         this.error.set(err?.error?.Error ?? err?.error?.error ?? 'Failed. Please try again.');
@@ -81,11 +81,11 @@ export class TransactionSeller implements OnInit {
     });
   }
 
-  get status(): string { return this.tx()?.Status ?? ''; }
+  get status(): string { return this.tx()?.status ?? ''; }
   get canStartLogistics(): boolean { return this.status === 'FundsSecured'; }
   get canMarkDelivered(): boolean { return this.status === 'LogisticsPending'; }
   get sellerPayout(): number {
     const tx = this.tx();
-    return tx ? tx.ItemValue - tx.SellerFee : 0;
+    return tx ? tx.itemValue - tx.sellerFee : 0;
   }
 }

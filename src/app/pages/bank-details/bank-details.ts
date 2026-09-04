@@ -87,10 +87,10 @@ export class BankDetails implements OnInit, OnDestroy {
     const bank = this.selectedBank;
 
     this.txService.saveBankDetails(this.sellerId(), {
-          AccountNumber: v.accountNumber!,
-          BranchCode:    bank?.branchCode ?? '',
-          BankGroupId:   v.bankGroupId!,
-          IdNumber:      v.idNumber!,
+          accountNumber: v.accountNumber!,   
+          branchCode:    bank?.branchCode ?? '',  
+          bankGroupId:   v.bankGroupId!,     
+          idNumber:      v.idNumber!,        
         }).pipe(
           switchMap(() => this.txService.startSellerKyc(this.transactionId()))
         ).subscribe({
@@ -200,16 +200,16 @@ export class BankDetails implements OnInit, OnDestroy {
     interval(3000).pipe(
       switchMap(() => this.txService.getById(this.transactionId())),
       takeWhile(tx =>
-        tx.Seller?.LivenessStatus !== 'Approved' &&
-        tx.Seller?.LivenessStatus !== 'Failed' &&
-        tx.Seller?.IdCheckStatus !== 'Failed', true),
+        tx.seller?.livenessStatus !== 'Approved' &&  
+        tx.seller?.livenessStatus !== 'Failed' &&    
+        tx.seller?.idCheckStatus !== 'Failed', true), 
       take(20)
     ).subscribe({
       next: tx => {
-        if (tx.Seller?.LivenessStatus === 'Approved' && tx.Seller?.IdCheckStatus === 'Approved') {
+        if (tx.seller?.livenessStatus === 'Approved' && tx.seller?.idCheckStatus === 'Approved') { 
           this.kycState.set('approved');
           this.verified.set('Approved');
-        } else if (tx.Seller?.LivenessStatus === 'Failed' || tx.Seller?.IdCheckStatus === 'Failed') {
+        } else if (tx.seller?.livenessStatus === 'Failed' || tx.seller?.idCheckStatus === 'Failed') {  
           this.kycState.set('failed');
         }
       },

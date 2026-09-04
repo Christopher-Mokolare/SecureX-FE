@@ -30,7 +30,7 @@ export class TransactionBuyer implements OnInit, OnDestroy {
   fmt = formatZar;
 
   windowExpired = computed(() => {
-    const endsAt = this.tx()?.InspectionWindowEndsAt;
+    const endsAt = this.tx()?.inspectionWindowEndsAt; 
     if (!endsAt) return false;
     return new Date(endsAt) < new Date();
   });
@@ -51,7 +51,7 @@ export class TransactionBuyer implements OnInit, OnDestroy {
       switchMap(() => this.txService.getById(this.txId()))
     ).subscribe({
       next: tx => {
-        if (tx.Buyer?.Email?.toLowerCase() !== this.email().toLowerCase()) {
+        if (tx.buyer?.email?.toLowerCase() !== this.email().toLowerCase()) { 
           this.error.set('This email does not match the buyer on this transaction.');
           this.submitting.set(false);
           return;
@@ -71,7 +71,7 @@ export class TransactionBuyer implements OnInit, OnDestroy {
   private startCountdown() {
     this.timerSub?.unsubscribe();
     this.timerSub = interval(1000).subscribe(() => {
-      const endsAt = this.tx()?.InspectionWindowEndsAt;
+      const endsAt = this.tx()?.inspectionWindowEndsAt;  
       if (!endsAt) { this.timeLeft.set(''); return; }
       const diff = new Date(endsAt).getTime() - Date.now();
       if (diff <= 0) { this.timeLeft.set('Expired'); this.timerSub?.unsubscribe(); return; }
@@ -87,7 +87,7 @@ export class TransactionBuyer implements OnInit, OnDestroy {
     if (!tx) return;
     this.submitting.set(true);
     this.error.set(null);
-    this.txService.accept(tx.Id, tx.Version).subscribe({
+    this.txService.accept(tx.id, tx.version).subscribe({  
       next: updated => { this.tx.set(updated); this.submitting.set(false); this.step.set('done'); },
       error: err => {
         this.error.set(err?.error?.Error ?? err?.error?.error ?? 'Failed. Please try again.');
@@ -101,7 +101,7 @@ export class TransactionBuyer implements OnInit, OnDestroy {
     if (!tx || !this.rejectReason()) return;
     this.submitting.set(true);
     this.error.set(null);
-    this.txService.reject(tx.Id, this.rejectReason()).subscribe({
+    this.txService.reject(tx.id, this.rejectReason()).subscribe({  
       next: updated => { this.tx.set(updated); this.submitting.set(false); this.step.set('done'); },
       error: err => {
         this.error.set(err?.error?.Error ?? err?.error?.error ?? 'Failed. Please try again.');
@@ -110,6 +110,6 @@ export class TransactionBuyer implements OnInit, OnDestroy {
     });
   }
 
-  get status(): string { return this.tx()?.Status ?? ''; }
+  get status(): string { return this.tx()?.status ?? ''; } 
   get canAction(): boolean { return this.status === 'ItemDelivered' && !this.windowExpired(); }
 }

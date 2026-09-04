@@ -78,7 +78,10 @@ export class StartTransaction {
   }
 
   onSubmit() {
+    console.log('🚀 [StartTransaction] Form submission started');
+    
     if (this.form.invalid) {
+      console.warn('⚠️ [StartTransaction] Form is invalid');
       this.form.markAllAsTouched();
       return;
     }
@@ -86,69 +89,192 @@ export class StartTransaction {
     this.submitting.set(true);
     this.errorMessage.set(null);
     const v = this.form.value;
+    
+    console.log('📝 [StartTransaction] Form values:', {
+      buyerEmail: v.buyerEmail,
+      sellerEmail: v.sellerEmail,
+      itemTitle: v.itemTitle,
+      itemValue: v.itemValue,
+      serviceType: v.serviceType,
+      feePayer: v.feePayer
+    });
 
+    console.log('🔑 [StartTransaction] Getting auth token for:', v.buyerEmail);
+    
     this.auth.getToken(v.buyerEmail!).pipe(
       takeUntilDestroyed(this.destroyRef),
-      switchMap(() =>
-        this.txService.create({
-          BuyerFullName:   v.buyerFullName!,
-          BuyerEmail:      v.buyerEmail!,
-          BuyerPhone:      v.buyerPhone!,
-          BuyerIdNumber:   v.buyerIdNumber!,
-          SellerFullName:  v.sellerFullName!,
-          SellerEmail:     v.sellerEmail!,
-          SellerPhone:     v.sellerPhone!,
-          ItemTitle:       v.itemTitle!.trim(),
-          ItemDescription: v.itemDescription!.trim(),
-          ItemValue:       v.itemValue!,
-          SellerLocation:  v.sellerLocation!.trim(),
-          ServiceType:     v.serviceType!,
-          FeePayer:        v.feePayer!,
+      tap(token => console.log('✅ [StartTransaction] Auth token obtained:', token ? 'Token received' : 'No token')),
+      switchMap(() => {
+        console.log('📤 [StartTransaction] Creating transaction with data:', {
+          buyerFullName: v.buyerFullName!,
+          buyerEmail: v.buyerEmail!,
+          buyerPhone: v.buyerPhone!,
+          sellerFullName: v.sellerFullName!,
+          sellerEmail: v.sellerEmail!,
+          itemTitle: v.itemTitle!.trim(),
+          itemValue: v.itemValue!,
+          serviceType: v.serviceType!,
+          feePayer: v.feePayer!
+        });
+        
+        return this.txService.create({
+          buyerFullName:   v.buyerFullName!,
+          buyerEmail:      v.buyerEmail!,
+          buyerPhone:      v.buyerPhone!,
+          buyerIdNumber:   v.buyerIdNumber!,
+          sellerFullName:  v.sellerFullName!,
+          sellerEmail:     v.sellerEmail!,
+          sellerPhone:     v.sellerPhone!,
+          itemTitle:       v.itemTitle!.trim(),
+          itemDescription: v.itemDescription!.trim(),
+          itemValue:       v.itemValue!,
+          sellerLocation:  v.sellerLocation!.trim(),
+          serviceType:     v.serviceType!,
+          feePayer:        v.feePayer!,
         }).pipe(
+          tap(tx => {
+            console.log('📥 [StartTransaction] Raw transaction response:', tx);
+            console.log('📥 [StartTransaction] Response keys:', Object.keys(tx));
+          }),
           switchMap(tx => {
-            if (!tx || !tx.Id) {
+            const response = tx as any;
+            console.log('🔍 [StartTransaction] Checking response properties:');
+            console.log('  - id:', response.id);
+            console.log('  - Id:', response.Id);
+            console.log('  - dealReference:', response.dealReference);
+            console.log('  - DealReference:', response.DealReference);
+            console.log('  - seller:', response.seller);
+            console.log('  - Seller:', response.Seller);
+            
+            const id = response.id ?? response.Id;
+            const dealReference = response.dealReference ?? response.DealReference;
+            const seller = response.seller ?? response.Seller;
+            
+            console.log('🎯 [StartTransaction] Extracted values:');
+            console.log('  - id:', id);
+            console.log('  - dealReference:', dealReference);
+            console.log('  - seller:', seller);
+            
+            if (!id) {
+              console.error('❌ [StartTransaction] No ID found in response!');
+              console.error('  - Full response:', tx);
               throw new Error('Transaction was created without an ID — please contact support.');
             }
-            this.transactionId.set(tx.Id);
-            this.dealReference.set(tx.DealReference);
-            this.sellerId.set(tx.Seller?.Id ?? null);
+            
+            console.log('✅ [StartTransaction] Transaction created successfully with ID:', id);
+            
+            this.transactionId.set(id);
+            this.dealReference.set(dealReference);
+            this.sellerId.set(seller?.id ?? seller?.Id ?? null);
             this.sellerEmail.set(v.sellerEmail!);
             this.kycStep.set('kyc');
+            
+            console.log('🔄 [StartTransaction] Starting KYC polling for transaction:', id);
+            console.log('  - Transaction ID set:', this.transactionId());
+            console.log('  - Deal Reference set:', this.dealReference());
+            console.log('  - Seller ID set:', this.sellerId());
+            console.log('  - Seller Email set:', this.sellerEmail());
+            
             return interval(3000).pipe(
-              switchMap(() => this.txService.getById(tx.Id)),
-              takeWhile(t => t.Buyer?.IdCheckStatus === 'Pending' || t.Buyer?.AmlStatus === 'Pending', true),
+              switchMap((pollCount) => {
+                console.log(`⏳ [StartTransaction] KYC poll #${pollCount + 1} for transaction:`, id);
+                return this.txService.getById(id);
+              }),
+              tap(t => {
+                console.log('📊 [StartTransaction] KYC status update:', {
+                  status: t.status,
+                  buyer: t.buyer ? {
+                    idCheckStatus: t.buyer.idCheckStatus,
+                    amlStatus: t.buyer.amlStatus,
+                    livenessStatus: t.buyer.livenessStatus
+                  } : 'No buyer data',
+                  seller: t.seller ? {
+                    idCheckStatus: t.seller.idCheckStatus,
+                    amlStatus: t.seller.amlStatus,
+                    livenessStatus: t.seller.livenessStatus
+                  } : 'No seller data'
+                });
+              }),
+              takeWhile(t => {
+                const buyer = (t as any)?.buyer ?? (t as any)?.Buyer;
+                const idCheck = buyer?.idCheckStatus ?? buyer?.IdCheckStatus;
+                const aml = buyer?.amlStatus ?? buyer?.AmlStatus;
+                const isPending = idCheck === 'Pending' || aml === 'Pending';
+                console.log(`  - idCheck: ${idCheck}, aml: ${aml}, isPending: ${isPending}`);
+                return isPending;
+              }, true),
               take(20),
               tap(t => {
-                if (t.Buyer?.IdCheckStatus === 'Pending' || t.Buyer?.AmlStatus === 'Pending') return;
-                if (t.Buyer?.IdCheckStatus !== 'Approved' || t.Buyer?.AmlStatus !== 'Approved')
+                const buyer = (t as any)?.buyer ?? (t as any)?.Buyer;
+                const idCheck = buyer?.idCheckStatus ?? buyer?.IdCheckStatus;
+                const aml = buyer?.amlStatus ?? buyer?.AmlStatus;
+                console.log(`✅ [StartTransaction] KYC check - idCheck: ${idCheck}, aml: ${aml}`);
+                if (idCheck === 'Pending' || aml === 'Pending') {
+                  console.log('⏳ [StartTransaction] KYC still pending, continuing...');
+                  return;
+                }
+                if (idCheck !== 'Approved' || aml !== 'Approved') {
+                  console.error('❌ [StartTransaction] KYC failed:', { idCheck, aml });
                   throw { error: { error: 'Identity or AML verification failed. Please check the submitted details.' } };
+                }
+                console.log('✅ [StartTransaction] KYC approved!');
               }),
               switchMap(t => {
-                if (t.Buyer?.IdCheckStatus !== 'Approved' || t.Buyer?.AmlStatus !== 'Approved')
+                const buyer = (t as any)?.buyer ?? (t as any)?.Buyer;
+                const idCheck = buyer?.idCheckStatus ?? buyer?.IdCheckStatus;
+                const aml = buyer?.amlStatus ?? buyer?.AmlStatus;
+                
+                if (idCheck !== 'Approved' || aml !== 'Approved') {
+                  console.error('❌ [StartTransaction] KYC not approved before payment link:', { idCheck, aml });
                   throw { error: { error: 'Identity or AML verification failed. Please check the submitted details.' } };
+                }
+                
+                console.log('💳 [StartTransaction] KYC complete, getting payment link for transaction:', id);
                 this.kycStep.set('payment');
-                return this.txService.getPaymentLink(tx.Id);
+                return this.txService.getPaymentLink(id);
               })
             );
           })
-        )
-      )
+        );
+      })
     ).subscribe({
       next: res => {
-        if (!('redirectUrl' in res)) return;
-        sessionStorage.setItem('securex-payment-state', JSON.stringify({
+        console.log('💳 [StartTransaction] Payment link response:', res);
+        console.log('  - txId:', res.txId);
+        console.log('  - sellerId:', res.sellerId);
+        console.log('  - sellerEmail:', res.sellerEmail);
+        console.log('  - redirectUrl:', res.redirectUrl);
+        
+        if (!('redirectUrl' in res)) {
+          console.error('❌ [StartTransaction] No redirectUrl in response');
+          return;
+        }
+        
+        const state = {
           txId: res.txId,
           sellerId: res.sellerId,
           sellerEmail: res.sellerEmail,
           buyerEmail: v.buyerEmail!,
-        }));
+        };
+        
+        console.log('💾 [StartTransaction] Saving payment state to sessionStorage:', state);
+        sessionStorage.setItem('securex-payment-state', JSON.stringify(state));
+        
         this.submitting.set(false);
+        console.log('🔄 [StartTransaction] Redirecting to Ozow:', res.redirectUrl);
         window.location.href = (res as any).redirectUrl;
       },
       error: err => {
+        console.error('❌ [StartTransaction] Error:', err);
+        console.error('  - error message:', err?.error?.error);
+        console.error('  - Error property:', err?.error?.Error);
+        console.error('  - message:', err?.message);
+        console.error('  - full error:', err);
+        
         this.errorMessage.set(err?.error?.error ?? err?.error?.Error ?? err?.message ?? 'Submission failed. Please try again.');
         this.submitting.set(false);
         this.kycStep.set('idle');
+        console.log('🔄 [StartTransaction] Reset state - submitting:', this.submitting(), 'kycStep:', this.kycStep());
       }
     });
   }

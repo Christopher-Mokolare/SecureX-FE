@@ -1,54 +1,55 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
 export interface CreateTransactionRequest {
-  BuyerFullName: string;
-  BuyerEmail: string;
-  BuyerPhone: string;
-  BuyerIdNumber: string;
-  SellerFullName: string;
-  SellerEmail: string;
-  SellerPhone: string;
-  ItemTitle: string;
-  ItemDescription: string;
-  ItemValue: number;
-  SellerLocation: string;
-  ServiceType: 'Standard' | 'VerifiedExpress';
-  FeePayer: 'Buyer' | 'Seller' | 'Split';
+  buyerFullName: string;
+  buyerEmail: string;
+  buyerPhone: string;
+  buyerIdNumber: string;
+  sellerFullName: string;
+  sellerEmail: string;
+  sellerPhone: string;
+  itemTitle: string;
+  itemDescription: string;
+  itemValue: number;
+  sellerLocation: string;
+  serviceType: 'Standard' | 'VerifiedExpress';
+  feePayer: 'Buyer' | 'Seller' | 'Split';
 }
 
 export interface UserSummary {
-  Id: string;
-  FullName: string;
-  Email: string;
-  Phone: string;
-  BankVerificationStatus: string;
-  IdCheckStatus: string;
-  AmlStatus: string;
-  LivenessStatus: string;
+  id: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  bankVerificationStatus: string;
+  idCheckStatus: string;
+  amlStatus: string;
+  livenessStatus: string;
 }
 
 export interface CreateTransactionResponse {
-  Id: string;
-  DealReference: string;
-  Status: string;
-  ItemTitle: string;
-  ItemDescription: string;
-  SellerLocation: string;
-  ItemValue: number;
-  PlatformFee: number;
-  BuyerFee: number;
-  SellerFee: number;
-  TotalCheckoutAmount: number;
-  ServiceType: string;
-  Version: number;
-  PaymentRedirectUrl: string | null;
-  CreatedAt: string;
-  InspectionWindowEndsAt: string | null;
-  Buyer?: UserSummary;
-  Seller?: UserSummary;
+  id: string;
+  dealReference: string;
+  status: string;
+  itemTitle: string;
+  itemDescription: string;
+  sellerLocation: string;
+  itemValue: number;
+  platformFee: number;
+  buyerFee: number;
+  sellerFee: number;
+  totalCheckoutAmount: number;
+  serviceType: string;
+  version: number;
+  paymentRedirectUrl: string | null;
+  createdAt: string;
+  inspectionWindowEndsAt: string | null;
+  buyer?: UserSummary;
+  seller?: UserSummary;
 }
 
 export interface OzowBank {
@@ -58,10 +59,10 @@ export interface OzowBank {
 }
 
 export interface BankDetailsRequest {
-  AccountNumber: string;
-  BranchCode: string;
-  BankGroupId: string;
-  IdNumber: string;
+  accountNumber: string;
+  branchCode: string;
+  bankGroupId: string;
+  idNumber: string;
 }
 
 export interface SmileSession {
@@ -90,7 +91,31 @@ export class TransactionService {
   private http = inject(HttpClient);
 
   create(body: CreateTransactionRequest): Observable<CreateTransactionResponse> {
-    return this.http.post<CreateTransactionResponse>(`${environment.apiBase}/api/transactions`, body);
+    return this.http.post<CreateTransactionResponse>(`${environment.apiBase}/api/transactions`, body).pipe(
+      map(res => {
+        const response = res as any;
+        return {
+          id: response.id ?? response.Id,
+          dealReference: response.dealReference ?? response.DealReference,
+          status: response.status ?? response.Status,
+          itemTitle: response.itemTitle ?? response.ItemTitle,
+          itemDescription: response.itemDescription ?? response.ItemDescription,
+          sellerLocation: response.sellerLocation ?? response.SellerLocation,
+          itemValue: response.itemValue ?? response.ItemValue,
+          platformFee: response.platformFee ?? response.PlatformFee,
+          buyerFee: response.buyerFee ?? response.BuyerFee,
+          sellerFee: response.sellerFee ?? response.SellerFee,
+          totalCheckoutAmount: response.totalCheckoutAmount ?? response.TotalCheckoutAmount,
+          serviceType: response.serviceType ?? response.ServiceType,
+          version: response.version ?? response.Version,
+          paymentRedirectUrl: response.paymentRedirectUrl ?? response.PaymentRedirectUrl,
+          createdAt: response.createdAt ?? response.CreatedAt,
+          inspectionWindowEndsAt: response.inspectionWindowEndsAt ?? response.InspectionWindowEndsAt,
+          buyer: response.buyer ?? response.Buyer,
+          seller: response.seller ?? response.Seller,
+        };
+      })
+    );
   }
 
   feePreview(itemValue: number, serviceType: string, feePayer: string): Observable<FeePreview> {
@@ -117,7 +142,31 @@ export class TransactionService {
   }
 
   getById(txId: string): Observable<CreateTransactionResponse> {
-    return this.http.get<CreateTransactionResponse>(`${environment.apiBase}/api/transactions/${txId}`);
+    return this.http.get<CreateTransactionResponse>(`${environment.apiBase}/api/transactions/${txId}`).pipe(
+      map(res => {
+        const response = res as any;
+        return {
+          id: response.id ?? response.Id,
+          dealReference: response.dealReference ?? response.DealReference,
+          status: response.status ?? response.Status,
+          itemTitle: response.itemTitle ?? response.ItemTitle,
+          itemDescription: response.itemDescription ?? response.ItemDescription,
+          sellerLocation: response.sellerLocation ?? response.SellerLocation,
+          itemValue: response.itemValue ?? response.ItemValue,
+          platformFee: response.platformFee ?? response.PlatformFee,
+          buyerFee: response.buyerFee ?? response.BuyerFee,
+          sellerFee: response.sellerFee ?? response.SellerFee,
+          totalCheckoutAmount: response.totalCheckoutAmount ?? response.TotalCheckoutAmount,
+          serviceType: response.serviceType ?? response.ServiceType,
+          version: response.version ?? response.Version,
+          paymentRedirectUrl: response.paymentRedirectUrl ?? response.PaymentRedirectUrl,
+          createdAt: response.createdAt ?? response.CreatedAt,
+          inspectionWindowEndsAt: response.inspectionWindowEndsAt ?? response.InspectionWindowEndsAt,
+          buyer: response.buyer ?? response.Buyer,
+          seller: response.seller ?? response.Seller,
+        };
+      })
+    );
   }
 
   getPaymentLink(txId: string): Observable<{
@@ -135,7 +184,31 @@ export class TransactionService {
   }
 
   getByRef(ref: string): Observable<CreateTransactionResponse> {
-    return this.http.get<CreateTransactionResponse>(`${environment.apiBase}/api/transactions/ref/${ref}`);
+    return this.http.get<CreateTransactionResponse>(`${environment.apiBase}/api/transactions/ref/${ref}`).pipe(
+      map(res => {
+        const response = res as any;
+        return {
+          id: response.id ?? response.Id,
+          dealReference: response.dealReference ?? response.DealReference,
+          status: response.status ?? response.Status,
+          itemTitle: response.itemTitle ?? response.ItemTitle,
+          itemDescription: response.itemDescription ?? response.ItemDescription,
+          sellerLocation: response.sellerLocation ?? response.SellerLocation,
+          itemValue: response.itemValue ?? response.ItemValue,
+          platformFee: response.platformFee ?? response.PlatformFee,
+          buyerFee: response.buyerFee ?? response.BuyerFee,
+          sellerFee: response.sellerFee ?? response.SellerFee,
+          totalCheckoutAmount: response.totalCheckoutAmount ?? response.TotalCheckoutAmount,
+          serviceType: response.serviceType ?? response.ServiceType,
+          version: response.version ?? response.Version,
+          paymentRedirectUrl: response.paymentRedirectUrl ?? response.PaymentRedirectUrl,
+          createdAt: response.createdAt ?? response.CreatedAt,
+          inspectionWindowEndsAt: response.inspectionWindowEndsAt ?? response.InspectionWindowEndsAt,
+          buyer: response.buyer ?? response.Buyer,
+          seller: response.seller ?? response.Seller,
+        };
+      })
+    );
   }
 
   markDelivered(txId: string, version: number): Observable<CreateTransactionResponse> {

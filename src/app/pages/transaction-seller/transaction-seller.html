@@ -36,7 +36,7 @@
       <div class="text-center mb-8">
         <a routerLink="/" class="font-bold text-2xl text-blue-900">SecureX</a>
         <h1 class="text-2xl font-bold text-gray-900 mt-4">Your Transaction</h1>
-        <p class="text-gray-500 text-sm mt-1 font-mono font-bold">{{ tx()!.DealReference }}</p>
+        <p class="text-gray-500 text-sm mt-1 font-mono font-bold">{{ tx()!.dealReference }}</p>
       </div>
 
       @if (error()) {
@@ -47,15 +47,15 @@
       <div class="bg-white rounded-2xl shadow-md p-6 mb-6 space-y-3">
         <div class="flex justify-between text-sm">
           <span class="text-gray-500">Item</span>
-          <span class="font-semibold text-gray-800">{{ tx()!.ItemTitle }}</span>
+          <span class="font-semibold text-gray-800">{{ tx()!.itemTitle }}</span>
         </div>
         <div class="flex justify-between text-sm">
           <span class="text-gray-500">Item Value</span>
-          <span class="font-semibold text-gray-800">{{ fmt(tx()!.ItemValue) }}</span>
+          <span class="font-semibold text-gray-800">{{ fmt(tx()!.itemValue) }}</span>
         </div>
         <div class="flex justify-between text-sm">
           <span class="text-gray-500">Platform Fee (your share)</span>
-          <span class="text-red-600 font-semibold">- {{ fmt(tx()!.SellerFee) }}</span>
+          <span class="text-red-600 font-semibold">- {{ fmt(tx()!.sellerFee) }}</span>
         </div>
         <div class="border-t pt-3 flex justify-between">
           <span class="font-bold text-gray-800">You Receive</span>
@@ -63,15 +63,15 @@
         </div>
         <div class="flex justify-between text-sm">
           <span class="text-gray-500">Status</span>
-          <span class="font-semibold text-blue-700">{{ tx()!.Status }}</span>
+          <span class="font-semibold text-blue-700">{{ tx()!.status }}</span>
         </div>
         <div class="flex justify-between text-sm">
           <span class="text-gray-500">Buyer</span>
-          <span class="font-semibold text-gray-800">{{ tx()!.Buyer?.FullName }}</span>
+          <span class="font-semibold text-gray-800">{{ tx()!.buyer?.fullName }}</span>
         </div>
         <div class="flex justify-between text-sm">
           <span class="text-gray-500">Location</span>
-          <span class="font-semibold text-gray-800">{{ tx()!.SellerLocation }}</span>
+          <span class="font-semibold text-gray-800">{{ tx()!.sellerLocation }}</span>
         </div>
       </div>
 
@@ -131,7 +131,7 @@
       <div class="text-6xl mb-4">🚚</div>
       <h1 class="text-2xl font-bold text-green-700 mb-2">Marked as Delivered!</h1>
       <p class="text-gray-600 mb-2">The buyer has been notified and has 24 hours to inspect the item.</p>
-      <p class="text-gray-500 text-sm mb-6">Deal: <span class="font-mono font-bold">{{ tx()?.DealReference }}</span></p>
+      <p class="text-gray-500 text-sm mb-6">Deal: <span class="font-mono font-bold">{{ tx()?.dealReference }}</span></p>
       <p class="text-gray-500 text-sm">You will receive <span class="font-bold text-green-700">{{ fmt(sellerPayout) }}</span> once the buyer accepts.</p>
       <a routerLink="/" class="block mt-6 text-blue-600 underline text-sm">Back to Home</a>
     </div>

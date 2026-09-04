@@ -41,9 +41,9 @@ export class PaymentReturn implements OnInit {
         switchMap(() => this.txService.getByRef(ref))
       ).subscribe({
         next: tx => {
-          this.transactionId.set(tx.Id);
-          this.sellerId.set(tx.Seller?.Id ?? '');
-          this.sellerEmail.set(tx.Seller?.Email ?? '');
+          this.transactionId.set(tx.id);
+          this.sellerId.set(tx.seller?.id ?? '');
+          this.sellerEmail.set(tx.seller?.email ?? '');
         }
       });
     } else {
