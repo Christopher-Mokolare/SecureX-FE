@@ -1,7 +1,8 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, DestroyRef } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { switchMap, interval, takeWhile, take, tap } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AuthService } from '../../services/auth';
 import { TransactionService } from '../../services/transaction';
 import { environment } from '../../../environments/environment';
@@ -17,6 +18,7 @@ export class StartTransaction {
   private fb = inject(FormBuilder);
   private auth = inject(AuthService);
   private txService = inject(TransactionService);
+  private destroyRef = inject(DestroyRef);
 
   isSandbox = environment.smileIdSandbox;
 
@@ -29,24 +31,19 @@ export class StartTransaction {
   errorMessage = signal<string | null>(null);
 
   form = this.fb.group({
-    // Deal basics
     itemTitle:       ['', [Validators.required, Validators.minLength(3)]],
     itemDescription: ['', [Validators.required, Validators.minLength(10)]],
     itemValue:       [null as number | null, [Validators.required, Validators.min(1)]],
     sellerLocation:  ['', Validators.required],
-    // Financials
     serviceType:     ['Standard' as 'Standard' | 'VerifiedExpress', Validators.required],
     feePayer:        ['Buyer' as 'Buyer' | 'Seller' | 'Split', Validators.required],
-    // Buyer
     buyerFullName:   ['', Validators.required],
     buyerEmail:      ['', [Validators.required, Validators.email]],
     buyerPhone:      ['', [Validators.required, Validators.pattern(/^0[0-9]{9}$/)]],
     buyerIdNumber:   ['', [Validators.required, Validators.pattern(/^\d{13}$/)]],
-    // Seller
     sellerFullName:  ['', Validators.required],
     sellerEmail:     ['', [Validators.required, Validators.email]],
     sellerPhone:     ['', [Validators.required, Validators.pattern(/^0[0-9]{9}$/)]],
-    // Consent
     consent:         [false, Validators.requiredTrue],
   });
 
@@ -90,8 +87,8 @@ export class StartTransaction {
     this.errorMessage.set(null);
     const v = this.form.value;
 
-    // Step 1: create transaction
     this.auth.getToken(v.buyerEmail!).pipe(
+      takeUntilDestroyed(this.destroyRef),
       switchMap(() =>
         this.txService.create({
           BuyerFullName:   v.buyerFullName!,
@@ -109,6 +106,9 @@ export class StartTransaction {
           FeePayer:        v.feePayer!,
         }).pipe(
           switchMap(tx => {
+            if (!tx || !tx.Id) {
+              throw new Error('Transaction was created without an ID — please contact support.');
+            }
             this.transactionId.set(tx.Id);
             this.dealReference.set(tx.DealReference);
             this.sellerId.set(tx.Seller?.Id ?? null);
@@ -135,7 +135,7 @@ export class StartTransaction {
       )
     ).subscribe({
       next: res => {
-        if (!('redirectUrl' in res)) return; // still polling
+        if (!('redirectUrl' in res)) return;
         sessionStorage.setItem('securex-payment-state', JSON.stringify({
           txId: res.txId,
           sellerId: res.sellerId,
