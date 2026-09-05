@@ -1,5 +1,5 @@
 export const environment = {
   production: false,
-  apiBase: 'https://securex-api-vjf3.onrender.com',
+  apiBase: 'http://localhost:8080',
   smileIdSandbox: true
 };
