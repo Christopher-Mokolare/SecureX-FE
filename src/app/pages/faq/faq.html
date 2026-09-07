@@ -1,0 +1,28 @@
+<div class="min-h-screen bg-gray-50 pt-24 pb-10">
+  <div class="max-w-4xl mx-auto px-4">
+    
+    <div class="text-center mb-12">
+      <h1 class="text-4xl font-bold text-blue-900 mb-4">Frequently Asked Questions</h1>
+      <p class="text-lg text-gray-600">Everything you need to know about SecureX</p>
+    </div>
+
+    <div class="space-y-6">
+      @for (faq of faqs; track faq.q) {
+        <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+          <h3 class="text-lg font-semibold text-blue-900 mb-2">{{ faq.q }}</h3>
+          <p class="text-gray-600 leading-relaxed">{{ faq.a }}</p>
+        </div>
+      }
+    </div>
+
+    <div class="text-center mt-12">
+      <a routerLink="/" class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        Back to Home
+      </a>
+    </div>
+
+  </div>
+</div>

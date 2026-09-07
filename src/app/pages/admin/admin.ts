@@ -1,32 +1,34 @@
-import { Component, inject, signal, OnInit, HostListener } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule, DecimalPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { AdminService, AdminTransaction, AdminUser, AdminStats, TxStatusCount, TransactionDetail, AuditEntry, PayoutFailure, MissingPayout, ReconciliationEntry } from '../../services/admin';
 import { AuthService } from '../../services/auth';
+import { Footer } from '../../shared/footer/footer';
 
 type Tab = 'transactions' | 'users' | 'stats' | 'audit' | 'payouts' | 'reconciliation';
 
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [CommonModule, DecimalPipe, DatePipe, FormsModule],
+  imports: [CommonModule, DecimalPipe, DatePipe, FormsModule, Footer],
   templateUrl: './admin.html',
 })
 export class Admin implements OnInit {
   private svc = inject(AdminService);
   private auth = inject(AuthService);
-  private router = inject(Router);
 
   authenticated = signal(false);
-  isMobile = signal(false);
-  windowWidth = signal(0);
   loginEmail = '';
   loginPassword = '';
   loginError = signal('');
 
   tab = signal<Tab>('transactions');
+
+  // Mobile detection
+  isMobile = signal(false);
+  windowWidth = signal(window.innerWidth);
+  selectedAuditEntry = signal<AuditEntry | null>(null);
 
   // transactions
   txList = signal<AdminTransaction[]>([]);
@@ -59,7 +61,6 @@ export class Admin implements OnInit {
   auditTotal = signal(0);
   auditPage = signal(1);
   auditSearch = signal('');
-  selectedAuditEntry = signal<AuditEntry | null>(null);
 
   // payouts
   payoutFailures = signal<PayoutFailure[]>([]);
@@ -79,45 +80,34 @@ export class Admin implements OnInit {
   loading = signal(false);
   error = signal('');
 
-  @HostListener('window:resize', ['$event'])
-  onResize(event?: any) { // Added event?: any to match the listener
-    this.checkMobile(event);
-  }
-
   ngOnInit() {
-    this.checkMobile();
-
-    if (this.isMobile()) {
-      return;
-    }
-
+    // Check if user is already logged in
     if (this.auth.getCachedToken()) {
       this.authenticated.set(true);
       this.loadTransactions();
     }
+    
+    this.updateMobile();
+    window.addEventListener('resize', () => {
+      this.windowWidth.set(window.innerWidth);
+      this.updateMobile();
+    });
   }
 
-  // Fixed the parameter mismatch by adding event?: any
-  private checkMobile(event?: any) {
-    const width = window.innerWidth;
-    this.windowWidth.set(width);
-    this.isMobile.set(width < 768);
+  updateMobile() {
+    this.isMobile.set(window.innerWidth < 768);
   }
 
   goHome() {
-    this.router.navigate(['/']);
+    window.location.href = '/';
   }
 
   requestDesktopSite() {
-    alert('Please enable "Request Desktop Site" in your browser settings.\n\nChrome: Tap the three dots → Request Desktop Site\nSafari: Tap the aA icon → Request Desktop Site');
+    alert('Please request Desktop Site in your browser settings, or use a desktop device for the full admin experience.');
   }
 
   login() {
     this.loginError.set('');
-    if (!this.loginEmail || !this.loginPassword) {
-      this.loginError.set('Email and password are required');
-      return;
-    }
     this.auth.getToken(this.loginEmail, this.loginPassword).subscribe({
       next: () => { 
         this.authenticated.set(true); 
@@ -233,10 +223,6 @@ export class Admin implements OnInit {
       fromDate: this.txFromDate(), toDate: this.txToDate(),
     });
     const token = this.auth.getCachedToken();
-    if (!token) {
-      this.error.set('Session expired. Please login again.');
-      return;
-    }
     fetch(url, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.blob())
       .then(blob => {
@@ -258,16 +244,12 @@ export class Admin implements OnInit {
   }
 
   toggleSuspend(user: AdminUser) {
-    this.error.set('');
-    this.svc.suspendUser(user.id, !user.isSuspended).subscribe({
-      next: updated =>
-        this.userList.update(list => list.map(u => u.id === updated.id ? updated : u)),
-      error: (e) => this.error.set(e.error?.error ?? 'Failed to update suspension'),
-    });
+    this.svc.suspendUser(user.id, !user.isSuspended).subscribe(updated =>
+      this.userList.update(list => list.map(u => u.id === updated.id ? updated : u))
+    );
   }
 
   retryKyc(user: AdminUser) {
-    this.error.set('');
     this.svc.retryKyc(user.id).subscribe({
       next: () => this.loadUsers(),
       error: (e) => this.error.set(e.error?.error ?? 'KYC re-submission failed'),
@@ -282,21 +264,16 @@ export class Admin implements OnInit {
   saveKyc() {
     const u = this.kycTarget();
     if (!u) return;
-    this.error.set('');
     this.svc.overrideKyc(u.id, { idCheck: this.kycForm.idCheck, aml: this.kycForm.aml, liveness: this.kycForm.liveness })
-      .subscribe({
-        next: updated => {
-          this.kycTarget.set(null);
-          this.userList.update(list => list.map(x => x.id === updated.id ? updated : x));
-        },
-        error: (e) => this.error.set(e.error?.error ?? 'Failed to update KYC'),
+      .subscribe(updated => {
+        this.kycTarget.set(null);
+        this.userList.update(list => list.map(x => x.id === updated.id ? updated : x));
       });
   }
 
   // ── Stats ───────────────────────────────────────────────────────────────────
   loadStats() {
     this.loading.set(true);
-    this.error.set('');
     this.svc.getStats().subscribe({
       next: s => { this.stats.set(s); this.loading.set(false); },
       error: () => { this.error.set('Failed to load stats'); this.loading.set(false); },
@@ -306,7 +283,6 @@ export class Admin implements OnInit {
   // ── Audit Log ───────────────────────────────────────────────────────────────
   loadAudit() {
     this.loading.set(true);
-    this.error.set('');
     this.svc.getAuditLog({ page: this.auditPage(), size: 50, search: this.auditSearch() }).subscribe({
       next: r => { this.auditList.set(r.items); this.auditTotal.set(r.total); this.loading.set(false); },
       error: () => { this.error.set('Failed to load audit log'); this.loading.set(false); },
@@ -343,7 +319,6 @@ export class Admin implements OnInit {
   }
 
   retryMissingPayout(txId: string) {
-    this.error.set('');
     this.svc.retryPayout(txId).subscribe({
       next: () => this.loadPayouts(),
       error: (e) => this.error.set(e.error?.error ?? 'Retry failed'),
