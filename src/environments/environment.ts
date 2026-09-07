@@ -1,5 +1,5 @@
 export const environment = {
   production: false,
-  apiBase: 'http://localhost:8080',
+  apiBase: 'http://localhost:5000',
   smileIdSandbox: true
 };

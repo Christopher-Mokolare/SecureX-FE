@@ -1,6 +1,8 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit, HostListener } from '@angular/core';
 import { CommonModule, DecimalPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { forkJoin } from 'rxjs';
 import { AdminService, AdminTransaction, AdminUser, AdminStats, TxStatusCount, TransactionDetail, AuditEntry, PayoutFailure, MissingPayout, ReconciliationEntry } from '../../services/admin';
 import { AuthService } from '../../services/auth';
 
@@ -15,8 +17,11 @@ type Tab = 'transactions' | 'users' | 'stats' | 'audit' | 'payouts' | 'reconcili
 export class Admin implements OnInit {
   private svc = inject(AdminService);
   private auth = inject(AuthService);
+  private router = inject(Router);
 
   authenticated = signal(false);
+  isMobile = signal(false);
+  windowWidth = signal(0);
   loginEmail = '';
   loginPassword = '';
   loginError = signal('');
@@ -54,6 +59,7 @@ export class Admin implements OnInit {
   auditTotal = signal(0);
   auditPage = signal(1);
   auditSearch = signal('');
+  selectedAuditEntry = signal<AuditEntry | null>(null);
 
   // payouts
   payoutFailures = signal<PayoutFailure[]>([]);
@@ -73,19 +79,67 @@ export class Admin implements OnInit {
   loading = signal(false);
   error = signal('');
 
+  @HostListener('window:resize', ['$event'])
+  onResize(event?: any) { // Added event?: any to match the listener
+    this.checkMobile(event);
+  }
+
   ngOnInit() {
+    this.checkMobile();
+
+    if (this.isMobile()) {
+      return;
+    }
+
     if (this.auth.getCachedToken()) {
       this.authenticated.set(true);
       this.loadTransactions();
     }
   }
 
+  // Fixed the parameter mismatch by adding event?: any
+  private checkMobile(event?: any) {
+    const width = window.innerWidth;
+    this.windowWidth.set(width);
+    this.isMobile.set(width < 768);
+  }
+
+  goHome() {
+    this.router.navigate(['/']);
+  }
+
+  requestDesktopSite() {
+    alert('Please enable "Request Desktop Site" in your browser settings.\n\nChrome: Tap the three dots → Request Desktop Site\nSafari: Tap the aA icon → Request Desktop Site');
+  }
+
   login() {
     this.loginError.set('');
+    if (!this.loginEmail || !this.loginPassword) {
+      this.loginError.set('Email and password are required');
+      return;
+    }
     this.auth.getToken(this.loginEmail, this.loginPassword).subscribe({
-      next: () => { this.authenticated.set(true); this.loadTransactions(); },
+      next: () => { 
+        this.authenticated.set(true); 
+        this.loadTransactions(); 
+      },
       error: () => this.loginError.set('Invalid email or password'),
     });
+  }
+
+  logout() {
+    this.auth.clearToken();
+    this.authenticated.set(false);
+    this.loginEmail = '';
+    this.loginPassword = '';
+    this.detail.set(null);
+    this.stats.set(null);
+    this.txList.set([]);
+    this.userList.set([]);
+    this.auditList.set([]);
+    this.payoutFailures.set([]);
+    this.missingPayouts.set([]);
+    this.reconList.set([]);
   }
 
   setTab(t: Tab) {
@@ -178,8 +232,11 @@ export class Admin implements OnInit {
       search: this.txSearch(), status: this.txStatus(),
       fromDate: this.txFromDate(), toDate: this.txToDate(),
     });
-    // Attach token manually since it's a direct navigation
     const token = this.auth.getCachedToken();
+    if (!token) {
+      this.error.set('Session expired. Please login again.');
+      return;
+    }
     fetch(url, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.blob())
       .then(blob => {
@@ -201,12 +258,16 @@ export class Admin implements OnInit {
   }
 
   toggleSuspend(user: AdminUser) {
-    this.svc.suspendUser(user.id, !user.isSuspended).subscribe(updated =>
-      this.userList.update(list => list.map(u => u.id === updated.id ? updated : u))
-    );
+    this.error.set('');
+    this.svc.suspendUser(user.id, !user.isSuspended).subscribe({
+      next: updated =>
+        this.userList.update(list => list.map(u => u.id === updated.id ? updated : u)),
+      error: (e) => this.error.set(e.error?.error ?? 'Failed to update suspension'),
+    });
   }
 
   retryKyc(user: AdminUser) {
+    this.error.set('');
     this.svc.retryKyc(user.id).subscribe({
       next: () => this.loadUsers(),
       error: (e) => this.error.set(e.error?.error ?? 'KYC re-submission failed'),
@@ -221,16 +282,21 @@ export class Admin implements OnInit {
   saveKyc() {
     const u = this.kycTarget();
     if (!u) return;
+    this.error.set('');
     this.svc.overrideKyc(u.id, { idCheck: this.kycForm.idCheck, aml: this.kycForm.aml, liveness: this.kycForm.liveness })
-      .subscribe(updated => {
-        this.kycTarget.set(null);
-        this.userList.update(list => list.map(x => x.id === updated.id ? updated : x));
+      .subscribe({
+        next: updated => {
+          this.kycTarget.set(null);
+          this.userList.update(list => list.map(x => x.id === updated.id ? updated : x));
+        },
+        error: (e) => this.error.set(e.error?.error ?? 'Failed to update KYC'),
       });
   }
 
   // ── Stats ───────────────────────────────────────────────────────────────────
   loadStats() {
     this.loading.set(true);
+    this.error.set('');
     this.svc.getStats().subscribe({
       next: s => { this.stats.set(s); this.loading.set(false); },
       error: () => { this.error.set('Failed to load stats'); this.loading.set(false); },
@@ -240,27 +306,44 @@ export class Admin implements OnInit {
   // ── Audit Log ───────────────────────────────────────────────────────────────
   loadAudit() {
     this.loading.set(true);
+    this.error.set('');
     this.svc.getAuditLog({ page: this.auditPage(), size: 50, search: this.auditSearch() }).subscribe({
       next: r => { this.auditList.set(r.items); this.auditTotal.set(r.total); this.loading.set(false); },
       error: () => { this.error.set('Failed to load audit log'); this.loading.set(false); },
     });
   }
 
+  openAuditDetail(entry: AuditEntry) {
+    this.selectedAuditEntry.set(entry);
+  }
+
+  closeAuditDetail() {
+    this.selectedAuditEntry.set(null);
+  }
+
   // ── Payouts ──────────────────────────────────────────────────────────────────
   loadPayouts() {
     this.loading.set(true);
     this.error.set('');
-    this.svc.getPayoutFailures({ page: this.payoutFailuresPage(), size: 50 }).subscribe({
-      next: r => { this.payoutFailures.set(r.items); this.payoutFailuresTotal.set(r.total); },
-      error: () => this.error.set('Failed to load payout failures'),
-    });
-    this.svc.getMissingPayouts().subscribe({
-      next: r => { this.missingPayouts.set(r); this.loading.set(false); },
-      error: () => { this.error.set('Failed to load missing payouts'); this.loading.set(false); },
+    forkJoin({
+      failures: this.svc.getPayoutFailures({ page: this.payoutFailuresPage(), size: 50 }),
+      missing: this.svc.getMissingPayouts()
+    }).subscribe({
+      next: ({ failures, missing }) => {
+        this.payoutFailures.set(failures.items);
+        this.payoutFailuresTotal.set(failures.total);
+        this.missingPayouts.set(missing);
+        this.loading.set(false);
+      },
+      error: () => {
+        this.error.set('Failed to load payout data');
+        this.loading.set(false);
+      },
     });
   }
 
   retryMissingPayout(txId: string) {
+    this.error.set('');
     this.svc.retryPayout(txId).subscribe({
       next: () => this.loadPayouts(),
       error: (e) => this.error.set(e.error?.error ?? 'Retry failed'),
@@ -280,17 +363,22 @@ export class Admin implements OnInit {
   // ── Helpers ─────────────────────────────────────────────────────────────────
   statusBadge(s: string) {
     const map: Record<string, string> = {
-      Approved: 'bg-green-100 text-green-800', Failed: 'bg-red-100 text-red-800',
+      Approved: 'bg-green-100 text-green-800', 
+      Failed: 'bg-red-100 text-red-800',
       Pending: 'bg-yellow-100 text-yellow-800',
-      Completed: 'bg-green-100 text-green-800', RequiresRefund: 'bg-red-100 text-red-800',
-      FundsSecured: 'bg-blue-100 text-blue-800', ItemDelivered: 'bg-blue-100 text-blue-800',
+      Completed: 'bg-green-100 text-green-800', 
+      RequiresRefund: 'bg-red-100 text-red-800',
+      FundsSecured: 'bg-blue-100 text-blue-800', 
+      ItemDelivered: 'bg-blue-100 text-blue-800',
       Refunded: 'bg-gray-100 text-gray-600',
+      PaymentPending: 'bg-yellow-100 text-yellow-800',
+      LogisticsPending: 'bg-yellow-100 text-yellow-800',
     };
     return map[s] ?? 'bg-gray-100 text-gray-700';
   }
 
   barWidth(val: number, list: TxStatusCount[]): number {
-    const max = Math.max(...list.map(e => e.count));
+    const max = Math.max(...list.map(e => e.count), 0);
     return max ? (val / max) * 100 : 0;
   }
 

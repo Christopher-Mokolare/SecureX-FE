@@ -1,286 +1,542 @@
 <div class="min-h-screen bg-gray-50 pt-20 pb-10">
   <div class="max-w-7xl mx-auto px-4">
 
-    <!-- Login gate -->
-    @if (!authenticated()) {
-      <div class="max-w-sm mx-auto mt-20 bg-white rounded-xl shadow p-8">
-        <h1 class="text-xl font-bold text-blue-900 mb-6">Admin Login</h1>
-        <input [(ngModel)]="loginEmail" type="email" placeholder="Admin email"
-          class="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-blue-400"
-          (keyup.enter)="login()" />
-        <input [(ngModel)]="loginPassword" type="password" placeholder="Password"
-          class="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-blue-400"
-          (keyup.enter)="login()" />
-        @if (loginError()) {
-          <p class="text-red-600 text-xs mb-3">{{ loginError() }}</p>
-        }
-        <button (click)="login()"
-          class="w-full bg-blue-600 text-white py-2 rounded font-medium hover:bg-blue-700">Sign In</button>
-      </div>
-    }
-
-    @if (authenticated()) {
-    <h1 class="text-2xl font-bold text-blue-900 mb-6">Admin Portal</h1>
-
-    <!-- Tabs -->
-    <div class="flex space-x-1 mb-6 border-b border-gray-200">
-      <button (click)="setTab('transactions')"
-        [class]="tab() === 'transactions' ? 'px-5 py-2 text-sm font-medium border-b-2 border-blue-600 text-blue-600' : 'px-5 py-2 text-sm font-medium text-gray-500 hover:text-gray-700'">Transactions</button>
-      <button (click)="setTab('users')"
-        [class]="tab() === 'users' ? 'px-5 py-2 text-sm font-medium border-b-2 border-blue-600 text-blue-600' : 'px-5 py-2 text-sm font-medium text-gray-500 hover:text-gray-700'">Users</button>
-      <button (click)="setTab('stats')"
-        [class]="tab() === 'stats' ? 'px-5 py-2 text-sm font-medium border-b-2 border-blue-600 text-blue-600' : 'px-5 py-2 text-sm font-medium text-gray-500 hover:text-gray-700'">Stats</button>
-      <button (click)="setTab('audit')"
-        [class]="tab() === 'audit' ? 'px-5 py-2 text-sm font-medium border-b-2 border-blue-600 text-blue-600' : 'px-5 py-2 text-sm font-medium text-gray-500 hover:text-gray-700'">Audit Log</button>
-      <button (click)="setTab('payouts')"
-        [class]="tab() === 'payouts' ? 'px-5 py-2 text-sm font-medium border-b-2 border-blue-600 text-blue-600' : 'px-5 py-2 text-sm font-medium text-gray-500 hover:text-gray-700'">
-        Payouts
-        @if (missingPayouts().length > 0) { <span class="ml-1 px-1.5 py-0.5 bg-red-500 text-white text-xs rounded-full">{{ missingPayouts().length }}</span> }
-      </button>
-      <button (click)="setTab('reconciliation')"
-        [class]="tab() === 'reconciliation' ? 'px-5 py-2 text-sm font-medium border-b-2 border-blue-600 text-blue-600' : 'px-5 py-2 text-sm font-medium text-gray-500 hover:text-gray-700'">Reconciliation</button>
-    </div>
-
-    @if (error()) {
-      <div class="mb-4 p-3 bg-red-50 text-red-700 rounded text-sm">{{ error() }}</div>
-    }
-
-    <!-- TRANSACTIONS TAB -->
-    @if (tab() === 'transactions') {
-      <div class="flex flex-wrap gap-3 mb-4">
-        <input [ngModel]="txSearch()" (ngModelChange)="txSearch.set($event); txPage.set(1); loadTransactions()"
-          placeholder="Search reference / email…"
-          class="border border-gray-300 rounded px-3 py-2 text-sm w-56 focus:outline-none focus:ring-2 focus:ring-blue-400" />
-        <select [ngModel]="txStatus()" (ngModelChange)="txStatus.set($event); txPage.set(1); loadTransactions()"
-          class="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
-          @for (s of statuses; track s) {
-            <option [value]="s">{{ s || 'All Statuses' }}</option>
-          }
-        </select>
-        <input [ngModel]="txFromDate()" (ngModelChange)="txFromDate.set($event); txPage.set(1); loadTransactions()"
-          type="date" class="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
-        <input [ngModel]="txToDate()" (ngModelChange)="txToDate.set($event); txPage.set(1); loadTransactions()"
-          type="date" class="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
-        <button (click)="exportCsv()"
-          class="ml-auto px-4 py-2 bg-green-600 text-white text-sm rounded hover:bg-green-700 flex items-center gap-2">
-          ↓ Export CSV
+    <!-- ============================================================
+         MOBILE BLOCK - Show this instead of login/admin content
+    ============================================================ -->
+    @if (isMobile()) {
+      <div class="max-w-sm mx-auto mt-20 bg-white rounded-xl shadow-lg p-8 text-center">
+        <div class="text-6xl mb-4">🖥️</div>
+        <h1 class="text-2xl font-bold text-gray-800 mb-2">Admin Portal</h1>
+        <p class="text-gray-500 mb-4">
+          The admin portal is optimized for desktop viewing.
+        </p>
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-700">
+          <p class="font-medium">Please access this page from a desktop computer.</p>
+          <p class="text-xs mt-1">Minimum screen width: 768px</p>
+          <p class="text-xs mt-1">Current width: {{ windowWidth() }}px</p>
+        </div>
+        <button (click)="goHome()" 
+          class="mt-4 px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
+          Return to Home
+        </button>
+        <button (click)="requestDesktopSite()" 
+          class="mt-2 px-6 py-2 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 transition-colors text-sm block w-full">
+          Request Desktop Site
         </button>
       </div>
-
-      <div class="bg-white rounded-lg shadow overflow-x-auto">
-        <table class="min-w-full text-sm">
-          <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
-            <tr>
-              <th class="px-4 py-3 text-left">Reference</th>
-              <th class="px-4 py-3 text-left">Item</th>
-              <th class="px-4 py-3 text-left">Seller</th>
-              <th class="px-4 py-3 text-left">Buyer</th>
-              <th class="px-4 py-3 text-right">Value</th>
-              <th class="px-4 py-3 text-right">Fee</th>
-              <th class="px-4 py-3 text-left">Status</th>
-              <th class="px-4 py-3 text-left">Created</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-100">
-            @if (loading()) {
-              <tr><td colspan="8" class="px-4 py-8 text-center text-gray-400">Loading…</td></tr>
-            }
-            @for (tx of txList(); track tx.id) {
-              <tr class="hover:bg-gray-50 cursor-pointer" (click)="openDetail(tx)">
-                <td class="px-4 py-3 font-mono text-xs text-blue-700">{{ tx.dealReference }}</td>
-                <td class="px-4 py-3">{{ tx.itemTitle }}</td>
-                <td class="px-4 py-3 text-gray-600">{{ tx.seller?.email ?? '—' }}</td>
-                <td class="px-4 py-3 text-gray-600">{{ tx.buyer?.email ?? '—' }}</td>
-                <td class="px-4 py-3 text-right">R {{ tx.itemValue | number:'1.2-2' }}</td>
-                <td class="px-4 py-3 text-right">R {{ tx.platformFee | number:'1.2-2' }}</td>
-                <td class="px-4 py-3">
-                  <span [class]="'px-2 py-0.5 rounded-full text-xs font-medium ' + statusBadge(tx.status)">{{ tx.status }}</span>
-                </td>
-                <td class="px-4 py-3 text-gray-500 text-xs">{{ tx.createdAt | date:'dd MMM yyyy' }}</td>
-              </tr>
-            }
-            @if (!loading() && txList().length === 0) {
-              <tr><td colspan="8" class="px-4 py-8 text-center text-gray-400">No transactions found</td></tr>
-            }
-          </tbody>
-        </table>
-      </div>
-
-      <div class="flex justify-between items-center mt-4 text-sm text-gray-600">
-        <span>{{ txTotal() }} total</span>
-        <div class="flex gap-2">
-          <button [disabled]="txPage() === 1" (click)="txPage.set(txPage()-1); loadTransactions()"
-            class="px-3 py-1 border rounded disabled:opacity-40">Prev</button>
-          <span class="px-3 py-1">Page {{ txPage() }}</span>
-          <button [disabled]="txPage() * 20 >= txTotal()" (click)="txPage.set(txPage()+1); loadTransactions()"
-            class="px-3 py-1 border rounded disabled:opacity-40">Next</button>
-        </div>
-      </div>
     }
 
-    <!-- USERS TAB -->
-    @if (tab() === 'users') {
-      <div class="flex gap-3 mb-4">
-        <input [ngModel]="userSearch()" (ngModelChange)="userSearch.set($event); userPage.set(1); loadUsers()"
-          placeholder="Search name / email…"
-          class="border border-gray-300 rounded px-3 py-2 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-blue-400" />
+    <!-- ============================================================
+         LOGIN GATE & ADMIN CONTENT - Only shown on desktop
+    ============================================================ -->
+    @if (!isMobile()) {
+
+      <!-- Login gate -->
+      @if (!authenticated()) {
+        <div class="max-w-sm mx-auto mt-20 bg-white rounded-xl shadow p-8">
+          <h1 class="text-xl font-bold text-blue-900 mb-6">Admin Login</h1>
+          <input [(ngModel)]="loginEmail" type="email" placeholder="Admin email"
+            class="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            (keyup.enter)="login()" />
+          <input [(ngModel)]="loginPassword" type="password" placeholder="Password"
+            class="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            (keyup.enter)="login()" />
+          @if (loginError()) {
+            <p class="text-red-600 text-xs mb-3">{{ loginError() }}</p>
+          }
+          <button (click)="login()"
+            class="w-full bg-blue-600 text-white py-2 rounded font-medium hover:bg-blue-700">Sign In</button>
+        </div>
+      }
+
+      @if (authenticated()) {
+      <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold text-blue-900">Admin Portal</h1>
+        <button (click)="logout()" class="px-3 py-2 text-sm border border-gray-300 rounded text-gray-600 hover:bg-white">Sign Out</button>
       </div>
 
-      <div class="bg-white rounded-lg shadow overflow-x-auto">
-        <table class="min-w-full text-sm">
-          <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
-            <tr>
-              <th class="px-4 py-3 text-left">Name</th>
-              <th class="px-4 py-3 text-left">Email</th>
-              <th class="px-4 py-3 text-left">ID Check</th>
-              <th class="px-4 py-3 text-left">AML</th>
-              <th class="px-4 py-3 text-left">Liveness</th>
-              <th class="px-4 py-3 text-left">Bank</th>
-              <th class="px-4 py-3 text-left">Role</th>
-              <th class="px-4 py-3 text-left">Actions</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-100">
-            @if (loading()) {
-              <tr><td colspan="8" class="px-4 py-8 text-center text-gray-400">Loading…</td></tr>
+      <!-- Tabs -->
+      <div class="flex flex-wrap gap-1 mb-6 border-b border-gray-200">
+        <button (click)="setTab('transactions')"
+          [class]="tab() === 'transactions' ? 'px-5 py-2 text-sm font-medium border-b-2 border-blue-600 text-blue-600' : 'px-5 py-2 text-sm font-medium text-gray-500 hover:text-gray-700'">Transactions</button>
+        <button (click)="setTab('users')"
+          [class]="tab() === 'users' ? 'px-5 py-2 text-sm font-medium border-b-2 border-blue-600 text-blue-600' : 'px-5 py-2 text-sm font-medium text-gray-500 hover:text-gray-700'">Users</button>
+        <button (click)="setTab('stats')"
+          [class]="tab() === 'stats' ? 'px-5 py-2 text-sm font-medium border-b-2 border-blue-600 text-blue-600' : 'px-5 py-2 text-sm font-medium text-gray-500 hover:text-gray-700'">Stats</button>
+        <button (click)="setTab('audit')"
+          [class]="tab() === 'audit' ? 'px-5 py-2 text-sm font-medium border-b-2 border-blue-600 text-blue-600' : 'px-5 py-2 text-sm font-medium text-gray-500 hover:text-gray-700'">Audit Log</button>
+        <button (click)="setTab('payouts')"
+          [class]="tab() === 'payouts' ? 'px-5 py-2 text-sm font-medium border-b-2 border-blue-600 text-blue-600' : 'px-5 py-2 text-sm font-medium text-gray-500 hover:text-gray-700'">
+          Payouts
+          @if (missingPayouts().length > 0) { <span class="ml-1 px-1.5 py-0.5 bg-red-500 text-white text-xs rounded-full">{{ missingPayouts().length }}</span> }
+        </button>
+        <button (click)="setTab('reconciliation')"
+          [class]="tab() === 'reconciliation' ? 'px-5 py-2 text-sm font-medium border-b-2 border-blue-600 text-blue-600' : 'px-5 py-2 text-sm font-medium text-gray-500 hover:text-gray-700'">Reconciliation</button>
+      </div>
+
+      @if (error()) {
+        <div class="mb-4 p-3 bg-red-50 text-red-700 rounded text-sm">{{ error() }}</div>
+      }
+
+      <!-- ============================================================
+           TRANSACTIONS TAB
+      ============================================================ -->
+      @if (tab() === 'transactions') {
+        <div class="flex flex-wrap gap-3 mb-4">
+          <input [ngModel]="txSearch()" (ngModelChange)="txSearch.set($event); txPage.set(1); loadTransactions()"
+            placeholder="Search reference / email…"
+            class="border border-gray-300 rounded px-3 py-2 text-sm w-56 focus:outline-none focus:ring-2 focus:ring-blue-400" />
+          <select [ngModel]="txStatus()" (ngModelChange)="txStatus.set($event); txPage.set(1); loadTransactions()"
+            class="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
+            @for (s of statuses; track s) {
+              <option [value]="s">{{ s || 'All Statuses' }}</option>
             }
-            @for (u of userList(); track u.id) {
-              <tr class="hover:bg-gray-50">
-                <td class="px-4 py-3 font-medium">{{ u.fullName }}</td>
-                <td class="px-4 py-3 text-gray-600">{{ u.email }}</td>
-                <td class="px-4 py-3"><span [class]="'px-2 py-0.5 rounded-full text-xs font-medium ' + statusBadge(u.idCheckStatus)">{{ u.idCheckStatus }}</span></td>
-                <td class="px-4 py-3"><span [class]="'px-2 py-0.5 rounded-full text-xs font-medium ' + statusBadge(u.amlStatus)">{{ u.amlStatus }}</span></td>
-                <td class="px-4 py-3"><span [class]="'px-2 py-0.5 rounded-full text-xs font-medium ' + statusBadge(u.livenessStatus)">{{ u.livenessStatus }}</span></td>
-                <td class="px-4 py-3"><span [class]="'px-2 py-0.5 rounded-full text-xs font-medium ' + statusBadge(u.bankVerificationStatus)">{{ u.bankVerificationStatus }}</span></td>
-                <td class="px-4 py-3">
-                  @if (u.isAdmin) { <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">Admin</span> }
-                  @else { <span class="text-gray-400 text-xs">User</span> }
-                </td>
-                <td class="px-4 py-3 flex gap-2">
-                  <button (click)="openKyc(u)" class="text-xs px-2 py-1 bg-blue-50 text-blue-700 rounded hover:bg-blue-100">KYC</button>
-                  <button (click)="toggleSuspend(u)"
-                    [class]="u.isSuspended ? 'text-xs px-2 py-1 bg-green-50 text-green-700 rounded hover:bg-green-100' : 'text-xs px-2 py-1 bg-red-50 text-red-700 rounded hover:bg-red-100'">
-                    {{ u.isSuspended ? 'Unsuspend' : 'Suspend' }}
-                  </button>
-                </td>
+          </select>
+          <input [ngModel]="txFromDate()" (ngModelChange)="txFromDate.set($event); txPage.set(1); loadTransactions()"
+            type="date" class="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+          <input [ngModel]="txToDate()" (ngModelChange)="txToDate.set($event); txPage.set(1); loadTransactions()"
+            type="date" class="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+          <button (click)="exportCsv()"
+            class="ml-auto px-4 py-2 bg-green-600 text-white text-sm rounded hover:bg-green-700 flex items-center gap-2">
+            ↓ Export CSV
+          </button>
+        </div>
+
+        <div class="bg-white rounded-lg shadow overflow-x-auto">
+          <table class="min-w-full text-sm">
+            <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+              <tr>
+                <th class="px-4 py-3 text-left">Reference</th>
+                <th class="px-4 py-3 text-left">Item</th>
+                <th class="px-4 py-3 text-left">Seller</th>
+                <th class="px-4 py-3 text-left">Buyer</th>
+                <th class="px-4 py-3 text-right">Value</th>
+                <th class="px-4 py-3 text-right">Fee</th>
+                <th class="px-4 py-3 text-left">Status</th>
+                <th class="px-4 py-3 text-left">Created</th>
               </tr>
-            }
-            @if (!loading() && userList().length === 0) {
-              <tr><td colspan="8" class="px-4 py-8 text-center text-gray-400">No users found</td></tr>
-            }
-          </tbody>
-        </table>
-      </div>
-
-      <div class="flex justify-between items-center mt-4 text-sm text-gray-600">
-        <span>{{ userTotal() }} total</span>
-        <div class="flex gap-2">
-          <button [disabled]="userPage() === 1" (click)="userPage.set(userPage()-1); loadUsers()"
-            class="px-3 py-1 border rounded disabled:opacity-40">Prev</button>
-          <span class="px-3 py-1">Page {{ userPage() }}</span>
-          <button [disabled]="userPage() * 20 >= userTotal()" (click)="userPage.set(userPage()+1); loadUsers()"
-            class="px-3 py-1 border rounded disabled:opacity-40">Next</button>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+              @if (loading()) {
+                <tr><td colspan="8" class="px-4 py-8 text-center text-gray-400">Loading…</td></tr>
+              }
+              @for (tx of txList(); track tx.id) {
+                <tr class="hover:bg-gray-50 cursor-pointer" (click)="openDetail(tx)">
+                  <td class="px-4 py-3 font-mono text-xs text-blue-700">{{ tx.dealReference }}</td>
+                  <td class="px-4 py-3">{{ tx.itemTitle }}</td>
+                  <td class="px-4 py-3 text-gray-600">{{ tx.seller?.email ?? '—' }}</td>
+                  <td class="px-4 py-3 text-gray-600">{{ tx.buyer?.email ?? '—' }}</td>
+                  <td class="px-4 py-3 text-right">R {{ tx.itemValue | number:'1.2-2' }}</td>
+                  <td class="px-4 py-3 text-right">R {{ tx.platformFee | number:'1.2-2' }}</td>
+                  <td class="px-4 py-3">
+                    <span [class]="'px-2 py-0.5 rounded-full text-xs font-medium ' + statusBadge(tx.status)">{{ tx.status }}</span>
+                  </td>
+                  <td class="px-4 py-3 text-gray-500 text-xs">{{ tx.createdAt | date:'dd MMM yyyy' }}</td>
+                </tr>
+              }
+              @if (!loading() && txList().length === 0) {
+                <tr><td colspan="8" class="px-4 py-8 text-center text-gray-400">No transactions found</td></tr>
+              }
+            </tbody>
+          </table>
         </div>
-      </div>
-    }
 
-    <!-- STATS TAB -->
-    @if (tab() === 'stats') {
-      @if (loading()) { <p class="text-gray-400">Loading…</p> }
-      @if (stats(); as s) {
-        <div class="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-8">
-          <div class="bg-white rounded-lg shadow p-5">
-            <p class="text-xs text-gray-500 uppercase mb-1">Fees Collected</p>
-            <p class="text-2xl font-bold text-blue-900">R {{ s.totalFeesCollected | number:'1.2-2' }}</p>
-          </div>
-          <div class="bg-white rounded-lg shadow p-5">
-            <p class="text-xs text-gray-500 uppercase mb-1">Funds in Escrow</p>
-            <p class="text-2xl font-bold text-indigo-700">R {{ s.fundsInEscrow | number:'1.2-2' }}</p>
-          </div>
-          <div class="bg-white rounded-lg shadow p-5">
-            <p class="text-xs text-gray-500 uppercase mb-1">Open Disputes</p>
-            <p class="text-2xl font-bold text-red-600">{{ s.openDisputes }}</p>
-          </div>
-          <div class="bg-white rounded-lg shadow p-5">
-            <p class="text-xs text-gray-500 uppercase mb-1">Pending Payouts</p>
-            <p class="text-2xl font-bold text-yellow-600">{{ s.pendingPayouts }}</p>
-          </div>
-          <div class="bg-white rounded-lg shadow p-5">
-            <p class="text-xs text-gray-500 uppercase mb-1">Total Users</p>
-            <p class="text-2xl font-bold text-gray-800">{{ s.totalUsers }}</p>
-          </div>
-        </div>
-        <div class="bg-white rounded-lg shadow p-5">
-          <p class="text-sm font-semibold text-gray-700 mb-4">Transactions by Status</p>
-          <div class="space-y-3">
-            @for (entry of s.transactionsByStatus; track entry.status) {
-              <div class="flex items-center gap-3">
-                <span class="w-44 text-sm text-gray-600">{{ entry.status }}</span>
-                <div class="flex-1 bg-gray-100 rounded-full h-3">
-                  <div class="bg-blue-500 h-3 rounded-full" [style.width.%]="barWidth(entry.count, s.transactionsByStatus)"></div>
-                </div>
-                <span class="text-sm font-medium text-gray-700 w-8 text-right">{{ entry.count }}</span>
-              </div>
-            }
+        <div class="flex justify-between items-center mt-4 text-sm text-gray-600">
+          <span>{{ txTotal() }} total</span>
+          <div class="flex gap-2">
+            <button [disabled]="txPage() === 1" (click)="txPage.set(txPage()-1); loadTransactions()"
+              class="px-3 py-1 border rounded disabled:opacity-40">Prev</button>
+            <span class="px-3 py-1">Page {{ txPage() }}</span>
+            <button [disabled]="txPage() * 20 >= txTotal()" (click)="txPage.set(txPage()+1); loadTransactions()"
+              class="px-3 py-1 border rounded disabled:opacity-40">Next</button>
           </div>
         </div>
       }
-    }
 
-    <!-- AUDIT LOG TAB -->
-    @if (tab() === 'audit') {
-      <div class="flex gap-3 mb-4">
-        <input [ngModel]="auditSearch()" (ngModelChange)="auditSearch.set($event); auditPage.set(1); loadAudit()"
-          placeholder="Search actor / details…"
-          class="border border-gray-300 rounded px-3 py-2 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-blue-400" />
-      </div>
-      <div class="bg-white rounded-lg shadow overflow-x-auto">
-        <table class="min-w-full text-sm">
-          <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
-            <tr>
-              <th class="px-4 py-3 text-left">Time</th>
-              <th class="px-4 py-3 text-left">Actor</th>
-              <th class="px-4 py-3 text-left">From</th>
-              <th class="px-4 py-3 text-left">To</th>
-              <th class="px-4 py-3 text-left">Details</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-100">
-            @if (loading()) {
-              <tr><td colspan="5" class="px-4 py-8 text-center text-gray-400">Loading…</td></tr>
-            }
-            @for (a of auditList(); track a.id) {
-              <tr class="hover:bg-gray-50">
-                <td class="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">{{ a.timestamp | date:'dd MMM yyyy HH:mm' }}</td>
-                <td class="px-4 py-3 text-xs text-gray-700">{{ a.triggerActor }}</td>
-                <td class="px-4 py-3"><span [class]="'px-2 py-0.5 rounded-full text-xs font-medium ' + statusBadge(a.previousStatus ?? '')">{{ a.previousStatus ?? '—' }}</span></td>
-                <td class="px-4 py-3"><span [class]="'px-2 py-0.5 rounded-full text-xs font-medium ' + statusBadge(a.newStatus)">{{ a.newStatus }}</span></td>
-                <td class="px-4 py-3 text-xs text-gray-600 max-w-xs truncate">{{ a.actionDetails }}</td>
-              </tr>
-            }
-            @if (!loading() && auditList().length === 0) {
-              <tr><td colspan="5" class="px-4 py-8 text-center text-gray-400">No audit entries found</td></tr>
-            }
-          </tbody>
-        </table>
-      </div>
-      <div class="flex justify-between items-center mt-4 text-sm text-gray-600">
-        <span>{{ auditTotal() }} total</span>
-        <div class="flex gap-2">
-          <button [disabled]="auditPage() === 1" (click)="auditPage.set(auditPage()-1); loadAudit()"
-            class="px-3 py-1 border rounded disabled:opacity-40">Prev</button>
-          <span class="px-3 py-1">Page {{ auditPage() }}</span>
-          <button [disabled]="auditPage() * 50 >= auditTotal()" (click)="auditPage.set(auditPage()+1); loadAudit()"
-            class="px-3 py-1 border rounded disabled:opacity-40">Next</button>
+      <!-- ============================================================
+           USERS TAB
+      ============================================================ -->
+      @if (tab() === 'users') {
+        <div class="flex gap-3 mb-4">
+          <input [ngModel]="userSearch()" (ngModelChange)="userSearch.set($event); userPage.set(1); loadUsers()"
+            placeholder="Search name / email…"
+            class="border border-gray-300 rounded px-3 py-2 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-blue-400" />
         </div>
-      </div>
-    }
 
-    } <!-- end authenticated -->
+        <div class="bg-white rounded-lg shadow overflow-x-auto">
+          <table class="min-w-full text-sm">
+            <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+              <tr>
+                <th class="px-4 py-3 text-left">Name</th>
+                <th class="px-4 py-3 text-left">Email</th>
+                <th class="px-4 py-3 text-left">ID Check</th>
+                <th class="px-4 py-3 text-left">AML</th>
+                <th class="px-4 py-3 text-left">Liveness</th>
+                <th class="px-4 py-3 text-left">Bank</th>
+                <th class="px-4 py-3 text-left">Role</th>
+                <th class="px-4 py-3 text-left">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+              @if (loading()) {
+                <tr><td colspan="8" class="px-4 py-8 text-center text-gray-400">Loading…</td></tr>
+              }
+              @for (u of userList(); track u.id) {
+                <tr class="hover:bg-gray-50">
+                  <td class="px-4 py-3 font-medium">{{ u.fullName }}</td>
+                  <td class="px-4 py-3 text-gray-600">{{ u.email }}</td>
+                  <td class="px-4 py-3"><span [class]="'px-2 py-0.5 rounded-full text-xs font-medium ' + statusBadge(u.idCheckStatus)">{{ u.idCheckStatus }}</span></td>
+                  <td class="px-4 py-3"><span [class]="'px-2 py-0.5 rounded-full text-xs font-medium ' + statusBadge(u.amlStatus)">{{ u.amlStatus }}</span></td>
+                  <td class="px-4 py-3"><span [class]="'px-2 py-0.5 rounded-full text-xs font-medium ' + statusBadge(u.livenessStatus)">{{ u.livenessStatus }}</span></td>
+                  <td class="px-4 py-3"><span [class]="'px-2 py-0.5 rounded-full text-xs font-medium ' + statusBadge(u.bankVerificationStatus)">{{ u.bankVerificationStatus }}</span></td>
+                  <td class="px-4 py-3">
+                    @if (u.isAdmin) { <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">Admin</span> }
+                    @else { <span class="text-gray-400 text-xs">User</span> }
+                  </td>
+                  <td class="px-4 py-3">
+                    <div class="flex flex-wrap gap-2">
+                      <button (click)="openKyc(u)" class="text-xs px-2 py-1 bg-blue-50 text-blue-700 rounded hover:bg-blue-100">KYC</button>
+                      <button (click)="retryKyc(u)" class="text-xs px-2 py-1 bg-yellow-50 text-yellow-700 rounded hover:bg-yellow-100">Retry KYC</button>
+                      <button (click)="toggleSuspend(u)"
+                        [class]="u.isSuspended ? 'text-xs px-2 py-1 bg-green-50 text-green-700 rounded hover:bg-green-100' : 'text-xs px-2 py-1 bg-red-50 text-red-700 rounded hover:bg-red-100'">
+                        {{ u.isSuspended ? 'Unsuspend' : 'Suspend' }}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+              @if (!loading() && userList().length === 0) {
+                <tr><td colspan="8" class="px-4 py-8 text-center text-gray-400">No users found</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <div class="flex justify-between items-center mt-4 text-sm text-gray-600">
+          <span>{{ userTotal() }} total</span>
+          <div class="flex gap-2">
+            <button [disabled]="userPage() === 1" (click)="userPage.set(userPage()-1); loadUsers()"
+              class="px-3 py-1 border rounded disabled:opacity-40">Prev</button>
+            <span class="px-3 py-1">Page {{ userPage() }}</span>
+            <button [disabled]="userPage() * 20 >= userTotal()" (click)="userPage.set(userPage()+1); loadUsers()"
+              class="px-3 py-1 border rounded disabled:opacity-40">Next</button>
+          </div>
+        </div>
+      }
+
+      <!-- ============================================================
+           STATS TAB
+      ============================================================ -->
+      @if (tab() === 'stats') {
+        @if (loading()) { <p class="text-gray-400">Loading…</p> }
+        @if (stats(); as s) {
+          <div class="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-8">
+            <div class="bg-white rounded-lg shadow p-5">
+              <p class="text-xs text-gray-500 uppercase mb-1">Fees Collected</p>
+              <p class="text-2xl font-bold text-blue-900">R {{ s.totalFeesCollected | number:'1.2-2' }}</p>
+            </div>
+            <div class="bg-white rounded-lg shadow p-5">
+              <p class="text-xs text-gray-500 uppercase mb-1">Funds in Escrow</p>
+              <p class="text-2xl font-bold text-indigo-700">R {{ s.fundsInEscrow | number:'1.2-2' }}</p>
+            </div>
+            <div class="bg-white rounded-lg shadow p-5">
+              <p class="text-xs text-gray-500 uppercase mb-1">Open Disputes</p>
+              <p class="text-2xl font-bold text-red-600">{{ s.openDisputes }}</p>
+            </div>
+            <div class="bg-white rounded-lg shadow p-5">
+              <p class="text-xs text-gray-500 uppercase mb-1">Pending Payouts</p>
+              <p class="text-2xl font-bold text-yellow-600">{{ s.pendingPayouts }}</p>
+            </div>
+            <div class="bg-white rounded-lg shadow p-5">
+              <p class="text-xs text-gray-500 uppercase mb-1">Total Users</p>
+              <p class="text-2xl font-bold text-gray-800">{{ s.totalUsers }}</p>
+            </div>
+          </div>
+          <div class="bg-white rounded-lg shadow p-5">
+            <p class="text-sm font-semibold text-gray-700 mb-4">Transactions by Status</p>
+            <div class="space-y-3">
+              @for (entry of s.transactionsByStatus; track entry.status) {
+                <div class="flex items-center gap-3">
+                  <span class="w-44 text-sm text-gray-600">{{ entry.status }}</span>
+                  <div class="flex-1 bg-gray-100 rounded-full h-3">
+                    <div class="bg-blue-500 h-3 rounded-full" [style.width.%]="barWidth(entry.count, s.transactionsByStatus)"></div>
+                  </div>
+                  <span class="text-sm font-medium text-gray-700 w-8 text-right">{{ entry.count }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      }
+
+      <!-- ============================================================
+           AUDIT LOG TAB
+      ============================================================ -->
+      @if (tab() === 'audit') {
+        <div class="flex gap-3 mb-4">
+          <input [ngModel]="auditSearch()" (ngModelChange)="auditSearch.set($event); auditPage.set(1); loadAudit()"
+            placeholder="Search actor / details…"
+            class="border border-gray-300 rounded px-3 py-2 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-blue-400" />
+        </div>
+        <div class="bg-white rounded-lg shadow overflow-x-auto">
+          <table class="min-w-full text-sm">
+            <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+              <tr>
+                <th class="px-4 py-3 text-left whitespace-nowrap">Time</th>
+                <th class="px-4 py-3 text-left whitespace-nowrap">Actor</th>
+                <th class="px-4 py-3 text-left whitespace-nowrap">Transaction</th>
+                <th class="px-4 py-3 text-left whitespace-nowrap">From</th>
+                <th class="px-4 py-3 text-left whitespace-nowrap">To</th>
+                <th class="px-4 py-3 text-left min-w-[200px]">Details</th>
+                <th class="px-4 py-3 text-left">Action</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+              @if (loading()) {
+                <tr><td colspan="7" class="px-4 py-8 text-center text-gray-400">Loading…</td></tr>
+              }
+              @for (a of auditList(); track a.id) {
+                <tr class="hover:bg-gray-50">
+                  <td class="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">{{ a.timestamp | date:'dd MMM yyyy HH:mm' }}</td>
+                  <td class="px-4 py-3 text-xs text-gray-700 whitespace-nowrap">{{ a.triggerActor }}</td>
+                  <td class="px-4 py-3 font-mono text-xs">{{ a.transactionId || '—' }}</td>
+                  <td class="px-4 py-3 whitespace-nowrap">
+                    @if (a.previousStatus) {
+                      <span [class]="'px-2 py-0.5 rounded-full text-xs font-medium ' + statusBadge(a.previousStatus)">{{ a.previousStatus }}</span>
+                    } @else {
+                      <span class="text-gray-400">—</span>
+                    }
+                  </td>
+                  <td class="px-4 py-3 whitespace-nowrap">
+                    <span [class]="'px-2 py-0.5 rounded-full text-xs font-medium ' + statusBadge(a.newStatus)">{{ a.newStatus }}</span>
+                  </td>
+                  <td class="px-4 py-3 text-xs text-gray-700 max-w-[300px]">
+                    <span class="block truncate">{{ a.actionDetails }}</span>
+                  </td>
+                  <td class="px-4 py-3">
+                    <button (click)="openAuditDetail(a)"
+                      class="px-2 py-1 bg-blue-50 text-blue-600 text-xs rounded hover:bg-blue-100 whitespace-nowrap">
+                      View Full
+                    </button>
+                  </td>
+                </tr>
+              }
+              @if (!loading() && auditList().length === 0) {
+                <tr><td colspan="7" class="px-4 py-8 text-center text-gray-400">No audit entries found</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <div class="flex justify-between items-center mt-4 text-sm text-gray-600">
+          <span>{{ auditTotal() }} total</span>
+          <div class="flex gap-2">
+            <button [disabled]="auditPage() === 1" (click)="auditPage.set(auditPage()-1); loadAudit()"
+              class="px-3 py-1 border rounded disabled:opacity-40">Prev</button>
+            <span class="px-3 py-1">Page {{ auditPage() }}</span>
+            <button [disabled]="auditPage() * 50 >= auditTotal()" (click)="auditPage.set(auditPage()+1); loadAudit()"
+              class="px-3 py-1 border rounded disabled:opacity-40">Next</button>
+          </div>
+        </div>
+      }
+
+      <!-- ============================================================
+           PAYOUTS TAB
+      ============================================================ -->
+      @if (tab() === 'payouts') {
+        <!-- Payout failures -->
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h2 class="text-lg font-semibold text-gray-800">Payout Failures</h2>
+            <p class="text-sm text-gray-500">Failed or rejected payout notifications.</p>
+          </div>
+          <span class="text-sm text-gray-500">{{ payoutFailuresTotal() }} total</span>
+        </div>
+
+        <div class="bg-white rounded-lg shadow overflow-x-auto mb-8">
+          <table class="min-w-full text-sm">
+            <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+              <tr>
+                <th class="px-4 py-3 text-left">Payout ID</th>
+                <th class="px-4 py-3 text-left">Merchant Ref</th>
+                <th class="px-4 py-3 text-left">Status</th>
+                <th class="px-4 py-3 text-left">Sub Status</th>
+                <th class="px-4 py-3 text-left">Reason</th>
+                <th class="px-4 py-3 text-left">Hash</th>
+                <th class="px-4 py-3 text-left">Duplicate</th>
+                <th class="px-4 py-3 text-left">Created</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+              @if (loading()) {
+                <tr><td colspan="8" class="px-4 py-8 text-center text-gray-400">Loading…</td></tr>
+              }
+              @for (p of payoutFailures(); track p.id) {
+                <tr>
+                  <td class="px-4 py-3 font-mono text-xs">{{ p.payoutId }}</td>
+                  <td class="px-4 py-3 text-xs">{{ p.merchantReference || '—' }}</td>
+                  <td class="px-4 py-3">{{ p.status }}</td>
+                  <td class="px-4 py-3">{{ p.subStatus ?? '—' }}</td>
+                  <td class="px-4 py-3 max-w-sm">{{ p.reason || '—' }}</td>
+                  <td class="px-4 py-3">
+                    @if (p.hashValid) {
+                      <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Valid</span>
+                    } @else {
+                      <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Invalid</span>
+                    }
+                  </td>
+                  <td class="px-4 py-3">
+                    @if (p.duplicate) {
+                      <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Yes</span>
+                    } @else {
+                      <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">No</span>
+                    }
+                  </td>
+                  <td class="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">{{ p.createdAt | date:'dd MMM yyyy HH:mm' }}</td>
+                </tr>
+              }
+              @if (!loading() && payoutFailures().length === 0) {
+                <tr><td colspan="8" class="px-4 py-8 text-center text-gray-400">No payout failures found</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Missing payouts -->
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h2 class="text-lg font-semibold text-gray-800">Missing Payouts</h2>
+            <p class="text-sm text-gray-500">Completed transactions that have not been successfully paid out.</p>
+          </div>
+          @if (missingPayouts().length > 0) {
+            <span class="px-2 py-1 bg-red-100 text-red-700 rounded text-xs font-medium">{{ missingPayouts().length }} outstanding</span>
+          }
+        </div>
+
+        <div class="bg-white rounded-lg shadow overflow-x-auto">
+          <table class="min-w-full text-sm">
+            <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+              <tr>
+                <th class="px-4 py-3 text-left">Reference</th>
+                <th class="px-4 py-3 text-right">Item Value</th>
+                <th class="px-4 py-3 text-right">Seller Fee</th>
+                <th class="px-4 py-3 text-right">Seller Payout</th>
+                <th class="px-4 py-3 text-left">Seller</th>
+                <th class="px-4 py-3 text-left">KYC</th>
+                <th class="px-4 py-3 text-left">Bank</th>
+                <th class="px-4 py-3 text-left">Created</th>
+                <th class="px-4 py-3 text-left">Action</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+              @for (p of missingPayouts(); track p.id) {
+                <tr>
+                  <td class="px-4 py-3 font-mono text-xs text-blue-700">{{ p.dealReference }}</td>
+                  <td class="px-4 py-3 text-right">R {{ p.itemValue | number:'1.2-2' }}</td>
+                  <td class="px-4 py-3 text-right">R {{ p.sellerFee | number:'1.2-2' }}</td>
+                  <td class="px-4 py-3 text-right font-medium">R {{ p.sellerPayout | number:'1.2-2' }}</td>
+                  <td class="px-4 py-3">{{ p.sellerEmail || '—' }}</td>
+                  <td class="px-4 py-3">
+                    @if (p.sellerKycComplete) {
+                      <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Complete</span>
+                    } @else {
+                      <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Incomplete</span>
+                    }
+                  </td>
+                  <td class="px-4 py-3">
+                    @if (p.sellerHasBank) {
+                      <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Available</span>
+                    } @else {
+                      <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Missing</span>
+                    }
+                  </td>
+                  <td class="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">{{ p.createdAt | date:'dd MMM yyyy HH:mm' }}</td>
+                  <td class="px-4 py-3">
+                    <button (click)="retryMissingPayout(p.id)"
+                      [disabled]="!p.sellerKycComplete || !p.sellerHasBank"
+                      class="px-3 py-1.5 bg-yellow-500 text-white text-xs rounded hover:bg-yellow-600 disabled:opacity-40 disabled:cursor-not-allowed">
+                      Retry Payout
+                    </button>
+                  </td>
+                </tr>
+              }
+              @if (!loading() && missingPayouts().length === 0) {
+                <tr><td colspan="9" class="px-4 py-8 text-center text-gray-400">No missing payouts found</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+      <!-- ============================================================
+           RECONCILIATION TAB
+      ============================================================ -->
+      @if (tab() === 'reconciliation') {
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h2 class="text-lg font-semibold text-gray-800">Reconciliation</h2>
+            <p class="text-sm text-gray-500">Expected SecureX float compared with the Ozow float.</p>
+          </div>
+          <span class="text-sm text-gray-500">{{ reconTotal() }} runs</span>
+        </div>
+
+        <div class="bg-white rounded-lg shadow overflow-x-auto">
+          <table class="min-w-full text-sm">
+            <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+              <tr>
+                <th class="px-4 py-3 text-left">Run At</th>
+                <th class="px-4 py-3 text-right">Expected Float</th>
+                <th class="px-4 py-3 text-right">Ozow Float</th>
+                <th class="px-4 py-3 text-right">Discrepancy</th>
+                <th class="px-4 py-3 text-left">Alert</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+              @if (loading()) {
+                <tr><td colspan="5" class="px-4 py-8 text-center text-gray-400">Loading…</td></tr>
+              }
+              @for (r of reconList(); track r.id) {
+                <tr>
+                  <td class="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">{{ r.runAt | date:'dd MMM yyyy HH:mm' }}</td>
+                  <td class="px-4 py-3 text-right">R {{ r.expectedFloat | number:'1.2-2' }}</td>
+                  <td class="px-4 py-3 text-right">R {{ r.ozowFloat | number:'1.2-2' }}</td>
+                  <td class="px-4 py-3 text-right font-medium">R {{ r.discrepancy | number:'1.2-2' }}</td>
+                  <td class="px-4 py-3">
+                    @if (r.alertFired) {
+                      <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Alert Fired</span>
+                    } @else {
+                      <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">OK</span>
+                    }
+                  </td>
+                </tr>
+              }
+              @if (!loading() && reconList().length === 0) {
+                <tr><td colspan="5" class="px-4 py-8 text-center text-gray-400">No reconciliation records found</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <div class="flex justify-between items-center mt-4 text-sm text-gray-600">
+          <span>{{ reconTotal() }} total</span>
+          <div class="flex gap-2">
+            <button [disabled]="reconPage() === 1" (click)="reconPage.set(reconPage()-1); loadReconciliation()"
+              class="px-3 py-1 border rounded disabled:opacity-40">Prev</button>
+            <span class="px-3 py-1">Page {{ reconPage() }}</span>
+            <button [disabled]="reconPage() * 30 >= reconTotal()" (click)="reconPage.set(reconPage()+1); loadReconciliation()"
+              class="px-3 py-1 border rounded disabled:opacity-40">Next</button>
+          </div>
+        </div>
+      }
+
+      } <!-- end authenticated -->
+    } <!-- end !isMobile -->
   </div>
 </div>
 
-<!-- Transaction Detail Slide-over -->
+<!-- ============================================================
+     TRANSACTION DETAIL SLIDE-OVER
+============================================================ -->
 @if (detail() || detailLoading()) {
   <div class="fixed inset-0 bg-black/40 z-40" (click)="closeDetail()"></div>
   <div class="fixed right-0 top-0 h-full w-full max-w-2xl bg-white shadow-2xl z-50 overflow-y-auto">
@@ -347,6 +603,9 @@
               <div><p class="text-xs text-gray-500">Resolved</p><p>{{ d.payout.resolved ? 'Yes' : 'No' }}</p></div>
               <div><p class="text-xs text-gray-500">Poll Count</p><p>{{ d.payout.pollCount }}</p></div>
               <div><p class="text-xs text-gray-500">Submitted</p><p>{{ d.payout.submittedAt | date:'dd MMM HH:mm' }}</p></div>
+              @if (d.payout.resolvedAt) {
+                <div><p class="text-xs text-gray-500">Resolved At</p><p>{{ d.payout.resolvedAt | date:'dd MMM HH:mm' }}</p></div>
+              }
             </div>
           </div>
         }
@@ -428,11 +687,14 @@
   </div>
 }
 
-<!-- KYC Override Modal -->
+<!-- ============================================================
+     KYC OVERRIDE MODAL
+============================================================ -->
 @if (kycTarget()) {
-  <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+  <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
     <div class="bg-white rounded-xl shadow-xl p-6 w-full max-w-sm">
-      <h2 class="text-lg font-bold text-gray-800 mb-4">Override KYC — {{ kycTarget()!.fullName }}</h2>
+      <h2 class="text-lg font-bold text-gray-800 mb-1">Override KYC</h2>
+      <p class="text-sm text-gray-500 mb-4">{{ kycTarget()!.fullName }}</p>
       <div class="space-y-3">
         <div>
           <label class="block text-xs text-gray-500 mb-1">ID Check</label>
@@ -459,6 +721,73 @@
       <div class="flex gap-3 mt-5">
         <button (click)="saveKyc()" class="flex-1 bg-blue-600 text-white py-2 rounded font-medium hover:bg-blue-700">Save</button>
         <button (click)="kycTarget.set(null)" class="flex-1 border border-gray-300 py-2 rounded text-gray-600 hover:bg-gray-50">Cancel</button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ============================================================
+     AUDIT DETAIL MODAL
+============================================================ -->
+@if (selectedAuditEntry(); as entry) {
+  <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
+    <div class="bg-white rounded-xl shadow-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <!-- Header -->
+      <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-200">
+        <h2 class="text-lg font-bold text-gray-800">Audit Log Details</h2>
+        <button (click)="closeAuditDetail()"
+          class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+      </div>
+
+      <!-- Content -->
+      <div class="space-y-4">
+        <!-- Timestamp & Actor -->
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <p class="text-xs text-gray-500 uppercase font-medium">Timestamp</p>
+            <p class="text-sm text-gray-800">{{ entry.timestamp | date:'dd MMM yyyy HH:mm:ss' }}</p>
+          </div>
+          <div>
+            <p class="text-xs text-gray-500 uppercase font-medium">Actor</p>
+            <p class="text-sm text-gray-800 font-mono">{{ entry.triggerActor }}</p>
+          </div>
+        </div>
+
+        <!-- Transaction ID -->
+        <div>
+          <p class="text-xs text-gray-500 uppercase font-medium">Transaction ID</p>
+          <p class="text-sm text-gray-800 font-mono">{{ entry.transactionId || '—' }}</p>
+        </div>
+
+        <!-- Status Change -->
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <p class="text-xs text-gray-500 uppercase font-medium">Previous Status</p>
+            @if (entry.previousStatus) {
+              <span [class]="'px-2 py-1 rounded-full text-xs font-medium ' + statusBadge(entry.previousStatus)">{{ entry.previousStatus }}</span>
+            } @else {
+              <span class="text-gray-400">—</span>
+            }
+          </div>
+          <div>
+            <p class="text-xs text-gray-500 uppercase font-medium">New Status</p>
+            <span [class]="'px-2 py-1 rounded-full text-xs font-medium ' + statusBadge(entry.newStatus)">{{ entry.newStatus }}</span>
+          </div>
+        </div>
+
+        <!-- Full Details -->
+        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+          <p class="text-xs text-gray-500 uppercase font-medium mb-2">Full Details</p>
+          <p class="text-sm text-gray-800 break-all whitespace-pre-wrap">{{ entry.actionDetails }}</p>
+        </div>
+
+        <!-- Close Button -->
+        <div class="flex justify-end pt-3 border-t border-gray-200">
+          <button (click)="closeAuditDetail()"
+            class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+            Close
+          </button>
+        </div>
       </div>
     </div>
   </div>
