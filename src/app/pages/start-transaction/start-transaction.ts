@@ -1,9 +1,7 @@
-import { Component, inject, signal, computed, DestroyRef } from '@angular/core';
+import { Component, inject, signal, computed } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { switchMap, interval, takeWhile, take, tap } from 'rxjs';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { AuthService } from '../../services/auth';
 import { TransactionService } from '../../services/transaction';
 import { environment } from '../../../environments/environment';
 import { calcStandardFee, calcExpressFee, formatZar } from '../../utils/fee';
@@ -16,9 +14,7 @@ import { calcStandardFee, calcExpressFee, formatZar } from '../../utils/fee';
 })
 export class StartTransaction {
   private fb = inject(FormBuilder);
-  private auth = inject(AuthService);
   private txService = inject(TransactionService);
-  private destroyRef = inject(DestroyRef);
 
   isSandbox = environment.smileIdSandbox;
 
@@ -86,54 +82,70 @@ export class StartTransaction {
     this.submitting.set(true);
     this.errorMessage.set(null);
     const v = this.form.value;
-    
-    this.auth.getToken(v.buyerEmail!).pipe(
-      takeUntilDestroyed(this.destroyRef),
-      switchMap(() => {
-        return this.txService.create({
-          buyerFullName:   v.buyerFullName!,
-          buyerEmail:      v.buyerEmail!,
-          buyerPhone:      v.buyerPhone!,
-          buyerIdNumber:   v.buyerIdNumber!,
-          sellerFullName:  v.sellerFullName!,
-          sellerEmail:     v.sellerEmail!,
-          sellerPhone:     v.sellerPhone!,
-          itemTitle:       v.itemTitle!.trim(),
-          itemDescription: v.itemDescription!.trim(),
-          itemValue:       v.itemValue!,
-          sellerLocation:  v.sellerLocation!.trim(),
-          serviceType:     v.serviceType!,
-          feePayer:        v.feePayer!,
-        }).pipe(
-          switchMap(tx => {
-            if (!tx.id) {
-              throw new Error('Transaction was created without an ID — please contact support.');
+
+    this.txService.create({
+      buyerFullName:   v.buyerFullName!,
+      buyerEmail:      v.buyerEmail!,
+      buyerPhone:      v.buyerPhone!,
+      buyerIdNumber:   v.buyerIdNumber!,
+      sellerFullName:  v.sellerFullName!,
+      sellerEmail:     v.sellerEmail!,
+      sellerPhone:     v.sellerPhone!,
+      itemTitle:       v.itemTitle!.trim(),
+      itemDescription: v.itemDescription!.trim(),
+      itemValue:       v.itemValue!,
+      sellerLocation:  v.sellerLocation!.trim(),
+      serviceType:     v.serviceType!,
+      feePayer:        v.feePayer!,
+    }).pipe(
+      switchMap(tx => {
+        if (!tx.id) {
+          throw new Error('Transaction was created without an ID — please contact support.');
+        }
+
+        this.transactionId.set(tx.id);
+        this.dealReference.set(tx.dealReference);
+        this.sellerId.set(tx.seller?.id ?? null);
+        this.sellerEmail.set(v.sellerEmail!);
+        this.kycStep.set('kyc');
+
+        return interval(3000).pipe(
+          switchMap(() => this.txService.getById(tx.id)),
+          takeWhile(
+            t => t.buyer?.idCheckStatus === 'Pending' || t.buyer?.amlStatus === 'Pending',
+            true
+          ),
+          take(20),
+          tap(t => {
+            if (t.buyer?.idCheckStatus === 'Pending' || t.buyer?.amlStatus === 'Pending') {
+              return;
             }
-            
-            this.transactionId.set(tx.id);
-            this.dealReference.set(tx.dealReference);
-            this.sellerId.set(tx.seller?.id ?? null);
-            this.sellerEmail.set(v.sellerEmail!);
-            this.kycStep.set('kyc');
-            
-            return interval(3000).pipe(
-              switchMap(() => this.txService.getById(tx.id)),
-              takeWhile(t => t.buyer?.idCheckStatus === 'Pending' || t.buyer?.amlStatus === 'Pending', true),
-              take(20),
-              tap(t => {
-                if (t.buyer?.idCheckStatus === 'Pending' || t.buyer?.amlStatus === 'Pending') return;
-                if (t.buyer?.idCheckStatus !== 'Approved' || t.buyer?.amlStatus !== 'Approved') {
-                  throw { error: { error: 'Identity or AML verification failed. Please check the submitted details.' } };
-                }
-              }),
-              switchMap(t => {
-                if (t.buyer?.idCheckStatus !== 'Approved' || t.buyer?.amlStatus !== 'Approved') {
-                  throw { error: { error: 'Identity or AML verification failed. Please check the submitted details.' } };
-                }
-                this.kycStep.set('payment');
-                return this.txService.getPaymentLink(tx.id);
-              })
-            );
+
+            if (
+              t.buyer?.idCheckStatus !== 'Approved' ||
+              t.buyer?.amlStatus !== 'Approved'
+            ) {
+              throw {
+                error: {
+                  error: 'Identity or AML verification failed. Please check the submitted details.',
+                },
+              };
+            }
+          }),
+          switchMap(t => {
+            if (
+              t.buyer?.idCheckStatus !== 'Approved' ||
+              t.buyer?.amlStatus !== 'Approved'
+            ) {
+              throw {
+                error: {
+                  error: 'Identity or AML verification failed. Please check the submitted details.',
+                },
+              };
+            }
+
+            this.kycStep.set('payment');
+            return this.txService.getPaymentLink(tx.id);
           })
         );
       })
@@ -144,22 +156,30 @@ export class StartTransaction {
           this.submitting.set(false);
           return;
         }
-        
-        sessionStorage.setItem('securex-payment-state', JSON.stringify({
-          txId: res.txId,
-          sellerId: res.sellerId,
-          sellerEmail: res.sellerEmail,
-          buyerEmail: v.buyerEmail!,
-        }));
-        
+
+        sessionStorage.setItem(
+          'securex-payment-state',
+          JSON.stringify({
+            txId: res.txId,
+            sellerId: res.sellerId,
+            sellerEmail: res.sellerEmail,
+            buyerEmail: v.buyerEmail!,
+          })
+        );
+
         this.submitting.set(false);
         window.location.href = res.redirectUrl;
       },
       error: err => {
-        this.errorMessage.set(err?.error?.error ?? err?.error?.Error ?? err?.message ?? 'Submission failed. Please try again.');
+        this.errorMessage.set(
+          err?.error?.error ??
+            err?.error?.Error ??
+            err?.message ??
+            'Submission failed. Please try again.'
+        );
         this.submitting.set(false);
         this.kycStep.set('idle');
-      }
+      },
     });
   }
 }
