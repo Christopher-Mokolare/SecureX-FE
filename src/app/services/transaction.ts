@@ -104,7 +104,7 @@ export class TransactionService {
         };
         
         return {
-          id: getValue(response, 'id', 'Id'),
+          id: getValue(response, 'id', 'Id', 'transactionId', 'TransactionId'),
           dealReference: getValue(response, 'dealReference', 'DealReference'),
           status: getValue(response, 'status', 'Status'),
           itemTitle: getValue(response, 'itemTitle', 'ItemTitle'),
