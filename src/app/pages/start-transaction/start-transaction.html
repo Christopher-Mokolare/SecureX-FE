@@ -67,11 +67,11 @@
 
           <div class="mb-4">
             <label class="block font-medium mb-1 text-sm">Agreed Price (ZAR) <span class="text-red-500">*</span></label>
-            <input formControlName="itemValue" type="number" min="1" placeholder="e.g. 5000"
+            <input formControlName="itemValue" type="number" min="1" max="100000" placeholder="e.g. 5000"
                    class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
                    [class.border-red-400]="isInvalid('itemValue')" [class.border-gray-300]="!isInvalid('itemValue')">
             @if (isInvalid('itemValue')) {
-              <p class="text-red-500 text-xs mt-1">A valid price is required.</p>
+              <p class="text-red-500 text-xs mt-1">A valid price is required (R1.00 - R100,000.00).</p>
             }
           </div>
 
@@ -100,7 +100,7 @@
                 <input type="radio" formControlName="serviceType" value="Standard" class="mt-1">
                 <div>
                   <p class="font-semibold text-sm">Standard Escrow</p>
-                  <p class="text-xs text-gray-500">2.5% (min R150) — 24hr inspection window</p>
+                  <p class="text-xs text-gray-500">R150 (&lt; R5,000) · R200 (R5,000–R8,000) · 2.5% (R8,000+)</p>
                   @if ((form.get('itemValue')?.value ?? 0) > 0) {
                     <p class="text-xs font-bold text-blue-600 mt-1">Fee: {{ fmt(standardFee()) }}</p>
                   }
@@ -230,46 +230,52 @@
         </section>
 
         <!-- Fee Summary -->
-        @if ((form.get('itemValue')?.value ?? 0) > 0) {
+        <section>
+          <h2 class="text-xl font-semibold mb-4 text-gray-800 border-b pb-2">Fee Summary</h2>
           <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <p class="text-sm font-semibold text-blue-800 mb-1">Fee Summary</p>
             <p class="text-2xl font-bold text-blue-700">{{ fmt(activeFee()) }}</p>
             <p class="text-xs text-blue-500 mt-1">
-              {{ form.get('serviceType')?.value === 'VerifiedExpress' ? 'Verified Express: 1.5% + R250' : 'Standard: 2.5% (min R150)' }}
+              {{ form.get('serviceType')?.value === 'VerifiedExpress' 
+                ? 'Verified Express: 1.5% + R250' 
+                : 'Standard: Tiered structure (R150 / R200 / 2.5%)' 
+              }}
               — paid by {{ form.get('feePayer')?.value }}
             </p>
           </div>
-        }
+        </section>
 
-        <!-- 5. Consent -->
+        <!-- 5. Legal Consent -->
         <section>
           <h2 class="text-xl font-semibold mb-4 text-gray-800 border-b pb-2">5. Legal Consent</h2>
           <label class="flex items-start gap-3 cursor-pointer">
             <input type="checkbox" formControlName="consent" class="mt-1 w-4 h-4">
             <span class="text-sm text-gray-700">
-              I agree to the
-              <a routerLink="/terms" target="_blank" class="text-blue-600 underline hover:text-blue-800">Terms &amp; Conditions</a>
+              I agree to the <a routerLink="/terms" target="_blank" class="text-blue-600 underline hover:text-blue-800">Terms & Conditions</a>
               and confirm all information provided is accurate.
             </span>
           </label>
           @if (isInvalid('consent')) {
-            <p class="text-red-500 text-xs mt-1">You must accept the Terms &amp; Conditions.</p>
+            <p class="text-red-500 text-xs mt-1">You must accept the Terms & Conditions.</p>
           }
         </section>
 
-        <button type="submit" [disabled]="submitting()"
-                class="w-full bg-gradient-to-r from-green-500 to-blue-600 text-white py-4 rounded-lg font-bold text-lg hover:from-green-600 hover:to-blue-700 transition disabled:opacity-60 disabled:cursor-not-allowed">
-          @if (!submitting()) {
-            Submit Transaction
-          } @else if (kycStep() === 'kyc') {
-            🔍 Verifying identity…
-          } @else if (kycStep() === 'payment') {
-            💳 Preparing payment…
+        <!-- Submit Button -->
+        <button type="submit" 
+                class="w-full bg-gradient-to-r from-green-500 to-blue-600 text-white py-4 rounded-lg font-bold text-lg hover:from-green-600 hover:to-blue-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
+                [disabled]="submitting()">
+          @if (submitting()) {
+            @if (kycStep() === 'kyc') {
+              🔍 Verifying identity…
+            } @else if (kycStep() === 'payment') {
+              💳 Preparing payment…
+            } @else {
+              Submitting…
+            }
           } @else {
-            Submitting…
+            Submit Transaction
           }
         </button>
-
       </form>
     </div>
   </div>

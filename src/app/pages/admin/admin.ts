@@ -11,7 +11,7 @@ type Tab = 'transactions' | 'users' | 'stats' | 'audit' | 'payouts' | 'reconcili
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [CommonModule, DecimalPipe, DatePipe, FormsModule, Footer],
+  imports: [CommonModule, DecimalPipe, DatePipe, FormsModule],
   templateUrl: './admin.html',
 })
 export class Admin implements OnInit {

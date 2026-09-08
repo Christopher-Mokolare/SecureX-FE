@@ -33,7 +33,7 @@ export class StartTransaction {
   form = this.fb.group({
     itemTitle:       ['', [Validators.required, Validators.minLength(3)]],
     itemDescription: ['', [Validators.required, Validators.minLength(10)]],
-    itemValue:       [null as number | null, [Validators.required, Validators.min(1)]],
+    itemValue:       [null as number | null, [Validators.required, Validators.min(1), Validators.max(100000)]],
     sellerLocation:  ['', Validators.required],
     serviceType:     ['Standard' as 'Standard' | 'VerifiedExpress', Validators.required],
     feePayer:        ['Buyer' as 'Buyer' | 'Seller' | 'Split', Validators.required],
