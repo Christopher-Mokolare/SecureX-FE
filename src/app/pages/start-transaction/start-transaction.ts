@@ -30,6 +30,8 @@ export class StartTransaction {
   sellerId = signal<string | null>(null);
   sellerEmail = signal<string>('');
   errorMessage = signal<string | null>(null);
+  paymentUrl = signal<string | null>(null);
+  redirectCountdown = signal(10);
 
   form = this.fb.group({
     itemTitle: ['', [Validators.required, Validators.minLength(3)]],
@@ -103,6 +105,13 @@ export class StartTransaction {
       'declined',
       'error',
     ].includes(normalized);
+  }
+
+  goToPayment(): void {
+    const url = this.paymentUrl();
+    if (url) {
+      window.location.href = url;
+    }
   }
 
   onSubmit() {
@@ -262,10 +271,22 @@ export class StartTransaction {
             })
           );
 
-          this.workflowStep.set('complete');
+          this.paymentUrl.set(res.redirectUrl);
+          this.workflowStep.set('payment');
           this.submitting.set(false);
 
-          window.location.href = res.redirectUrl;
+          // Countdown, then auto-redirect
+          let countdown = 10;
+          this.redirectCountdown.set(countdown);
+
+          const interval = setInterval(() => {
+            countdown--;
+            this.redirectCountdown.set(countdown);
+            if (countdown <= 0) {
+              clearInterval(interval);
+              window.location.href = res.redirectUrl;
+            }
+          }, 1000);
         },
 
         error: err => {
