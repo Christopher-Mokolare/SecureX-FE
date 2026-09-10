@@ -105,40 +105,40 @@ export class TransactionService {
         
         return {
           id: getValue(response, 'id', 'Id', 'transactionId', 'TransactionId'),
-          dealReference: getValue(response, 'dealReference', 'DealReference'),
-          status: getValue(response, 'status', 'Status'),
-          itemTitle: getValue(response, 'itemTitle', 'ItemTitle'),
-          itemDescription: getValue(response, 'itemDescription', 'ItemDescription'),
-          sellerLocation: getValue(response, 'sellerLocation', 'SellerLocation'),
-          itemValue: getValue(response, 'itemValue', 'ItemValue') || 0,
-          platformFee: getValue(response, 'platformFee', 'PlatformFee') || 0,
-          buyerFee: getValue(response, 'buyerFee', 'BuyerFee') || 0,
-          sellerFee: getValue(response, 'sellerFee', 'SellerFee') || 0,
-          totalCheckoutAmount: getValue(response, 'totalCheckoutAmount', 'TotalCheckoutAmount') || 0,
-          serviceType: getValue(response, 'serviceType', 'ServiceType'),
-          version: getValue(response, 'version', 'Version') || 0,
-          paymentRedirectUrl: getValue(response, 'paymentRedirectUrl', 'PaymentRedirectUrl') || null,
-          createdAt: getValue(response, 'createdAt', 'CreatedAt'),
-          inspectionWindowEndsAt: getValue(response, 'inspectionWindowEndsAt', 'InspectionWindowEndsAt') || null,
-          buyer: response.buyer || response.Buyer ? {
-            id: getValue(response.buyer || response.Buyer, 'id', 'Id'),
-            fullName: getValue(response.buyer || response.Buyer, 'fullName', 'FullName'),
-            email: getValue(response.buyer || response.Buyer, 'email', 'Email'),
-            phone: getValue(response.buyer || response.Buyer, 'phone', 'Phone'),
-            bankVerificationStatus: getValue(response.buyer || response.Buyer, 'bankVerificationStatus', 'BankVerificationStatus'),
-            idCheckStatus: getValue(response.buyer || response.Buyer, 'idCheckStatus', 'IdCheckStatus'),
-            amlStatus: getValue(response.buyer || response.Buyer, 'amlStatus', 'AmlStatus'),
-            livenessStatus: getValue(response.buyer || response.Buyer, 'livenessStatus', 'LivenessStatus')
+          dealReference: getValue(tx, 'dealReference', 'DealReference'),
+          status: getValue(tx, 'status', 'Status'),
+          itemTitle: getValue(tx, 'itemTitle', 'ItemTitle'),
+          itemDescription: getValue(tx, 'itemDescription', 'ItemDescription'),
+          sellerLocation: getValue(tx, 'sellerLocation', 'SellerLocation'),
+          itemValue: getValue(tx, 'itemValue', 'ItemValue') || 0,
+          platformFee: getValue(tx, 'platformFee', 'PlatformFee') || 0,
+          buyerFee: getValue(tx, 'buyerFee', 'BuyerFee') || 0,
+          sellerFee: getValue(tx, 'sellerFee', 'SellerFee') || 0,
+          totalCheckoutAmount: getValue(tx, 'totalCheckoutAmount', 'TotalCheckoutAmount') || 0,
+          serviceType: getValue(tx, 'serviceType', 'ServiceType'),
+          version: getValue(tx, 'version', 'Version') || 0,
+          paymentRedirectUrl: getValue(tx, 'paymentRedirectUrl', 'PaymentRedirectUrl') || null,
+          createdAt: getValue(tx, 'createdAt', 'CreatedAt'),
+          inspectionWindowEndsAt: getValue(tx, 'inspectionWindowEndsAt', 'InspectionWindowEndsAt') || null,
+          buyer: tx.buyer || tx.Buyer ? {
+            id: getValue(tx.buyer || tx.Buyer, 'id', 'Id'),
+            fullName: getValue(tx.buyer || tx.Buyer, 'fullName', 'FullName'),
+            email: getValue(tx.buyer || tx.Buyer, 'email', 'Email'),
+            phone: getValue(tx.buyer || tx.Buyer, 'phone', 'Phone'),
+            bankVerificationStatus: getValue(tx.buyer || tx.Buyer, 'bankVerificationStatus', 'BankVerificationStatus'),
+            idCheckStatus: getValue(tx.buyer || tx.Buyer, 'idCheckStatus', 'IdCheckStatus'),
+            amlStatus: getValue(tx.buyer || tx.Buyer, 'amlStatus', 'AmlStatus'),
+            livenessStatus: getValue(tx.buyer || tx.Buyer, 'livenessStatus', 'LivenessStatus')
           } : undefined,
-          seller: response.seller || response.Seller ? {
-            id: getValue(response.seller || response.Seller, 'id', 'Id'),
-            fullName: getValue(response.seller || response.Seller, 'fullName', 'FullName'),
-            email: getValue(response.seller || response.Seller, 'email', 'Email'),
-            phone: getValue(response.seller || response.Seller, 'phone', 'Phone'),
-            bankVerificationStatus: getValue(response.seller || response.Seller, 'bankVerificationStatus', 'BankVerificationStatus'),
-            idCheckStatus: getValue(response.seller || response.Seller, 'idCheckStatus', 'IdCheckStatus'),
-            amlStatus: getValue(response.seller || response.Seller, 'amlStatus', 'AmlStatus'),
-            livenessStatus: getValue(response.seller || response.Seller, 'livenessStatus', 'LivenessStatus')
+          seller: tx.seller || tx.Seller ? {
+            id: getValue(tx.seller || tx.Seller, 'id', 'Id'),
+            fullName: getValue(tx.seller || tx.Seller, 'fullName', 'FullName'),
+            email: getValue(tx.seller || tx.Seller, 'email', 'Email'),
+            phone: getValue(tx.seller || tx.Seller, 'phone', 'Phone'),
+            bankVerificationStatus: getValue(tx.seller || tx.Seller, 'bankVerificationStatus', 'BankVerificationStatus'),
+            idCheckStatus: getValue(tx.seller || tx.Seller, 'idCheckStatus', 'IdCheckStatus'),
+            amlStatus: getValue(tx.seller || tx.Seller, 'amlStatus', 'AmlStatus'),
+            livenessStatus: getValue(tx.seller || tx.Seller, 'livenessStatus', 'LivenessStatus')
           } : undefined
         };
       })
@@ -223,6 +223,9 @@ export class TransactionService {
   }
 
   private mapTransactionResponse(response: any): CreateTransactionResponse {
+    // Backend wraps responses as { transaction: {...}, auditLog: [...] }
+    const tx = response?.transaction ?? response?.Transaction ?? response;
+
     const getValue = (obj: any, ...keys: string[]) => {
       for (const key of keys) {
         if (obj && obj[key] !== undefined && obj[key] !== null) {
@@ -233,41 +236,41 @@ export class TransactionService {
     };
     
     return {
-      id: getValue(response, 'id', 'Id'),
-      dealReference: getValue(response, 'dealReference', 'DealReference'),
-      status: getValue(response, 'status', 'Status'),
-      itemTitle: getValue(response, 'itemTitle', 'ItemTitle'),
-      itemDescription: getValue(response, 'itemDescription', 'ItemDescription'),
-      sellerLocation: getValue(response, 'sellerLocation', 'SellerLocation'),
-      itemValue: getValue(response, 'itemValue', 'ItemValue') || 0,
-      platformFee: getValue(response, 'platformFee', 'PlatformFee') || 0,
-      buyerFee: getValue(response, 'buyerFee', 'BuyerFee') || 0,
-      sellerFee: getValue(response, 'sellerFee', 'SellerFee') || 0,
-      totalCheckoutAmount: getValue(response, 'totalCheckoutAmount', 'TotalCheckoutAmount') || 0,
-      serviceType: getValue(response, 'serviceType', 'ServiceType'),
-      version: getValue(response, 'version', 'Version') || 0,
-      paymentRedirectUrl: getValue(response, 'paymentRedirectUrl', 'PaymentRedirectUrl') || null,
-      createdAt: getValue(response, 'createdAt', 'CreatedAt'),
-      inspectionWindowEndsAt: getValue(response, 'inspectionWindowEndsAt', 'InspectionWindowEndsAt') || null,
-      buyer: response.buyer || response.Buyer ? {
-        id: getValue(response.buyer || response.Buyer, 'id', 'Id'),
-        fullName: getValue(response.buyer || response.Buyer, 'fullName', 'FullName'),
-        email: getValue(response.buyer || response.Buyer, 'email', 'Email'),
-        phone: getValue(response.buyer || response.Buyer, 'phone', 'Phone'),
-        bankVerificationStatus: getValue(response.buyer || response.Buyer, 'bankVerificationStatus', 'BankVerificationStatus'),
-        idCheckStatus: getValue(response.buyer || response.Buyer, 'idCheckStatus', 'IdCheckStatus'),
-        amlStatus: getValue(response.buyer || response.Buyer, 'amlStatus', 'AmlStatus'),
-        livenessStatus: getValue(response.buyer || response.Buyer, 'livenessStatus', 'LivenessStatus')
+      id: getValue(tx, 'id', 'Id'),
+      dealReference: getValue(tx, 'dealReference', 'DealReference'),
+      status: getValue(tx, 'status', 'Status'),
+      itemTitle: getValue(tx, 'itemTitle', 'ItemTitle'),
+      itemDescription: getValue(tx, 'itemDescription', 'ItemDescription'),
+      sellerLocation: getValue(tx, 'sellerLocation', 'SellerLocation'),
+      itemValue: getValue(tx, 'itemValue', 'ItemValue') || 0,
+      platformFee: getValue(tx, 'platformFee', 'PlatformFee') || 0,
+      buyerFee: getValue(tx, 'buyerFee', 'BuyerFee') || 0,
+      sellerFee: getValue(tx, 'sellerFee', 'SellerFee') || 0,
+      totalCheckoutAmount: getValue(tx, 'totalCheckoutAmount', 'TotalCheckoutAmount') || 0,
+      serviceType: getValue(tx, 'serviceType', 'ServiceType'),
+      version: getValue(tx, 'version', 'Version') || 0,
+      paymentRedirectUrl: getValue(tx, 'paymentRedirectUrl', 'PaymentRedirectUrl') || null,
+      createdAt: getValue(tx, 'createdAt', 'CreatedAt'),
+      inspectionWindowEndsAt: getValue(tx, 'inspectionWindowEndsAt', 'InspectionWindowEndsAt') || null,
+      buyer: tx.buyer || tx.Buyer ? {
+        id: getValue(tx.buyer || tx.Buyer, 'id', 'Id'),
+        fullName: getValue(tx.buyer || tx.Buyer, 'fullName', 'FullName'),
+        email: getValue(tx.buyer || tx.Buyer, 'email', 'Email'),
+        phone: getValue(tx.buyer || tx.Buyer, 'phone', 'Phone'),
+        bankVerificationStatus: getValue(tx.buyer || tx.Buyer, 'bankVerificationStatus', 'BankVerificationStatus'),
+        idCheckStatus: getValue(tx.buyer || tx.Buyer, 'idCheckStatus', 'IdCheckStatus'),
+        amlStatus: getValue(tx.buyer || tx.Buyer, 'amlStatus', 'AmlStatus'),
+        livenessStatus: getValue(tx.buyer || tx.Buyer, 'livenessStatus', 'LivenessStatus')
       } : undefined,
-      seller: response.seller || response.Seller ? {
-        id: getValue(response.seller || response.Seller, 'id', 'Id'),
-        fullName: getValue(response.seller || response.Seller, 'fullName', 'FullName'),
-        email: getValue(response.seller || response.Seller, 'email', 'Email'),
-        phone: getValue(response.seller || response.Seller, 'phone', 'Phone'),
-        bankVerificationStatus: getValue(response.seller || response.Seller, 'bankVerificationStatus', 'BankVerificationStatus'),
-        idCheckStatus: getValue(response.seller || response.Seller, 'idCheckStatus', 'IdCheckStatus'),
-        amlStatus: getValue(response.seller || response.Seller, 'amlStatus', 'AmlStatus'),
-        livenessStatus: getValue(response.seller || response.Seller, 'livenessStatus', 'LivenessStatus')
+      seller: tx.seller || tx.Seller ? {
+        id: getValue(tx.seller || tx.Seller, 'id', 'Id'),
+        fullName: getValue(tx.seller || tx.Seller, 'fullName', 'FullName'),
+        email: getValue(tx.seller || tx.Seller, 'email', 'Email'),
+        phone: getValue(tx.seller || tx.Seller, 'phone', 'Phone'),
+        bankVerificationStatus: getValue(tx.seller || tx.Seller, 'bankVerificationStatus', 'BankVerificationStatus'),
+        idCheckStatus: getValue(tx.seller || tx.Seller, 'idCheckStatus', 'IdCheckStatus'),
+        amlStatus: getValue(tx.seller || tx.Seller, 'amlStatus', 'AmlStatus'),
+        livenessStatus: getValue(tx.seller || tx.Seller, 'livenessStatus', 'LivenessStatus')
       } : undefined
     };
   }
