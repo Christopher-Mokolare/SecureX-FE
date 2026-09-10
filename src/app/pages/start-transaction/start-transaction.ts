@@ -1,7 +1,7 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { switchMap, interval, takeWhile, take, tap } from 'rxjs';
+import { switchMap, timer, takeWhile, take, tap, throwError } from 'rxjs';
 import { TransactionService } from '../../services/transaction';
 import { environment } from '../../../environments/environment';
 import { calcStandardFee, calcExpressFee, formatZar } from '../../utils/fee';
@@ -19,7 +19,12 @@ export class StartTransaction {
   isSandbox = environment.smileIdSandbox;
 
   submitting = signal(false);
-  kycStep = signal<'idle' | 'kyc' | 'payment'>('idle');
+
+  workflowStep = signal<'idle' | 'creating' | 'verification' | 'payment' | 'complete' | 'failed'>('idle');
+
+  kycStatus = signal<string>('Pending');
+  amlStatus = signal<string>('Pending');
+
   dealReference = signal<string | null>(null);
   transactionId = signal<string | null>(null);
   sellerId = signal<string | null>(null);
@@ -27,24 +32,32 @@ export class StartTransaction {
   errorMessage = signal<string | null>(null);
 
   form = this.fb.group({
-    itemTitle:       ['', [Validators.required, Validators.minLength(3)]],
+    itemTitle: ['', [Validators.required, Validators.minLength(3)]],
     itemDescription: ['', [Validators.required, Validators.minLength(10)]],
-    itemValue:       [null as number | null, [Validators.required, Validators.min(1), Validators.max(100000)]],
-    sellerLocation:  ['', Validators.required],
-    serviceType:     ['Standard' as 'Standard' | 'VerifiedExpress', Validators.required],
-    feePayer:        ['Buyer' as 'Buyer' | 'Seller' | 'Split', Validators.required],
-    buyerFullName:   ['', Validators.required],
-    buyerEmail:      ['', [Validators.required, Validators.email]],
-    buyerPhone:      ['', [Validators.required, Validators.pattern(/^0[0-9]{9}$/)]],
-    buyerIdNumber:   ['', [Validators.required, Validators.pattern(/^\d{13}$/)]],
-    sellerFullName:  ['', Validators.required],
-    sellerEmail:     ['', [Validators.required, Validators.email]],
-    sellerPhone:     ['', [Validators.required, Validators.pattern(/^0[0-9]{9}$/)]],
-    consent:         [false, Validators.requiredTrue],
+    itemValue: [
+      null as number | null,
+      [Validators.required, Validators.min(1), Validators.max(100000)],
+    ],
+    sellerLocation: ['', Validators.required],
+    serviceType: ['Standard' as 'Standard' | 'VerifiedExpress', Validators.required],
+    feePayer: ['Buyer' as 'Buyer' | 'Seller' | 'Split', Validators.required],
+    buyerFullName: ['', Validators.required],
+    buyerEmail: ['', [Validators.required, Validators.email]],
+    buyerPhone: ['', [Validators.required, Validators.pattern(/^0[0-9]{9}$/)]],
+    buyerIdNumber: ['', [Validators.required, Validators.pattern(/^\d{13}$/)]],
+    sellerFullName: ['', Validators.required],
+    sellerEmail: ['', [Validators.required, Validators.email]],
+    sellerPhone: ['', [Validators.required, Validators.pattern(/^0[0-9]{9}$/)]],
+    consent: [false, Validators.requiredTrue],
   });
 
-  standardFee = computed(() => calcStandardFee(this.form.get('itemValue')?.value ?? 0));
-  expressFee = computed(() => calcExpressFee(this.form.get('itemValue')?.value ?? 0));
+  standardFee = computed(() =>
+    calcStandardFee(this.form.get('itemValue')?.value ?? 0)
+  );
+
+  expressFee = computed(() =>
+    calcExpressFee(this.form.get('itemValue')?.value ?? 0)
+  );
 
   activeFee = computed(() =>
     this.form.get('serviceType')?.value === 'VerifiedExpress'
@@ -73,6 +86,25 @@ export class StartTransaction {
     });
   }
 
+  isApproved(status: string | undefined): boolean {
+    return status?.toLowerCase() === 'approved';
+  }
+
+  isPending(status: string | undefined): boolean {
+    return !status || status.toLowerCase() === 'pending';
+  }
+
+  isFailed(status: string | undefined): boolean {
+    const normalized = status?.toLowerCase();
+
+    return !!normalized && [
+      'failed',
+      'rejected',
+      'declined',
+      'error',
+    ].includes(normalized);
+  }
+
   onSubmit() {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -80,106 +112,173 @@ export class StartTransaction {
     }
 
     this.submitting.set(true);
+    this.workflowStep.set('creating');
     this.errorMessage.set(null);
+
+    this.kycStatus.set('Pending');
+    this.amlStatus.set('Pending');
+    this.dealReference.set(null);
+    this.transactionId.set(null);
+    this.sellerId.set(null);
+
     const v = this.form.value;
 
-    this.txService.create({
-      buyerFullName:   v.buyerFullName!,
-      buyerEmail:      v.buyerEmail!,
-      buyerPhone:      v.buyerPhone!,
-      buyerIdNumber:   v.buyerIdNumber!,
-      sellerFullName:  v.sellerFullName!,
-      sellerEmail:     v.sellerEmail!,
-      sellerPhone:     v.sellerPhone!,
-      itemTitle:       v.itemTitle!.trim(),
-      itemDescription: v.itemDescription!.trim(),
-      itemValue:       v.itemValue!,
-      sellerLocation:  v.sellerLocation!.trim(),
-      serviceType:     v.serviceType!,
-      feePayer:        v.feePayer!,
-    }).pipe(
-      switchMap(tx => {
-        if (!tx.id) {
-          throw new Error('Transaction was created without an ID — please contact support.');
-        }
-
-        this.transactionId.set(tx.id);
-        this.dealReference.set(tx.dealReference);
-        this.sellerId.set(tx.seller?.id ?? null);
-        this.sellerEmail.set(v.sellerEmail!);
-        this.kycStep.set('kyc');
-
-        return interval(3000).pipe(
-          switchMap(() => this.txService.getById(tx.id)),
-          takeWhile(
-            t => t.buyer?.idCheckStatus === 'Pending' || t.buyer?.amlStatus === 'Pending',
-            true
-          ),
-          take(20),
-          tap(t => {
-            if (t.buyer?.idCheckStatus === 'Pending' || t.buyer?.amlStatus === 'Pending') {
-              return;
-            }
-
-            if (
-              t.buyer?.idCheckStatus !== 'Approved' ||
-              t.buyer?.amlStatus !== 'Approved'
-            ) {
-              throw {
-                error: {
-                  error: 'Identity or AML verification failed. Please check the submitted details.',
-                },
-              };
-            }
-          }),
-          switchMap(t => {
-            if (
-              t.buyer?.idCheckStatus !== 'Approved' ||
-              t.buyer?.amlStatus !== 'Approved'
-            ) {
-              throw {
-                error: {
-                  error: 'Identity or AML verification failed. Please check the submitted details.',
-                },
-              };
-            }
-
-            this.kycStep.set('payment');
-            return this.txService.getPaymentLink(tx.id);
-          })
-        );
+    this.txService
+      .create({
+        buyerFullName: v.buyerFullName!,
+        buyerEmail: v.buyerEmail!,
+        buyerPhone: v.buyerPhone!,
+        buyerIdNumber: v.buyerIdNumber!,
+        sellerFullName: v.sellerFullName!,
+        sellerEmail: v.sellerEmail!,
+        sellerPhone: v.sellerPhone!,
+        itemTitle: v.itemTitle!.trim(),
+        itemDescription: v.itemDescription!.trim(),
+        itemValue: v.itemValue!,
+        sellerLocation: v.sellerLocation!.trim(),
+        serviceType: v.serviceType!,
+        feePayer: v.feePayer!,
       })
-    ).subscribe({
-      next: res => {
-        if (!res.redirectUrl) {
-          this.errorMessage.set('Failed to get payment link. Please try again.');
+      .pipe(
+        switchMap(tx => {
+          if (!tx.id) {
+            return throwError(
+              () =>
+                new Error(
+                  'Transaction was created without an ID — please contact support.'
+                )
+            );
+          }
+
+          this.transactionId.set(tx.id);
+          this.dealReference.set(tx.dealReference);
+          this.sellerId.set(tx.seller?.id ?? null);
+          this.sellerEmail.set(v.sellerEmail!);
+
+          this.workflowStep.set('verification');
+
+          /*
+           * Poll the transaction until BOTH KYC and AML reach a terminal
+           * state (Approved or Failed).
+           *
+           * - First poll happens immediately, then every 3 seconds.
+           * - We keep polling indefinitely until terminal state.
+           * - Safety net: take(200) = 10 minutes max.
+           * - Only errors when a status is actually Failed.
+           */
+          return timer(0, 3000).pipe(
+            switchMap(() => this.txService.getById(tx.id)),
+
+            tap(t => {
+              const idStatus = t.buyer?.idCheckStatus ?? 'Pending';
+              const amlStatus = t.buyer?.amlStatus ?? 'Pending';
+
+              this.kycStatus.set(idStatus);
+              this.amlStatus.set(amlStatus);
+            }),
+
+            // Stop polling only when BOTH KYC and AML are terminal.
+            takeWhile(
+              t => {
+                const idStatus = t.buyer?.idCheckStatus ?? 'Pending';
+                const amlStatus = t.buyer?.amlStatus ?? 'Pending';
+
+                const idTerminal =
+                  this.isApproved(idStatus) || this.isFailed(idStatus);
+                const amlTerminal =
+                  this.isApproved(amlStatus) || this.isFailed(amlStatus);
+
+                return !(idTerminal && amlTerminal);
+              },
+              true // include the final (terminal) emission
+            ),
+
+            // Safety net: 10 minutes maximum.
+            // 200 polls × 3 seconds = 600 seconds.
+            take(200),
+
+            switchMap(t => {
+              const idStatus = t.buyer?.idCheckStatus ?? 'Pending';
+              const amlStatus = t.buyer?.amlStatus ?? 'Pending';
+
+              this.kycStatus.set(idStatus);
+              this.amlStatus.set(amlStatus);
+
+              // Real failure: identity verification
+              if (this.isFailed(idStatus)) {
+                return throwError(
+                  () =>
+                    new Error(
+                      'Buyer identity verification was not approved. Please check the submitted details and try again.'
+                    )
+                );
+              }
+
+              // Real failure: AML screening
+              if (this.isFailed(amlStatus)) {
+                return throwError(
+                  () =>
+                    new Error(
+                      'AML screening was not approved. Please check the submitted details and try again.'
+                    )
+                );
+              }
+
+              // Safety-net timeout: reached 200 polls without terminal state
+              if (!this.isApproved(idStatus) || !this.isApproved(amlStatus)) {
+                return throwError(
+                  () =>
+                    new Error(
+                      'Verification is taking longer than expected. Please contact support with your deal reference.'
+                    )
+                );
+              }
+
+              // Both approved: generate payment link
+              this.workflowStep.set('payment');
+              return this.txService.getPaymentLink(tx.id);
+            })
+          );
+        })
+      )
+      .subscribe({
+        next: res => {
+          if (!res.redirectUrl) {
+            this.errorMessage.set(
+              'Verification was approved, but the payment link could not be generated. Please try again.'
+            );
+            this.workflowStep.set('failed');
+            this.submitting.set(false);
+            return;
+          }
+
+          sessionStorage.setItem(
+            'securex-payment-state',
+            JSON.stringify({
+              txId: res.txId,
+              sellerId: res.sellerId,
+              sellerEmail: res.sellerEmail,
+              buyerEmail: v.buyerEmail!,
+            })
+          );
+
+          this.workflowStep.set('complete');
           this.submitting.set(false);
-          return;
-        }
 
-        sessionStorage.setItem(
-          'securex-payment-state',
-          JSON.stringify({
-            txId: res.txId,
-            sellerId: res.sellerId,
-            sellerEmail: res.sellerEmail,
-            buyerEmail: v.buyerEmail!,
-          })
-        );
+          window.location.href = res.redirectUrl;
+        },
 
-        this.submitting.set(false);
-        window.location.href = res.redirectUrl;
-      },
-      error: err => {
-        this.errorMessage.set(
-          err?.error?.error ??
-            err?.error?.Error ??
-            err?.message ??
-            'Submission failed. Please try again.'
-        );
-        this.submitting.set(false);
-        this.kycStep.set('idle');
-      },
-    });
+        error: err => {
+          this.errorMessage.set(
+            err?.error?.error ??
+              err?.error?.Error ??
+              err?.message ??
+              'Submission failed. Please try again.'
+          );
+
+          this.submitting.set(false);
+          this.workflowStep.set('failed');
+        },
+      });
   }
 }

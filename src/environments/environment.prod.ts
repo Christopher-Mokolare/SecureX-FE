@@ -1,5 +1,5 @@
 export const environment = {
   production: true,
-  apiBase: 'https://sswjj70221.execute-api.af-south-1.amazonaws.com',
+  apiBase: 'https://api.secureexchange.co.za',
   smileIdSandbox: false
 };
