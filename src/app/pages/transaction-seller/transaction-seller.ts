@@ -26,7 +26,7 @@ export class TransactionSeller implements OnInit {
   fmt = formatZar;
 
   ngOnInit() {
-    this.txId.set(this.route.snapshot.paramMap.get('txId') ?? '');
+    this.txId.set(this.route.snapshot.paramMap.get('id') ?? '');
   }
 
   load() {

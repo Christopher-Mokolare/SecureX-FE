@@ -36,7 +36,7 @@ export class TransactionBuyer implements OnInit, OnDestroy {
   });
 
   ngOnInit() {
-    this.txId.set(this.route.snapshot.paramMap.get('txId') ?? '');
+    this.txId.set(this.route.snapshot.paramMap.get('id') ?? '');
   }
 
   ngOnDestroy() {
