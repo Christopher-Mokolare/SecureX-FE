@@ -87,7 +87,7 @@ export class BankDetails implements OnInit, OnDestroy {
     const bank = this.selectedBank;
 
     if (environment.smileIdSandbox) {
-      this.txService.saveBankDetails(this.sellerId(), {
+      this.txService.saveBankDetails({
         accountNumber: v.accountNumber!,   
         branchCode:    bank?.branchCode ?? '',  
         bankGroupId:   v.bankGroupId!,     
@@ -104,7 +104,7 @@ export class BankDetails implements OnInit, OnDestroy {
       return;
     }
 
-    this.txService.saveBankDetails(this.sellerId(), {
+    this.txService.saveBankDetails({
       accountNumber: v.accountNumber!,   
       branchCode:    bank?.branchCode ?? '',  
       bankGroupId:   v.bankGroupId!,     

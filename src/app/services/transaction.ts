@@ -156,9 +156,9 @@ export class TransactionService {
     return this.http.get<OzowBank[]>(`${environment.apiBase}/api/users/banks`);
   }
 
-  saveBankDetails(userId: string, body: BankDetailsRequest): Observable<{ userId: string; bankVerificationStatus: string }> {
+  saveBankDetails(body: BankDetailsRequest): Observable<{ userId: string; bankVerificationStatus: string }> {
     return this.http.post<{ userId: string; bankVerificationStatus: string }>(
-      `${environment.apiBase}/api/users/${userId}/bank-details`, body
+      `${environment.apiBase}/api/users/bank-details`, body
     );
   }
 
