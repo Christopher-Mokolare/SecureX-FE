@@ -43,7 +43,7 @@ export class BankDetails implements OnInit, OnDestroy {
 
   ngOnInit() {
     const params = this.route.snapshot.queryParams;
-    this.sellerId.set(this.route.snapshot.paramMap.get('sellerId') ?? '');
+    this.sellerId.set(this.route.snapshot.paramMap.get('id') ?? '');
     this.sellerEmail.set(params['sellerEmail'] ?? params['email'] ?? '');
     this.dealReference.set(params['ref'] ?? '');
     this.transactionId.set(params['txId'] ?? '');
