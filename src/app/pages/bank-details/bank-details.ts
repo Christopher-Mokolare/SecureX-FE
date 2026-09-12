@@ -206,6 +206,7 @@ export class BankDetails implements OnInit, OnDestroy {
       token: session.token,
       product: session.product ?? 'biometric_kyc',
       environment: session.environment ?? 'sandbox',
+      id_selection: false,
       callback_url: session.callbackUrl ?? '',
       container,
       consent_information: {
@@ -218,7 +219,7 @@ export class BankDetails implements OnInit, OnDestroy {
         ...session.userDetails,
         phone_number: this.normalizeSmilePhone(session.userDetails.phone_number),
       } : undefined,
-      id_info: session.idInfo ?? { ZA: { NATIONAL_ID: { id_number: '' } } },
+      id_info: session.idInfo ?? {},
       partner_details: {
         partner_id: session.partnerId ?? '8811',
         name: 'SecureX',
