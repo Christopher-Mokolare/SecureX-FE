@@ -3,6 +3,7 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Subscription, switchMap, timer, takeWhile, take, tap, throwError } from 'rxjs';
 import { TransactionService } from '../../services/transaction';
+import { DealTokenService } from '../../services/deal-token';
 import { environment } from '../../../environments/environment';
 import { calcStandardFee, calcExpressFee, formatZar } from '../../utils/fee';
 
@@ -15,6 +16,7 @@ import { calcStandardFee, calcExpressFee, formatZar } from '../../utils/fee';
 export class StartTransaction implements OnDestroy {
   private fb = inject(FormBuilder);
   private txService = inject(TransactionService);
+  private dealTokens = inject(DealTokenService);
 
   private pollSub?: Subscription;
   private countdownInterval?: ReturnType<typeof setInterval>;
@@ -177,6 +179,10 @@ export class StartTransaction implements OnDestroy {
           this.dealReference.set(tx.dealReference);
           this.sellerId.set(tx.seller?.id ?? null);
           this.sellerEmail.set(v.sellerEmail!);
+
+          // Persist deal tokens returned by the backend (source of truth)
+          if (tx.buyerDealToken)  this.dealTokens.setBuyerToken(tx.buyerDealToken);
+          if (tx.sellerDealToken) this.dealTokens.setSellerToken(tx.sellerDealToken);
 
           this.workflowStep.set('verification');
 

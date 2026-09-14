@@ -4,6 +4,7 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { interval, switchMap, take, takeWhile } from 'rxjs';
 import { TransactionService, OzowBank, SmileSession } from '../../services/transaction';
 import { AuthService } from '../../services/auth';
+import { DealTokenService } from '../../services/deal-token';
 import { environment } from '../../../environments/environment';
 
 @Component({
@@ -19,6 +20,7 @@ export class BankDetails implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
   private txService = inject(TransactionService);
   private authService = inject(AuthService);
+  private dealTokens = inject(DealTokenService);
 
   sellerId = signal<string>('');
   sellerEmail = signal<string>('');
@@ -42,6 +44,9 @@ export class BankDetails implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    // Capture the seller deal token from ?t= if present
+    this.dealTokens.captureFromUrl('seller');
+
     const params = this.route.snapshot.queryParams;
     this.sellerId.set(this.route.snapshot.paramMap.get('id') ?? '');
     this.sellerEmail.set(params['sellerEmail'] ?? params['email'] ?? '');

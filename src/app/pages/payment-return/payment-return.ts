@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth';
 import { TransactionService } from '../../services/transaction';
+import { DealTokenService } from '../../services/deal-token';
 import { switchMap } from 'rxjs';
 
 interface PaymentState { txId: string; sellerId: string; sellerEmail: string; buyerEmail: string; }
@@ -16,6 +17,7 @@ export class PaymentReturn implements OnInit {
   private route = inject(ActivatedRoute);
   private auth = inject(AuthService);
   private txService = inject(TransactionService);
+  private dealTokens = inject(DealTokenService);
 
   status        = signal<string>('');
   reference     = signal<string>('');
@@ -26,6 +28,9 @@ export class PaymentReturn implements OnInit {
   isComplete    = signal(false);
 
   ngOnInit() {
+    // Capture a buyer deal token if the URL carries one (round-trip from Ozow)
+    this.dealTokens.captureFromUrl('buyer');
+
     const p = this.route.snapshot.queryParams;
     this.status.set(p['Status'] ?? '');
     this.reference.set(p['TransactionReference'] ?? '');
@@ -71,17 +76,23 @@ export class PaymentReturn implements OnInit {
       ref: this.reference(),
       txId: this.transactionId(),
     });
+    const sellerToken = this.dealTokens.getSellerToken();
+    if (sellerToken) params.set('t', sellerToken);
     return `/bank-details/${encodeURIComponent(this.sellerId())}?${params.toString()}`;
   }
 
   sellerPortalUrl(): string {
     if (!this.transactionId()) return '';
-    return `${window.location.origin}/transaction/${this.transactionId()}/seller`;
+    const base = `${window.location.origin}/transaction/${this.transactionId()}/seller`;
+    const sellerToken = this.dealTokens.getSellerToken();
+    return sellerToken ? `${base}?t=${encodeURIComponent(sellerToken)}` : base;
   }
 
   buyerPortalUrl(): string {
     if (!this.transactionId()) return '';
-    return `${window.location.origin}/transaction/${this.transactionId()}/buyer`;
+    const base = `${window.location.origin}/transaction/${this.transactionId()}/buyer`;
+    const buyerToken = this.dealTokens.getBuyerToken();
+    return buyerToken ? `${base}?t=${encodeURIComponent(buyerToken)}` : base;
   }
 
   copied = signal<'seller' | 'buyer' | null>(null);

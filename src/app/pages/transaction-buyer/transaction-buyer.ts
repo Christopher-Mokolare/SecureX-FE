@@ -3,6 +3,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { switchMap, interval, Subscription } from 'rxjs';
 import { AuthService } from '../../services/auth';
+import { DealTokenService } from '../../services/deal-token';
 import { TransactionService, CreateTransactionResponse } from '../../services/transaction';
 import { formatZar } from '../../utils/fee';
 
@@ -16,6 +17,7 @@ export class TransactionBuyer implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private auth = inject(AuthService);
   private txService = inject(TransactionService);
+  private dealTokens = inject(DealTokenService);
   private timerSub?: Subscription;
 
   txId = signal('');
@@ -36,6 +38,7 @@ export class TransactionBuyer implements OnInit, OnDestroy {
   });
 
   ngOnInit() {
+    this.dealTokens.captureFromUrl('buyer');
     this.txId.set(this.route.snapshot.paramMap.get('id') ?? '');
   }
 

@@ -50,6 +50,8 @@ export interface CreateTransactionResponse {
   inspectionWindowEndsAt: string | null;
   buyer?: UserSummary;
   seller?: UserSummary;
+  buyerDealToken?: string;
+  sellerDealToken?: string;
 }
 
 export interface OzowBank {
@@ -166,10 +168,12 @@ export class TransactionService {
   getPaymentLink(txId: string): Observable<{
     txId: string; dealReference: string; totalAmount: number;
     sellerId: string; sellerEmail: string; redirectUrl: string;
+    buyerDealToken?: string;
   }> {
     return this.http.post<{
       txId: string; dealReference: string; totalAmount: number;
       sellerId: string; sellerEmail: string; redirectUrl: string;
+      buyerDealToken?: string;
     }>(`${environment.apiBase}/api/transactions/${txId}/payment-link`, {});
   }
 

@@ -3,6 +3,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { switchMap } from 'rxjs';
 import { AuthService } from '../../services/auth';
+import { DealTokenService } from '../../services/deal-token';
 import { TransactionService, CreateTransactionResponse } from '../../services/transaction';
 import { formatZar } from '../../utils/fee';
 
@@ -16,6 +17,7 @@ export class TransactionSeller implements OnInit {
   private route = inject(ActivatedRoute);
   private auth = inject(AuthService);
   private txService = inject(TransactionService);
+  private dealTokens = inject(DealTokenService);
 
   txId = signal('');
   email = signal('');
@@ -26,6 +28,7 @@ export class TransactionSeller implements OnInit {
   fmt = formatZar;
 
   ngOnInit() {
+    this.dealTokens.captureFromUrl('seller');
     this.txId.set(this.route.snapshot.paramMap.get('id') ?? '');
   }
 
