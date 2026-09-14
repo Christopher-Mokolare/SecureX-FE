@@ -211,7 +211,7 @@ export class BankDetails implements OnInit, OnDestroy {
       token: session.token,
       product: session.product ?? 'biometric_kyc',
       environment: session.environment ?? 'sandbox',
-      id_selection: false,
+      id_selection: session.idSelection ?? { ZA: ['NATIONAL_ID'] },
       callback_url: session.callbackUrl ?? '',
       container,
       consent_information: {

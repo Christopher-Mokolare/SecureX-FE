@@ -74,6 +74,7 @@ export interface SmileSession {
   environment?: string;
   callbackUrl?: string;
   partnerId?: string;
+  idSelection?: { [country: string]: string[] };
   userDetails?: { given_names: string; last_name: string; email: string; phone_number: string };
   idInfo?: { [country: string]: { [idType: string]: { id_number: string } } };
   partnerParams?: { internal_reference: string; deal_reference: string; verification_type: string };
