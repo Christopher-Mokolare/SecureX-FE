@@ -91,24 +91,6 @@ export class BankDetails implements OnInit, OnDestroy {
     const v = this.form.value;
     const bank = this.selectedBank;
 
-    if (environment.smileIdSandbox) {
-      this.txService.saveBankDetails({
-        accountNumber: v.accountNumber!,   
-        branchCode:    bank?.branchCode ?? '',  
-        bankGroupId:   v.bankGroupId!,     
-        idNumber:      v.idNumber!,        
-      }).subscribe({
-        next: () => {
-          this.simulateSellerVerification();
-        },
-        error: (err) => {
-          this.errorMessage.set(err?.error?.Error ?? err?.error?.error ?? 'Failed to save bank details.');
-          this.submitting.set(false);
-        }
-      });
-      return;
-    }
-
     this.txService.saveBankDetails({
       accountNumber: v.accountNumber!,   
       branchCode:    bank?.branchCode ?? '',  
@@ -131,34 +113,6 @@ export class BankDetails implements OnInit, OnDestroy {
         this.errorMessage.set(err?.error?.Error ?? err?.error?.error ?? 'Submission failed. Please try again.');
         this.submitting.set(false);
       }
-    });
-  }
-
-  private simulateSellerVerification() {
-    const payload = {
-      status: "clear",
-      partner_params: {
-        internal_reference: this.transactionId(),
-        deal_reference: this.dealReference(),
-        verification_type: "seller_liveness"
-      }
-    };
-
-    fetch(`${environment.apiBase}/api/transactions/kyc-webhook`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    }).then(response => {
-      if (response.ok) {
-        this.pollSellerVerification();
-        this.kycState.set('pending');
-      } else {
-        this.errorMessage.set('Failed to verify seller. Please try again.');
-        this.submitting.set(false);
-      }
-    }).catch(() => {
-      this.errorMessage.set('Network error. Please try again.');
-      this.submitting.set(false);
     });
   }
 
@@ -252,17 +206,17 @@ export class BankDetails implements OnInit, OnDestroy {
     interval(3000).pipe(
       switchMap(() => this.txService.getById(this.transactionId())),
       takeWhile(tx =>
-        tx.seller?.livenessStatus !== 'Approved' &&  
-        tx.seller?.livenessStatus !== 'Failed' &&    
+        tx.seller?.idCheckStatus !== 'Approved' &&  
+        tx.seller?.idCheckStatus !== 'Failed' &&    
         tx.seller?.idCheckStatus !== 'Failed', true), 
       take(20)
     ).subscribe({
       next: tx => {
-        if (tx.seller?.livenessStatus === 'Approved' && tx.seller?.idCheckStatus === 'Approved') { 
+        if (tx.seller?.idCheckStatus === 'Approved') { 
           this.kycState.set('approved');
           this.verified.set('Approved');
           this.submitting.set(false);
-        } else if (tx.seller?.livenessStatus === 'Failed' || tx.seller?.idCheckStatus === 'Failed') {  
+        } else if (tx.seller?.idCheckStatus === 'Failed') {  
           this.kycState.set('failed');
           this.submitting.set(false);
         }
