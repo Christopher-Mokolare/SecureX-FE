@@ -22,40 +22,37 @@
       </div>
     }
 
-    @if (isComplete() && sellerVerificationUrl()) {
-      <a [href]="sellerVerificationUrl()"
-         class="block w-full mb-3 bg-yellow-400 text-yellow-950 py-3 rounded-lg font-bold hover:bg-yellow-500 transition">
-        Continue to Seller Verification
-      </a>
-      <p class="text-xs text-gray-500 mb-5">The seller must submit bank details and complete identity/liveness verification before payout.</p>
-    }
-
     @if (isComplete() && transactionId()) {
       <div class="bg-blue-50 border border-blue-200 rounded-xl p-5 mb-5 text-left">
-        <p class="text-blue-800 font-semibold text-sm mb-3">📤 Share these links with the parties</p>
+        <p class="text-blue-800 font-semibold text-sm mb-2">📧 We've emailed the seller</p>
+        <p class="text-xs text-blue-700 mb-4">
+          A verification link has been sent to <strong>{{ sellerEmail() }}</strong>.
+          They'll complete their bank details and ID verification before payout.
+        </p>
 
-        <div class="mb-3">
-          <p class="text-xs text-gray-500 mb-1">Seller link — to confirm delivery & receive payout</p>
-          <div class="flex items-center gap-2">
-            <input readonly [value]="sellerPortalUrl()"
-              class="flex-1 text-xs bg-white border border-gray-300 rounded-lg px-3 py-2 font-mono text-gray-700 truncate">
-            <button (click)="copy('seller')"
-              class="shrink-0 bg-blue-600 text-white text-xs px-3 py-2 rounded-lg hover:bg-blue-700 transition">
-              {{ copied() === 'seller' ? '✅ Copied' : 'Copy' }}
-            </button>
-          </div>
-        </div>
+        <button (click)="resendSellerLink()"
+          [disabled]="resending()"
+          class="w-full text-xs bg-white border border-blue-300 text-blue-700 rounded-lg px-3 py-2 hover:bg-blue-100 transition disabled:opacity-50">
+          {{ resending() ? 'Sending...' : "Didn't get it? Resend email" }}
+        </button>
 
-        <div>
-          <p class="text-xs text-gray-500 mb-1">Buyer link — to accept or reject the item</p>
-          <div class="flex items-center gap-2">
-            <input readonly [value]="buyerPortalUrl()"
-              class="flex-1 text-xs bg-white border border-gray-300 rounded-lg px-3 py-2 font-mono text-gray-700 truncate">
-            <button (click)="copy('buyer')"
-              class="shrink-0 bg-blue-600 text-white text-xs px-3 py-2 rounded-lg hover:bg-blue-700 transition">
-              {{ copied() === 'buyer' ? '✅ Copied' : 'Copy' }}
-            </button>
-          </div>
+        @if (resendMsg()) {
+          <p class="text-xs text-blue-800 mt-3">{{ resendMsg() }}</p>
+        }
+      </div>
+
+      <div class="bg-gray-50 border border-gray-200 rounded-xl p-5 mb-5 text-left">
+        <p class="text-gray-800 font-semibold text-sm mb-2">🔗 Your buyer portal</p>
+        <p class="text-xs text-gray-600 mb-3">
+          Save this link — you'll use it to accept or reject the item once it's delivered.
+        </p>
+        <div class="flex items-center gap-2">
+          <input readonly [value]="buyerPortalUrl()"
+            class="flex-1 text-xs bg-white border border-gray-300 rounded-lg px-3 py-2 font-mono text-gray-700 truncate">
+          <button (click)="copyBuyer()"
+            class="shrink-0 bg-blue-600 text-white text-xs px-3 py-2 rounded-lg hover:bg-blue-700 transition">
+            {{ copied() === 'buyer' ? '✅ Copied' : 'Copy' }}
+          </button>
         </div>
       </div>
     }

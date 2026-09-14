@@ -184,6 +184,12 @@ export class TransactionService {
     return this.http.post<SmileSession>(`${environment.apiBase}/api/transactions/${txId}/start-seller-kyc`, {});
   }
 
+  resendSellerLink(txId: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(
+      `${environment.apiBase}/api/transactions/${txId}/resend-seller-link`, {}
+    );
+  }
+
   getByRef(ref: string): Observable<CreateTransactionResponse> {
     return this.http.get<CreateTransactionResponse>(`${environment.apiBase}/api/transactions/ref/${ref}`).pipe(
       map(res => this.mapTransactionResponse(res))

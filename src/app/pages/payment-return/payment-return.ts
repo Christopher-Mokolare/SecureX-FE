@@ -69,18 +69,6 @@ export class PaymentReturn implements OnInit {
     catch { return null; }
   }
 
-  sellerVerificationUrl(): string {
-    if (!this.sellerId() || !this.sellerEmail() || !this.transactionId()) return '';
-    const params = new URLSearchParams({
-      email: this.sellerEmail(),
-      ref: this.reference(),
-      txId: this.transactionId(),
-    });
-    const sellerToken = this.dealTokens.getSellerToken();
-    if (sellerToken) params.set('t', sellerToken);
-    return `/bank-details/${encodeURIComponent(this.sellerId())}?${params.toString()}`;
-  }
-
   sellerPortalUrl(): string {
     if (!this.transactionId()) return '';
     const base = `${window.location.origin}/transaction/${this.transactionId()}/seller`;
@@ -95,13 +83,32 @@ export class PaymentReturn implements OnInit {
     return buyerToken ? `${base}?t=${encodeURIComponent(buyerToken)}` : base;
   }
 
-  copied = signal<'seller' | 'buyer' | null>(null);
+  copied = signal<'buyer' | null>(null);
+  resending = signal(false);
+  resendMsg = signal<string | null>(null);
 
-  copy(type: 'seller' | 'buyer') {
-    const url = type === 'seller' ? this.sellerPortalUrl() : this.buyerPortalUrl();
-    navigator.clipboard.writeText(url).then(() => {
-      this.copied.set(type);
+  copyBuyer() {
+    navigator.clipboard.writeText(this.buyerPortalUrl()).then(() => {
+      this.copied.set('buyer');
       setTimeout(() => this.copied.set(null), 2000);
+    });
+  }
+
+  resendSellerLink() {
+    if (this.resending() || !this.transactionId()) return;
+    this.resending.set(true);
+    this.resendMsg.set(null);
+
+    this.txService.resendSellerLink(this.transactionId()).subscribe({
+      next: () => {
+        this.resending.set(false);
+        this.resendMsg.set('Verification email resent.');
+        setTimeout(() => this.resendMsg.set(null), 4000);
+      },
+      error: () => {
+        this.resending.set(false);
+        this.resendMsg.set('Could not resend. Please try again.');
+      },
     });
   }
 }
