@@ -3,3 +3,4 @@ dist
 .angular
 firebase-debug.log
 .firebase
+.patch-backups/

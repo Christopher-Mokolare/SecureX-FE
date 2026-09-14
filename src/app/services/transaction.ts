@@ -77,15 +77,6 @@ export interface SmileSession {
   partnerParams?: { internal_reference: string; deal_reference: string; verification_type: string };
 }
 
-export interface FeePreview {
-  itemValue: number;
-  platformFee: number;
-  buyerFee: number;
-  sellerFee: number;
-  totalCheckoutAmount: number;
-  sellerPayout: number;
-}
-
 @Injectable({ providedIn: 'root' })
 export class TransactionService {
   private http = inject(HttpClient);
@@ -146,11 +137,6 @@ export class TransactionService {
     );
   }
 
-  feePreview(itemValue: number, serviceType: string, feePayer: string): Observable<FeePreview> {
-    return this.http.get<FeePreview>(
-      `${environment.apiBase}/api/transactions/fee-preview?itemValue=${itemValue}&serviceType=${serviceType}&feePayer=${feePayer}`
-    );
-  }
 
   getBanks(): Observable<OzowBank[]> {
     return this.http.get<OzowBank[]>(`${environment.apiBase}/api/users/banks`);
@@ -164,7 +150,7 @@ export class TransactionService {
 
   startLogistics(txId: string, version: number): Observable<CreateTransactionResponse> {
     return this.http.post<CreateTransactionResponse>(
-      `${environment.apiBase}/api/transactions/${txId}/start-logistics`,
+      `${environment.apiBase}/api/transactions/${txId}/mark-as-shipped`,
       { actor: 'seller', expectedVersion: version }
     ).pipe(
       map(res => this.mapTransactionResponse(res))
@@ -199,7 +185,7 @@ export class TransactionService {
 
   markDelivered(txId: string, version: number): Observable<CreateTransactionResponse> {
     return this.http.post<CreateTransactionResponse>(
-      `${environment.apiBase}/api/transactions/${txId}/mark-delivered`,
+      `${environment.apiBase}/api/transactions/${txId}/confirm-delivery`,
       { actor: 'seller', expectedVersion: version }
     ).pipe(
       map(res => this.mapTransactionResponse(res))
