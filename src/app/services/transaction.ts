@@ -133,7 +133,9 @@ export class TransactionService {
             idCheckStatus: getValue(response.seller || tx.Seller, 'idCheckStatus', 'IdCheckStatus'),
             amlStatus: getValue(response.seller || tx.Seller, 'amlStatus', 'AmlStatus'),
             livenessStatus: getValue(response.seller || tx.Seller, 'livenessStatus', 'LivenessStatus')
-          } : undefined
+          } : undefined,
+          buyerDealToken:  getValue(response, 'buyerDealToken',  'BuyerDealToken'),
+          sellerDealToken: getValue(response, 'sellerDealToken', 'SellerDealToken')
         };
       })
     );
@@ -262,7 +264,9 @@ export class TransactionService {
         idCheckStatus: getValue(tx.seller || tx.Seller, 'idCheckStatus', 'IdCheckStatus'),
         amlStatus: getValue(tx.seller || tx.Seller, 'amlStatus', 'AmlStatus'),
         livenessStatus: getValue(tx.seller || tx.Seller, 'livenessStatus', 'LivenessStatus')
-      } : undefined
+      } : undefined,
+      buyerDealToken:  getValue(tx, 'buyerDealToken',  'BuyerDealToken'),
+      sellerDealToken: getValue(tx, 'sellerDealToken', 'SellerDealToken')
     };
   }
 }
