@@ -1,7 +1,7 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, OnDestroy } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { switchMap, timer, takeWhile, take, tap, throwError } from 'rxjs';
+import { Subscription, switchMap, timer, takeWhile, take, tap, throwError } from 'rxjs';
 import { TransactionService } from '../../services/transaction';
 import { environment } from '../../../environments/environment';
 import { calcStandardFee, calcExpressFee, formatZar } from '../../utils/fee';
@@ -12,9 +12,12 @@ import { calcStandardFee, calcExpressFee, formatZar } from '../../utils/fee';
   imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './start-transaction.html',
 })
-export class StartTransaction {
+export class StartTransaction implements OnDestroy {
   private fb = inject(FormBuilder);
   private txService = inject(TransactionService);
+
+  private pollSub?: Subscription;
+  private countdownInterval?: ReturnType<typeof setInterval>;
 
   isSandbox = environment.smileIdSandbox;
 
@@ -75,6 +78,13 @@ export class StartTransaction {
 
   fmt = formatZar;
 
+  ngOnDestroy() {
+    this.pollSub?.unsubscribe();
+    if (this.countdownInterval) {
+      clearInterval(this.countdownInterval);
+    }
+  }
+
   isInvalid(field: string): boolean {
     const c = this.form.get(field);
     return !!(c?.invalid && c?.touched);
@@ -115,6 +125,10 @@ export class StartTransaction {
   }
 
   onSubmit() {
+    if (this.submitting()) {
+      return;
+    }
+
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
@@ -132,7 +146,7 @@ export class StartTransaction {
 
     const v = this.form.value;
 
-    this.txService
+    this.pollSub = this.txService
       .create({
         buyerFullName: v.buyerFullName!,
         buyerEmail: v.buyerEmail!,
@@ -279,11 +293,11 @@ export class StartTransaction {
           let countdown = 10;
           this.redirectCountdown.set(countdown);
 
-          const interval = setInterval(() => {
+          this.countdownInterval = setInterval(() => {
             countdown--;
             this.redirectCountdown.set(countdown);
             if (countdown <= 0) {
-              clearInterval(interval);
+              clearInterval(this.countdownInterval);
               window.location.href = res.redirectUrl;
             }
           }, 1000);

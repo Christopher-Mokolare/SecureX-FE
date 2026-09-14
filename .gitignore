@@ -4,3 +4,5 @@ dist
 firebase-debug.log
 .firebase
 .patch-backups/
+frontend-source.txt
+patch-fe.sh
