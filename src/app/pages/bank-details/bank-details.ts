@@ -163,7 +163,7 @@ export class BankDetails implements OnInit, OnDestroy {
 
     SmileIdentity({
       token: session.token,
-      product: 'doc_verification',   // v12 SDK expects doc_verification; token payload is document_verification
+      product: 'enhanced_document_verification',   // v12 SDK expects doc_verification; token payload is document_verification
       environment: session.environment ?? 'sandbox',
       document_capture_modes: ['camera', 'upload'],
       id_selection: session.idSelection ?? { ZA: ['NATIONAL_ID'] },
