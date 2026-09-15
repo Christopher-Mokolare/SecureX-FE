@@ -163,9 +163,10 @@ export class BankDetails implements OnInit, OnDestroy {
 
     SmileIdentity({
       token: session.token,
-      product: session.product ?? 'enhanced_document_verification',
+      product: 'enhanced_document_verification',   // v12 SDK expects doc_verification; token payload is document_verification
       environment: session.environment ?? 'sandbox',
       document_capture_modes: ['camera', 'upload'],
+      id_selection: session.idSelection ?? { ZA: ['NATIONAL_ID'] },
       callback_url: session.callbackUrl ?? '',
       container,
       consent_information: {
@@ -187,27 +188,17 @@ export class BankDetails implements OnInit, OnDestroy {
         theme_color: '#1d4ed8',
       },
       partner_params: session.partnerParams,
-      onSuccess: (_data: unknown) => {
-        this.pollSellerVerification();
-      },
-      onError: (error: { message?: string } | unknown) => {
-        const message =
-          typeof error === 'object' &&
-          error !== null &&
-          'message' in error &&
-          typeof (error as { message?: unknown }).message === 'string'
-            ? (error as { message: string }).message
-            : 'Identity verification failed. Please try again.';
-
-        this.errorMessage.set(message);
-        this.kycState.set('failed');
-        this.submitting.set(false);
-      },
-      onClose: () => {
-        if (this.kycState() === 'pending') {
+      onResult: (result: { status?: string; error?: { message?: string } }) => {
+        if (result.status === 'success') {
+          this.pollSellerVerification();
+        } else if (result.status === 'cancelled') {
           this.kycState.set('idle');
+        } else {
+          this.errorMessage.set(result.error?.message ?? 'Identity verification failed. Please try again.');
+          this.kycState.set('failed');
         }
       },
+      onClose: () => { if (this.kycState() === 'pending') this.kycState.set('idle'); },
     });
   }
 
