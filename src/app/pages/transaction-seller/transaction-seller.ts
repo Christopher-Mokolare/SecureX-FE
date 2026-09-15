@@ -85,9 +85,20 @@ export class TransactionSeller implements OnInit {
   }
 
   get status(): string { return this.tx()?.status ?? ''; }
-  get livenessApproved(): boolean { return this.tx()?.seller?.livenessStatus === 'Approved'; }
-  get canStartLogistics(): boolean { return this.status === 'FundsSecured' && this.livenessApproved; }
-  get canMarkDelivered(): boolean { return this.status === 'LogisticsPending' && this.livenessApproved; }
+
+  get verificationApproved(): boolean {
+    const seller = this.tx()?.seller;
+    return seller?.idCheckStatus === 'Approved'
+        && seller?.livenessStatus === 'Approved';
+  }
+
+  get canStartLogistics(): boolean {
+    return this.status === 'FundsSecured' && this.verificationApproved;
+  }
+
+  get canMarkDelivered(): boolean {
+    return this.status === 'LogisticsPending' && this.verificationApproved;
+  }
   get sellerPayout(): number {
     const tx = this.tx();
     return tx ? tx.itemValue - tx.sellerFee : 0;

@@ -7,7 +7,16 @@
         <h1 class="text-2xl font-bold text-green-700 mb-2">Verified!</h1>
         <p class="text-gray-600 mb-2">Your bank details were saved and your identity and liveness were verified.</p>
         <p class="text-gray-500 text-sm mb-6">Deal Reference: <span class="font-mono font-bold">{{ dealReference() }}</span></p>
-        <p class="text-gray-500 text-sm">You will receive payment once the buyer accepts the item.</p>
+        <p class="text-gray-600 text-sm mb-5">
+          Your verification is complete and the buyer's payment is secured in escrow.
+          You can now continue from your seller portal.
+        </p>
+        <button
+          type="button"
+          (click)="goToSellerPortal()"
+          class="w-full bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition">
+          Go to Seller Portal
+        </button>
       } @else {
         <div class="text-6xl mb-4">⚠️</div>
         <h1 class="text-2xl font-bold text-yellow-700 mb-2">Verification Failed</h1>

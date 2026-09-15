@@ -1,5 +1,5 @@
 import { Component, inject, signal, OnInit, OnDestroy } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { interval, switchMap, take, takeWhile } from 'rxjs';
 import { TransactionService, OzowBank, SmileSession } from '../../services/transaction';
@@ -21,6 +21,7 @@ export class BankDetails implements OnInit, OnDestroy {
   private txService = inject(TransactionService);
   private authService = inject(AuthService);
   private dealTokens = inject(DealTokenService);
+  private router = inject(Router);
 
   sellerId = signal<string>('');
   sellerEmail = signal<string>('');
@@ -210,28 +211,61 @@ export class BankDetails implements OnInit, OnDestroy {
     });
   }
 
+  goToSellerPortal(): void {
+    const id = this.transactionId();
+
+    if (!id) {
+      this.router.navigateByUrl('/');
+      return;
+    }
+
+    this.router.navigate(['/transaction', id, 'seller']);
+  }
+
   private pollSellerVerification() {
     this.kycState.set('pending');
+
     interval(3000).pipe(
       switchMap(() => this.txService.getById(this.transactionId())),
-      takeWhile(tx =>
-        tx.seller?.idCheckStatus !== 'Approved' &&  
-        tx.seller?.idCheckStatus !== 'Failed' &&    
-        tx.seller?.idCheckStatus !== 'Failed', true), 
+      takeWhile(tx => {
+        const idStatus = tx.seller?.idCheckStatus;
+        const livenessStatus = tx.seller?.livenessStatus;
+
+        const approved =
+          idStatus === 'Approved' &&
+          livenessStatus === 'Approved';
+
+        const failed =
+          idStatus === 'Failed' ||
+          livenessStatus === 'Failed';
+
+        return !approved && !failed;
+      }, true),
       take(20)
     ).subscribe({
       next: tx => {
-        if (tx.seller?.idCheckStatus === 'Approved') { 
+        const idStatus = tx.seller?.idCheckStatus;
+        const livenessStatus = tx.seller?.livenessStatus;
+
+        if (
+          idStatus === 'Approved' &&
+          livenessStatus === 'Approved'
+        ) {
           this.kycState.set('approved');
           this.verified.set('Approved');
           this.submitting.set(false);
-        } else if (tx.seller?.idCheckStatus === 'Failed') {  
+        } else if (
+          idStatus === 'Failed' ||
+          livenessStatus === 'Failed'
+        ) {
           this.kycState.set('failed');
           this.submitting.set(false);
         }
       },
       error: () => {
-        this.errorMessage.set('Unable to confirm verification status. Please refresh and try again.');
+        this.errorMessage.set(
+          'Unable to confirm verification status. Please refresh and try again.'
+        );
         this.kycState.set('failed');
         this.submitting.set(false);
       }
