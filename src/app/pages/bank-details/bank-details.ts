@@ -163,9 +163,8 @@ export class BankDetails implements OnInit, OnDestroy {
 
     SmileIdentity({
       token: session.token,
-      product: session.product ?? 'enhanced_document_verification',
+      product: session.product ?? 'biometric_kyc',
       environment: session.environment ?? 'sandbox',
-      document_capture_modes: ['camera', 'upload'],
       callback_url: session.callbackUrl ?? '',
       container,
       consent_information: {
