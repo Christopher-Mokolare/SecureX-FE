@@ -1,48 +1,60 @@
 <div class="min-h-screen bg-gray-50 pt-20 pb-10">
   <div class="max-w-7xl mx-auto px-4">
-    <div class="flex items-center justify-between mb-8">
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5 mb-8">
       <div>
         <p class="text-xs font-semibold uppercase tracking-wider text-blue-600">SecureX Operations</p>
-        <h1 class="text-3xl font-bold text-blue-950">Admin Control Center</h1>
-        <p class="text-gray-500 mt-1">Central access to transaction operations, compliance, payouts, incidents and reporting.</p>
+        <h1 class="text-3xl font-bold text-blue-950">Admin Dashboard</h1>
+        <p class="text-gray-500 mt-1">Central control centre for transactions, users, compliance, payouts, incidents, audit and reporting.</p>
       </div>
       <button (click)="logout()" class="px-4 py-2 border rounded-lg bg-white text-gray-600 hover:bg-gray-50">Sign Out</button>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-      <button (click)="open('/admin/operations')" class="text-left bg-white rounded-xl shadow-sm border p-6 hover:shadow-md hover:border-blue-300 transition">
-        <p class="text-2xl mb-3">⚙️</p><h2 class="font-bold text-lg text-gray-900">Operations</h2>
-        <p class="text-sm text-gray-500 mt-1">Transactions, users, KYC, disputes, manual state actions and payout operations.</p>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+      <button (click)="open('/admin/operations')" class="bg-white border rounded-xl p-4 text-left hover:border-blue-400 hover:shadow-sm">
+        <div class="text-xl">⚙️</div><div class="font-semibold mt-2">Operations</div><div class="text-xs text-gray-500 mt-1">Core admin tools</div>
       </button>
+      <button (click)="open('/admin/system-failures')" class="bg-white border rounded-xl p-4 text-left hover:border-red-400 hover:shadow-sm">
+        <div class="text-xl">🚨</div><div class="font-semibold mt-2">System Failures</div><div class="text-xs text-gray-500 mt-1">Incidents & errors</div>
+      </button>
+      <button (click)="open('/admin/reports')" class="bg-white border rounded-xl p-4 text-left hover:border-indigo-400 hover:shadow-sm">
+        <div class="text-xl">📊</div><div class="font-semibold mt-2">Reports</div><div class="text-xs text-gray-500 mt-1">PDF & CSV exports</div>
+      </button>
+      <button (click)="open('/admin/operations')" class="bg-white border rounded-xl p-4 text-left hover:border-green-400 hover:shadow-sm">
+        <div class="text-xl">💳</div><div class="font-semibold mt-2">Payments & Payouts</div><div class="text-xs text-gray-500 mt-1">Funds & payout control</div>
+      </button>
+    </div>
 
+    <div class="bg-white border rounded-xl shadow-sm p-5 mb-8">
+      <div class="flex items-center justify-between gap-4 mb-4">
+        <div>
+          <h2 class="text-lg font-bold text-gray-900">Operations</h2>
+          <p class="text-sm text-gray-500">Direct access to every existing Operations module.</p>
+        </div>
+        <button (click)="open('/admin/operations')" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700">Open Operations</button>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
+        <button (click)="open('/admin/operations?tab=transactions')" class="border rounded-lg p-4 text-left hover:bg-blue-50 hover:border-blue-300"><div class="font-semibold text-sm">Transactions</div><div class="text-xs text-gray-500 mt-1">Escrow activity</div></button>
+        <button (click)="open('/admin/operations?tab=users')" class="border rounded-lg p-4 text-left hover:bg-blue-50 hover:border-blue-300"><div class="font-semibold text-sm">Users</div><div class="text-xs text-gray-500 mt-1">Accounts & KYC</div></button>
+        <button (click)="open('/admin/operations?tab=stats')" class="border rounded-lg p-4 text-left hover:bg-blue-50 hover:border-blue-300"><div class="font-semibold text-sm">Stats</div><div class="text-xs text-gray-500 mt-1">Operational metrics</div></button>
+        <button (click)="open('/admin/operations?tab=audit')" class="border rounded-lg p-4 text-left hover:bg-blue-50 hover:border-blue-300"><div class="font-semibold text-sm">Audit Log</div><div class="text-xs text-gray-500 mt-1">Admin activity</div></button>
+        <button (click)="open('/admin/operations?tab=payouts')" class="border rounded-lg p-4 text-left hover:bg-blue-50 hover:border-blue-300"><div class="font-semibold text-sm">Payouts</div><div class="text-xs text-gray-500 mt-1">Payout operations</div></button>
+        <button (click)="open('/admin/operations?tab=reconciliation')" class="border rounded-lg p-4 text-left hover:bg-blue-50 hover:border-blue-300"><div class="font-semibold text-sm">Reconciliation</div><div class="text-xs text-gray-500 mt-1">Financial matching</div></button>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
       <button (click)="open('/admin/system-failures')" class="text-left bg-white rounded-xl shadow-sm border p-6 hover:shadow-md hover:border-red-300 transition">
         <p class="text-2xl mb-3">🚨</p><h2 class="font-bold text-lg text-gray-900">System Failure Logs</h2>
-        <p class="text-sm text-gray-500 mt-1">Investigate API and provider failures, correlation IDs, stack traces, resolution and reopen workflows.</p>
+        <p class="text-sm text-gray-500 mt-1">Investigate API/provider failures, correlation IDs, stack traces, resolution and reopen workflows.</p>
       </button>
-
       <button (click)="open('/admin/reports')" class="text-left bg-white rounded-xl shadow-sm border p-6 hover:shadow-md hover:border-indigo-300 transition">
-        <p class="text-2xl mb-3">📊</p><h2 class="font-bold text-lg text-gray-900">Reports & Downloads</h2>
-        <p class="text-sm text-gray-500 mt-1">Generate operational reports and download PDF/CSV exports for admin review.</p>
-      </button>
-
-      <button (click)="open('/admin/operations')" class="text-left bg-white rounded-xl shadow-sm border p-6 hover:shadow-md hover:border-green-300 transition">
-        <p class="text-2xl mb-3">💳</p><h2 class="font-bold text-lg text-gray-900">Payments & Payouts</h2>
-        <p class="text-sm text-gray-500 mt-1">Review escrow funds, payout failures, missing payouts and retry operations.</p>
-      </button>
-
-      <button (click)="open('/admin/operations')" class="text-left bg-white rounded-xl shadow-sm border p-6 hover:shadow-md hover:border-yellow-300 transition">
-        <p class="text-2xl mb-3">🛡️</p><h2 class="font-bold text-lg text-gray-900">Compliance & Risk</h2>
-        <p class="text-sm text-gray-500 mt-1">Review ID verification, AML, liveness, bank verification, suspended users and KYC overrides.</p>
-      </button>
-
-      <button (click)="open('/admin/operations')" class="text-left bg-white rounded-xl shadow-sm border p-6 hover:shadow-md hover:border-purple-300 transition">
-        <p class="text-2xl mb-3">📋</p><h2 class="font-bold text-lg text-gray-900">Audit & Reconciliation</h2>
-        <p class="text-sm text-gray-500 mt-1">Inspect admin actions, transaction history and escrow/Ozow reconciliation records.</p>
+        <p class="text-2xl mb-3">📄</p><h2 class="font-bold text-lg text-gray-900">Reports & Downloads</h2>
+        <p class="text-sm text-gray-500 mt-1">Operational summaries, transactions, users, audit, payouts and reconciliation PDF/CSV exports.</p>
       </button>
     </div>
 
     <div class="mt-8 bg-blue-50 border border-blue-100 rounded-xl p-5 text-sm text-blue-900">
-      <strong>Production operations rule:</strong> sensitive actions remain authenticated and should be accompanied by a clear reason in the existing admin workflow.
+      <strong>Admin navigation:</strong> use this page as the central dashboard. Operations contains Transactions, Users, Stats, Audit Log, Payouts and Reconciliation; separate pages provide System Failure Logs and Reports & Downloads.
     </div>
   </div>
 </div>
