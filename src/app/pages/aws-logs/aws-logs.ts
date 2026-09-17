@@ -1,0 +1,66 @@
+import { Component, OnInit, inject, signal } from '@angular/core';
+import { CommonModule, DatePipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { AuthService } from '../../services/auth';
+import { AwsLogsService, AwsLogEntry } from '../../services/aws-logs';
+
+@Component({
+  selector: 'app-aws-logs',
+  standalone: true,
+  imports: [CommonModule, FormsModule, DatePipe],
+  templateUrl: './aws-logs.html',
+})
+export class AwsLogs implements OnInit {
+  private svc = inject(AwsLogsService);
+  private auth = inject(AuthService);
+  logs = signal<AwsLogEntry[]>([]);
+  hours = signal(1);
+  search = signal('');
+  level = signal('');
+  loading = signal(false);
+  error = signal('');
+  logGroup = signal('');
+  region = signal('');
+  nextToken = signal('');
+
+  ngOnInit() {
+    if (!this.auth.getCachedToken() || !this.auth.isAdmin()) {
+      window.location.href = '/admin';
+      return;
+    }
+    this.load();
+  }
+
+  load(nextToken?: string) {
+    this.loading.set(true);
+    this.error.set('');
+    this.svc.get(this.hours(), this.search(), this.level(), 100, nextToken).subscribe({
+      next: result => {
+        this.logs.set(result.items);
+        this.logGroup.set(result.logGroup);
+        this.region.set(result.region);
+        this.nextToken.set(result.nextToken ?? '');
+        this.loading.set(false);
+      },
+      error: err => {
+        this.error.set(err?.error?.error ?? 'Failed to load AWS CloudWatch logs');
+        this.loading.set(false);
+      },
+    });
+  }
+
+  apply() { this.nextToken.set(''); this.load(); }
+  backToDashboard() { window.location.href = '/admin'; }
+  previous() { this.nextToken.set(''); this.load(); }
+  next() { if (this.nextToken()) this.load(this.nextToken()); }
+
+  levelClass(message: string) {
+    const value = message.toUpperCase();
+    if (value.includes('CRITICAL') || value.includes('FATAL')) return 'bg-red-100 text-red-800';
+    if (value.includes('ERROR') || value.includes('EXCEPTION')) return 'bg-orange-100 text-orange-800';
+    if (value.includes('WARN')) return 'bg-yellow-100 text-yellow-800';
+    return 'bg-slate-100 text-slate-700';
+  }
+
+  messagePreview(message: string) { return message.replace(/\s+/g, ' ').trim(); }
+}
