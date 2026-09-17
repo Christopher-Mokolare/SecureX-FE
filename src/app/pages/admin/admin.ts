@@ -127,7 +127,7 @@ export class Admin implements OnInit {
     this.auth.getToken(this.loginEmail, this.loginPassword).subscribe({
       next: () => { 
         this.authenticated.set(true); 
-        this.loadTransactions();
+        this.loadSelectedTab();
       },
       error: () => this.loginError.set('Invalid email or password'),
     });
@@ -233,16 +233,16 @@ export class Admin implements OnInit {
   downloadPayoutPdf() {
     const rows = [
       { label: 'Payout failures', value: String(this.payoutFailures().length) },
-      ...this.payoutFailures().map(p => ({ label: p.transactionId, value: p.error ?? p.message ?? 'Payout failure' })),
+      ...this.payoutFailures().map(p => ({ label: p.transactionId ?? p.payoutId ?? 'Unknown payout', value: p.error ?? p.message ?? 'Payout failure' })),
       { label: 'Missing payouts', value: String(this.missingPayouts().length) },
-      ...this.missingPayouts().map(p => ({ label: p.transactionId, value: p.status ?? 'Missing payout' })),
+      ...this.missingPayouts().map(p => ({ label: p.transactionId ?? p.dealReference ?? 'Unknown transaction', value: p.status ?? 'Missing payout' })),
     ];
     this.pdf.download('Payout Operations', rows, `securex-payouts-${this.today()}.pdf`);
   }
 
   downloadReconciliationPdf() {
     const rows = this.reconList().map(r => ({
-      label: r.transactionId,
+      label: r.transactionId ?? r.id ?? 'Unknown transaction',
       value: `${r.status ?? '—'} | ${r.provider ?? '—'} | ${r.reference ?? '—'}`,
     }));
     this.pdf.download('Reconciliation', [
