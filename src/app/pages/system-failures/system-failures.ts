@@ -37,6 +37,14 @@ export class SystemFailures implements OnInit {
     window.history.back();
   }
 
+  criticalCount() {
+    return this.logs().filter(x => x.severity === 'Critical').length;
+  }
+
+  errorCount() {
+    return this.logs().filter(x => x.severity === 'Error').length;
+  }
+
   load() {
     this.loading.set(true);
     this.error.set('');
