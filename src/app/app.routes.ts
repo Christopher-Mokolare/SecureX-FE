@@ -11,6 +11,7 @@ import { Admin } from './pages/admin/admin';
 import { AdminHome } from './pages/admin-home/admin-home';
 import { AdminReports } from './pages/admin-reports/admin-reports';
 import { SystemFailures } from './pages/system-failures/system-failures';
+import { AwsLogs } from './pages/aws-logs/aws-logs';
 import { NotFound } from './pages/not-found/not-found';
 
 export const routes: Routes = [
@@ -31,6 +32,7 @@ export const routes: Routes = [
   { path: 'admin/payouts', component: Admin },
   { path: 'admin/reconciliation', component: Admin },
   { path: 'admin/system-failures', component: SystemFailures },
+  { path: 'admin/aws-logs', component: AwsLogs },
   { path: 'admin/reports', component: AdminReports },
   { path: '**', component: NotFound },
 ];
