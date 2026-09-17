@@ -75,6 +75,22 @@
         </div>
       </div>
 
+      @if (verificationRequired) {
+        <div class="bg-amber-50 border border-amber-200 rounded-xl p-5 mb-4">
+          <p class="text-amber-900 font-semibold mb-1">Identity verification required</p>
+          <p class="text-amber-800 text-sm mb-4">Complete your bank details and identity/liveness verification before proceeding with the seller flow.</p>
+          <button (click)="startIdentityVerification()" [disabled]="submitting()"
+            class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed">
+            Complete Identity Verification
+          </button>
+        </div>
+      } @else {
+        <div class="bg-green-50 border border-green-200 rounded-xl p-4 mb-4">
+          <p class="text-green-800 font-semibold">Identity verification complete ✓</p>
+          <p class="text-green-700 text-sm mt-1">Your ID and liveness checks have been approved.</p>
+        </div>
+      }
+
       <!-- Status-based actions -->
       @if (canStartLogistics) {
         <div class="bg-blue-50 border border-blue-200 rounded-xl p-5 mb-4">
