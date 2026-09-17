@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { AdminService, AdminTransaction, AdminUser, AdminStats, TxStatusCount, TransactionDetail, AuditEntry, PayoutFailure, MissingPayout, ReconciliationEntry } from '../../services/admin';
 import { AuthService } from '../../services/auth';
+import { AdminPdfService } from '../../services/admin-pdf';
 import { Footer } from '../../shared/footer/footer';
 
 type Tab = 'transactions' | 'users' | 'stats' | 'audit' | 'payouts' | 'reconciliation';
@@ -17,6 +18,7 @@ type Tab = 'transactions' | 'users' | 'stats' | 'audit' | 'payouts' | 'reconcili
 export class Admin implements OnInit {
   private svc = inject(AdminService);
   private auth = inject(AuthService);
+  private pdf = inject(AdminPdfService);
 
   authenticated = signal(false);
   loginEmail = '';
@@ -72,7 +74,7 @@ export class Admin implements OnInit {
   reconList = signal<ReconciliationEntry[]>([]);
   reconTotal = signal(0);
   reconPage = signal(1);
-
+  
   // kyc override modal
   kycTarget = signal<AdminUser | null>(null);
   kycForm = { idCheck: '', aml: '', liveness: '' };
@@ -111,7 +113,7 @@ export class Admin implements OnInit {
     this.auth.getToken(this.loginEmail, this.loginPassword).subscribe({
       next: () => { 
         this.authenticated.set(true); 
-        this.loadTransactions(); 
+        this.loadTransactions();
       },
       error: () => this.loginError.set('Invalid email or password'),
     });
@@ -141,6 +143,93 @@ export class Admin implements OnInit {
     if (t === 'audit') this.loadAudit();
     if (t === 'payouts') this.loadPayouts();
     if (t === 'reconciliation') this.loadReconciliation();
+  }
+
+  // ── Reports & Downloads ─────────────────────────────────────────────────────
+  openReports() {
+    window.location.href = '/admin/reports';
+  }
+
+  downloadOperationsPdf() {
+    const s = this.stats();
+    this.pdf.download('Operations Summary', [
+      { label: 'Total transactions', value: String(s?.totalTransactions ?? this.txTotal()) },
+      { label: 'Completed transactions', value: String(s?.completedTransactions ?? 'N/A') },
+      { label: 'Total value', value: this.formatMoney(s?.totalValue) },
+      { label: 'Total platform fees', value: this.formatMoney(s?.totalFees) },
+      { label: 'Report scope', value: 'Current admin operations data' },
+    ], `securex-operations-${this.today()}.pdf`);
+  }
+
+  downloadTransactionsPdf() {
+    const rows = this.txList().flatMap(tx => [
+      { label: `${tx.dealReference} — item`, value: tx.itemTitle ?? '—' },
+      { label: 'Seller', value: tx.seller?.email ?? '—' },
+      { label: 'Buyer', value: tx.buyer?.email ?? '—' },
+      { label: 'Value / fee', value: `R ${this.number(tx.itemValue)} / R ${this.number(tx.platformFee)}` },
+      { label: 'Status', value: tx.status },
+      { label: 'Created', value: this.date(tx.createdAt) },
+      { label: '', value: '' },
+    ]);
+    this.pdf.download('Transactions', [
+      { label: 'Filters', value: this.txFilterSummary() },
+      { label: 'Loaded records', value: String(this.txList().length) },
+      ...rows,
+    ], `securex-transactions-${this.today()}.pdf`);
+  }
+
+  downloadUsersPdf() {
+    const rows = this.userList().flatMap(u => [
+      { label: u.email, value: `${u.fullName} | Role: ${u.isAdmin ? 'Admin' : 'User'} | Suspended: ${u.isSuspended ? 'Yes' : 'No'}` },
+      { label: 'KYC', value: `ID: ${u.idCheckStatus} | AML: ${u.amlStatus} | Liveness: ${u.livenessStatus} | Bank: ${u.bankVerificationStatus}` },
+      { label: '', value: '' },
+    ]);
+    this.pdf.download('Users & Compliance', [
+      { label: 'Search', value: this.userSearch() || 'All users' },
+      { label: 'Loaded records', value: String(this.userList().length) },
+      ...rows,
+    ], `securex-users-compliance-${this.today()}.pdf`);
+  }
+
+  downloadAuditPdf() {
+    const rows = this.auditList().flatMap(entry => [
+      { label: this.date(entry.createdAt), value: `${entry.action ?? 'Audit event'} | ${entry.userEmail ?? entry.userId ?? 'System'} | ${entry.details ?? ''}` },
+    ]);
+    this.pdf.download('Audit Log', [
+      { label: 'Search', value: this.auditSearch() || 'All events' },
+      { label: 'Loaded records', value: String(this.auditList().length) },
+      ...rows,
+    ], `securex-audit-${this.today()}.pdf`);
+  }
+
+  downloadPayoutPdf() {
+    const rows = [
+      { label: 'Payout failures', value: String(this.payoutFailures().length) },
+      ...this.payoutFailures().map(p => ({ label: p.transactionId, value: p.error ?? p.message ?? 'Payout failure' })),
+      { label: 'Missing payouts', value: String(this.missingPayouts().length) },
+      ...this.missingPayouts().map(p => ({ label: p.transactionId, value: p.status ?? 'Missing payout' })),
+    ];
+    this.pdf.download('Payout Operations', rows, `securex-payouts-${this.today()}.pdf`);
+  }
+
+  downloadReconciliationPdf() {
+    const rows = this.reconList().map(r => ({
+      label: r.transactionId,
+      value: `${r.status ?? '—'} | ${r.provider ?? '—'} | ${r.reference ?? '—'}`,
+    }));
+    this.pdf.download('Reconciliation', [
+      { label: 'Loaded records', value: String(this.reconList().length) },
+      ...rows,
+    ], `securex-reconciliation-${this.today()}.pdf`);
+  }
+
+  private today() { return new Date().toISOString().slice(0, 10); }
+  private number(value: number | null | undefined) { return Number(value ?? 0).toLocaleString('en-ZA', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+  private formatMoney(value: number | null | undefined) { return `R ${this.number(value)}`; }
+  private date(value: string | Date | null | undefined) { return value ? new Date(value).toLocaleString('en-ZA') : '—'; }
+  private txFilterSummary() {
+    const parts = [this.txSearch() && `search=${this.txSearch()}`, this.txStatus() && `status=${this.txStatus()}`, this.txFromDate() && `from=${this.txFromDate()}`, this.txToDate() && `to=${this.txToDate()}`].filter(Boolean);
+    return parts.join(', ') || 'All transactions';
   }
 
   // ── Transactions ────────────────────────────────────────────────────────────
@@ -335,7 +424,7 @@ export class Admin implements OnInit {
     });
   }
 
-  // ── Helpers ─────────────────────────────────────────────────────────────────
+  // ── Helpers ──────────────────────────────────────────────────────────────────
   statusBadge(s: string) {
     const map: Record<string, string> = {
       Approved: 'bg-green-100 text-green-800', 
