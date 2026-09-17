@@ -32,7 +32,7 @@ export class TransactionBuyer implements OnInit, OnDestroy {
   fmt = formatZar;
 
   windowExpired = computed(() => {
-    const endsAt = this.tx()?.inspectionWindowEndsAt; 
+    const endsAt = this.tx()?.inspectionWindowEndsAt;
     if (!endsAt) return false;
     return new Date(endsAt) < new Date();
   });
@@ -40,6 +40,12 @@ export class TransactionBuyer implements OnInit, OnDestroy {
   ngOnInit() {
     this.dealTokens.captureFromUrl('buyer');
     this.txId.set(this.route.snapshot.paramMap.get('id') ?? '');
+
+    const cachedEmail = this.auth.getCachedEmail();
+    if (cachedEmail && this.txId()) {
+      this.email.set(cachedEmail);
+      this.loadTransaction();
+    }
   }
 
   ngOnDestroy() {
@@ -53,17 +59,7 @@ export class TransactionBuyer implements OnInit, OnDestroy {
     this.auth.getToken(this.email()).pipe(
       switchMap(() => this.txService.getById(this.txId()))
     ).subscribe({
-      next: tx => {
-        if (tx.buyer?.email?.toLowerCase() !== this.email().toLowerCase()) { 
-          this.error.set('This email does not match the buyer on this transaction.');
-          this.submitting.set(false);
-          return;
-        }
-        this.tx.set(tx);
-        this.step.set('loaded');
-        this.submitting.set(false);
-        this.startCountdown();
-      },
+      next: tx => this.handleLoadedTransaction(tx),
       error: () => {
         this.error.set('Could not load transaction. Check your email and try again.');
         this.submitting.set(false);
@@ -71,10 +67,34 @@ export class TransactionBuyer implements OnInit, OnDestroy {
     });
   }
 
+  private loadTransaction() {
+    this.submitting.set(true);
+    this.error.set(null);
+    this.txService.getById(this.txId()).subscribe({
+      next: tx => this.handleLoadedTransaction(tx),
+      error: () => {
+        this.error.set('Your session could not be restored. Please enter your email again.');
+        this.submitting.set(false);
+      }
+    });
+  }
+
+  private handleLoadedTransaction(tx: CreateTransactionResponse) {
+    if (tx.buyer?.email?.toLowerCase() !== this.email().toLowerCase()) {
+      this.error.set('This email does not match the buyer on this transaction.');
+      this.submitting.set(false);
+      return;
+    }
+    this.tx.set(tx);
+    this.step.set('loaded');
+    this.submitting.set(false);
+    this.startCountdown();
+  }
+
   private startCountdown() {
     this.timerSub?.unsubscribe();
     this.timerSub = interval(1000).subscribe(() => {
-      const endsAt = this.tx()?.inspectionWindowEndsAt;  
+      const endsAt = this.tx()?.inspectionWindowEndsAt;
       if (!endsAt) { this.timeLeft.set(''); return; }
       const diff = new Date(endsAt).getTime() - Date.now();
       if (diff <= 0) { this.timeLeft.set('Expired'); this.timerSub?.unsubscribe(); return; }
@@ -90,7 +110,7 @@ export class TransactionBuyer implements OnInit, OnDestroy {
     if (!tx) return;
     this.submitting.set(true);
     this.error.set(null);
-    this.txService.accept(tx.id, tx.version).subscribe({  
+    this.txService.accept(tx.id, tx.version).subscribe({
       next: updated => { this.tx.set(updated); this.submitting.set(false); this.step.set('done'); },
       error: err => {
         this.error.set(err?.error?.Error ?? err?.error?.error ?? 'Failed. Please try again.');
@@ -104,7 +124,7 @@ export class TransactionBuyer implements OnInit, OnDestroy {
     if (!tx || !this.rejectReason()) return;
     this.submitting.set(true);
     this.error.set(null);
-    this.txService.reject(tx.id, this.rejectReason()).subscribe({  
+    this.txService.reject(tx.id, this.rejectReason()).subscribe({
       next: updated => { this.tx.set(updated); this.submitting.set(false); this.step.set('done'); },
       error: err => {
         this.error.set(err?.error?.Error ?? err?.error?.error ?? 'Failed. Please try again.');
@@ -113,6 +133,6 @@ export class TransactionBuyer implements OnInit, OnDestroy {
     });
   }
 
-  get status(): string { return this.tx()?.status ?? ''; } 
+  get status(): string { return this.tx()?.status ?? ''; }
   get canAction(): boolean { return this.status === 'ItemDelivered' && !this.windowExpired(); }
 }
