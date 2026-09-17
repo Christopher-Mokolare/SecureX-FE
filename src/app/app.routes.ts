@@ -22,7 +22,7 @@ export const routes: Routes = [
   { path: 'bank-details/:id', component: BankDetails },
   { path: 'terms', component: Terms },
   { path: 'faq', component: Faq },
-  { path: 'admin', component: AdminHome },
+  { path: 'admin', component: AdminHome, pathMatch: 'full' },
   { path: 'admin/operations', component: Admin },
   { path: 'admin/system-failures', component: SystemFailures },
   { path: 'admin/reports', component: AdminReports },
