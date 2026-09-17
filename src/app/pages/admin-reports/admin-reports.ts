@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule, DatePipe, DecimalPipe } from '@angular/common';
 import { AdminService, AdminStats, AdminTransaction, AdminUser, AuditEntry, PayoutFailure, MissingPayout, ReconciliationEntry } from '../../services/admin';
 import { AdminPdfService, PdfRow } from '../../services/admin-pdf';
+import { SystemFailureLog, SystemFailuresService } from '../../services/system-failures';
 import { AuthService } from '../../services/auth';
 
 @Component({
@@ -12,6 +13,7 @@ import { AuthService } from '../../services/auth';
 })
 export class AdminReports implements OnInit {
   private svc = inject(AdminService);
+  private failureSvc = inject(SystemFailuresService);
   private pdf = inject(AdminPdfService);
   private auth = inject(AuthService);
 
@@ -24,6 +26,7 @@ export class AdminReports implements OnInit {
   payouts = signal<PayoutFailure[]>([]);
   missingPayouts = signal<MissingPayout[]>([]);
   reconciliation = signal<ReconciliationEntry[]>([]);
+  failures = signal<SystemFailureLog[]>([]);
 
   ngOnInit() {
     if (!this.auth.getCachedToken() || !this.auth.isAdmin()) {
@@ -37,7 +40,7 @@ export class AdminReports implements OnInit {
     this.loading.set(true);
     this.error.set('');
     let completed = 0;
-    const done = () => { completed++; if (completed === 7) this.loading.set(false); };
+    const done = () => { completed++; if (completed === 8) this.loading.set(false); };
     const failed = () => { this.error.set('One or more report datasets could not be loaded.'); done(); };
 
     this.svc.getStats().subscribe({ next: x => { this.stats.set(x); done(); }, error: failed });
@@ -47,6 +50,7 @@ export class AdminReports implements OnInit {
     this.svc.getPayoutFailures({ page: 1, size: 100 }).subscribe({ next: x => { this.payouts.set(x.items); done(); }, error: failed });
     this.svc.getMissingPayouts().subscribe({ next: x => { this.missingPayouts.set(x); done(); }, error: failed });
     this.svc.getReconciliation({ page: 1, size: 100 }).subscribe({ next: x => { this.reconciliation.set(x.items); done(); }, error: failed });
+    this.failureSvc.get({ page: 1, size: 100, resolved: '' }).subscribe({ next: x => { this.failures.set(x.items); done(); }, error: failed });
   }
 
   back() { window.location.href = '/admin'; }
@@ -92,6 +96,11 @@ export class AdminReports implements OnInit {
   downloadReconciliationPdf() {
     const rows = this.reconciliation().map((x, i) => ({ label: `${i + 1}. ${x.runAt}`, value: `Expected ${this.money(x.expectedFloat)} | Ozow ${this.money(x.ozowFloat)} | discrepancy ${this.money(x.discrepancy)} | alert ${x.alertFired ? 'Yes' : 'No'}` }));
     this.pdf.download('Reconciliation Report', rows.length ? rows : [{ label: 'Result', value: 'No reconciliation records returned' }], 'securex-reconciliation-report.pdf');
+  }
+
+  downloadFailuresPdf() {
+    const rows = this.failures().map((x, i) => ({ label: `${i + 1}. ${x.severity} | ${x.service}`, value: `${x.method} ${x.path} | HTTP ${x.statusCode} | ${x.category} | ${x.provider || 'No provider'} | TX ${x.transactionId || '—'} | correlation ${x.correlationId || '—'} | occurrences ${x.occurrenceCount} | resolved ${x.resolved ? 'Yes' : 'No'} | ${x.message}` }));
+    this.pdf.download('System Failure Incident Report', rows.length ? rows : [{ label: 'Result', value: 'No system failure records returned' }], 'securex-system-failures-report.pdf');
   }
 
   downloadCsv(type: string) {
