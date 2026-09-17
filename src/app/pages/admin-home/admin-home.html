@@ -22,6 +22,9 @@
         <button (click)="open('/admin/reports')" class="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-300 hover:bg-white/5 hover:text-white transition">
           <span class="text-slate-500">▤</span> Reports
         </button>
+        <button (click)="open('/admin/aws-logs')" class="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-300 hover:bg-white/5 hover:text-white transition">
+          <span class="text-slate-500">◉</span> AWS Logs
+        </button>
 
         <div class="px-3 pt-7 pb-2 text-[10px] font-semibold uppercase tracking-widest text-slate-500">Operations</div>
         <button (click)="open('/admin/transactions')" class="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-300 hover:bg-white/5 hover:text-white transition">Transactions</button>
@@ -101,6 +104,10 @@
         </section>
 
         <section class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <button (click)="open('/admin/aws-logs')" class="group rounded-2xl border border-slate-200 bg-white p-6 text-left shadow-sm hover:border-cyan-200 hover:shadow-md transition">
+            <div class="flex items-start justify-between"><div><div class="text-xs font-semibold uppercase tracking-wider text-cyan-600">Infrastructure</div><h2 class="mt-2 text-lg font-semibold text-slate-950">AWS / ECS Logs</h2></div><span class="text-slate-300 group-hover:text-slate-600">→</span></div>
+            <p class="mt-3 text-sm leading-6 text-slate-500">Inspect read-only CloudWatch application logs from the production SecureX API service.</p>
+          </button>
           <button (click)="open('/admin/system-failures')" class="group rounded-2xl border border-slate-200 bg-white p-6 text-left shadow-sm hover:border-rose-200 hover:shadow-md transition">
             <div class="flex items-start justify-between"><div><div class="text-xs font-semibold uppercase tracking-wider text-rose-600">Incident management</div><h2 class="mt-2 text-lg font-semibold text-slate-950">System Failure Logs</h2></div><span class="text-slate-300 group-hover:text-slate-600">→</span></div>
             <p class="mt-3 text-sm leading-6 text-slate-500">Investigate application and provider failures, inspect correlation IDs and stack traces, then resolve or reopen incidents.</p>
