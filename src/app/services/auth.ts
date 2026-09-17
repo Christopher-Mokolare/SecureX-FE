@@ -25,8 +25,24 @@ export class AuthService {
         sessionStorage.removeItem(this.KEY);
         return null;
       }
-    } catch { return null; }
+    } catch {
+      sessionStorage.removeItem(this.KEY);
+      return null;
+    }
     return token;
+  }
+
+  getCachedEmail(): string | null {
+    const token = this.getCachedToken();
+    if (!token) return null;
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const email = payload.email
+        ?? payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'];
+      return typeof email === 'string' && email.trim() ? email : null;
+    } catch {
+      return null;
+    }
   }
 
   clearToken() { sessionStorage.removeItem(this.KEY); }
