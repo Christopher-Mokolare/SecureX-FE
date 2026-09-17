@@ -1,0 +1,48 @@
+<div class="min-h-screen bg-gray-50 pt-20 pb-10">
+  <div class="max-w-7xl mx-auto px-4">
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <p class="text-xs font-semibold uppercase tracking-wider text-blue-600">SecureX Operations</p>
+        <h1 class="text-3xl font-bold text-blue-950">Admin Control Center</h1>
+        <p class="text-gray-500 mt-1">Central access to transaction operations, compliance, payouts, incidents and reporting.</p>
+      </div>
+      <button (click)="logout()" class="px-4 py-2 border rounded-lg bg-white text-gray-600 hover:bg-gray-50">Sign Out</button>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+      <button (click)="open('/admin/operations')" class="text-left bg-white rounded-xl shadow-sm border p-6 hover:shadow-md hover:border-blue-300 transition">
+        <p class="text-2xl mb-3">⚙️</p><h2 class="font-bold text-lg text-gray-900">Operations</h2>
+        <p class="text-sm text-gray-500 mt-1">Transactions, users, KYC, disputes, manual state actions and payout operations.</p>
+      </button>
+
+      <button (click)="open('/admin/system-failures')" class="text-left bg-white rounded-xl shadow-sm border p-6 hover:shadow-md hover:border-red-300 transition">
+        <p class="text-2xl mb-3">🚨</p><h2 class="font-bold text-lg text-gray-900">System Failure Logs</h2>
+        <p class="text-sm text-gray-500 mt-1">Investigate API and provider failures, correlation IDs, stack traces, resolution and reopen workflows.</p>
+      </button>
+
+      <button (click)="open('/admin/reports')" class="text-left bg-white rounded-xl shadow-sm border p-6 hover:shadow-md hover:border-indigo-300 transition">
+        <p class="text-2xl mb-3">📊</p><h2 class="font-bold text-lg text-gray-900">Reports & Downloads</h2>
+        <p class="text-sm text-gray-500 mt-1">Generate operational reports and download PDF/CSV exports for admin review.</p>
+      </button>
+
+      <button (click)="open('/admin/operations')" class="text-left bg-white rounded-xl shadow-sm border p-6 hover:shadow-md hover:border-green-300 transition">
+        <p class="text-2xl mb-3">💳</p><h2 class="font-bold text-lg text-gray-900">Payments & Payouts</h2>
+        <p class="text-sm text-gray-500 mt-1">Review escrow funds, payout failures, missing payouts and retry operations.</p>
+      </button>
+
+      <button (click)="open('/admin/operations')" class="text-left bg-white rounded-xl shadow-sm border p-6 hover:shadow-md hover:border-yellow-300 transition">
+        <p class="text-2xl mb-3">🛡️</p><h2 class="font-bold text-lg text-gray-900">Compliance & Risk</h2>
+        <p class="text-sm text-gray-500 mt-1">Review ID verification, AML, liveness, bank verification, suspended users and KYC overrides.</p>
+      </button>
+
+      <button (click)="open('/admin/operations')" class="text-left bg-white rounded-xl shadow-sm border p-6 hover:shadow-md hover:border-purple-300 transition">
+        <p class="text-2xl mb-3">📋</p><h2 class="font-bold text-lg text-gray-900">Audit & Reconciliation</h2>
+        <p class="text-sm text-gray-500 mt-1">Inspect admin actions, transaction history and escrow/Ozow reconciliation records.</p>
+      </button>
+    </div>
+
+    <div class="mt-8 bg-blue-50 border border-blue-100 rounded-xl p-5 text-sm text-blue-900">
+      <strong>Production operations rule:</strong> sensitive actions remain authenticated and should be accompanied by a clear reason in the existing admin workflow.
+    </div>
+  </div>
+</div>
