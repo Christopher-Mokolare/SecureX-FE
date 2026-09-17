@@ -33,6 +33,10 @@ export class SystemFailures implements OnInit {
     this.load();
   }
 
+  goBack() {
+    window.history.back();
+  }
+
   load() {
     this.loading.set(true);
     this.error.set('');
