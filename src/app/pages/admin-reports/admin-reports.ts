@@ -1,129 +1,25 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { CommonModule, DatePipe, DecimalPipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { AdminService, AdminStats, AdminTransaction, AdminUser, AuditEntry, PayoutFailure, MissingPayout, ReconciliationEntry } from '../../services/admin';
 import { AdminPdfService, PdfRow } from '../../services/admin-pdf';
 import { SystemFailureLog, SystemFailuresService } from '../../services/system-failures';
 import { AuthService } from '../../services/auth';
 
-@Component({
-  selector: 'app-admin-reports',
-  standalone: true,
-  imports: [CommonModule, DatePipe, DecimalPipe],
-  templateUrl: './admin-reports.html',
-})
+@Component({ selector:'app-admin-reports', standalone:true, imports:[CommonModule], templateUrl:'./admin-reports.html' })
 export class AdminReports implements OnInit {
-  private svc = inject(AdminService);
-  private failureSvc = inject(SystemFailuresService);
-  private pdf = inject(AdminPdfService);
-  private auth = inject(AuthService);
-
-  loading = signal(false);
-  error = signal('');
-  stats = signal<AdminStats | null>(null);
-  transactions = signal<AdminTransaction[]>([]);
-  users = signal<AdminUser[]>([]);
-  audit = signal<AuditEntry[]>([]);
-  payouts = signal<PayoutFailure[]>([]);
-  missingPayouts = signal<MissingPayout[]>([]);
-  reconciliation = signal<ReconciliationEntry[]>([]);
-  failures = signal<SystemFailureLog[]>([]);
-
-  ngOnInit() {
-    if (!this.auth.getCachedToken() || !this.auth.isAdmin()) {
-      window.location.href = '/admin';
-      return;
-    }
-    this.load();
-  }
-
-  load() {
-    this.loading.set(true);
-    this.error.set('');
-    let completed = 0;
-    const done = () => { completed++; if (completed === 8) this.loading.set(false); };
-    const failed = () => { this.error.set('One or more report datasets could not be loaded.'); done(); };
-
-    this.svc.getStats().subscribe({ next: x => { this.stats.set(x); done(); }, error: failed });
-    this.svc.getTransactions({ page: 1, size: 100 }).subscribe({ next: x => { this.transactions.set(x.items); done(); }, error: failed });
-    this.svc.getUsers({ page: 1, size: 100 }).subscribe({ next: x => { this.users.set(x.items); done(); }, error: failed });
-    this.svc.getAuditLog({ page: 1, size: 100 }).subscribe({ next: x => { this.audit.set(x.items); done(); }, error: failed });
-    this.svc.getPayoutFailures({ page: 1, size: 100 }).subscribe({ next: x => { this.payouts.set(x.items); done(); }, error: failed });
-    this.svc.getMissingPayouts().subscribe({ next: x => { this.missingPayouts.set(x); done(); }, error: failed });
-    this.svc.getReconciliation({ page: 1, size: 100 }).subscribe({ next: x => { this.reconciliation.set(x.items); done(); }, error: failed });
-    this.failureSvc.get({ page: 1, size: 100, resolved: '' }).subscribe({ next: x => { this.failures.set(x.items); done(); }, error: failed });
-  }
-
-  back() { window.location.href = '/admin'; }
-
-  downloadStatsPdf() {
-    const s = this.stats();
-    if (!s) return;
-    this.pdf.download('Operations Summary', [
-      { label: 'Total users', value: String(s.totalUsers) },
-      { label: 'Funds in escrow', value: this.money(s.fundsInEscrow) },
-      { label: 'Fees collected', value: this.money(s.totalFeesCollected) },
-      { label: 'Open disputes', value: String(s.openDisputes) },
-      { label: 'Pending payouts', value: String(s.pendingPayouts) },
-      { label: 'Transactions by status', value: s.transactionsByStatus.map(x => `${x.status}=${x.count}`).join(', ') },
-    ], 'securex-operations-summary.pdf');
-  }
-
-  downloadTransactionsPdf() {
-    const rows: PdfRow[] = [];
-    this.transactions().forEach((x, i) => rows.push({ label: `${i + 1}. ${x.dealReference}`, value: `${x.itemTitle} | ${this.money(x.itemValue)} | fee ${this.money(x.platformFee)} | ${x.status} | ${x.createdAt}` }));
-    this.pdf.download('Transaction Report', rows.length ? rows : [{ label: 'Result', value: 'No transactions returned' }], 'securex-transactions-report.pdf');
-  }
-
-  downloadUsersPdf() {
-    const rows: PdfRow[] = [];
-    this.users().forEach((x, i) => rows.push({ label: `${i + 1}. ${x.email}`, value: `${x.fullName} | ID ${x.idCheckStatus} | AML ${x.amlStatus} | Liveness ${x.livenessStatus} | Bank ${x.bankVerificationStatus} | Suspended ${x.isSuspended ? 'Yes' : 'No'}` }));
-    this.pdf.download('User & Compliance Report', rows.length ? rows : [{ label: 'Result', value: 'No users returned' }], 'securex-users-compliance-report.pdf');
-  }
-
-  downloadAuditPdf() {
-    const rows: PdfRow[] = [];
-    this.audit().forEach((x, i) => rows.push({ label: `${i + 1}. ${x.timestamp}`, value: `${x.triggerActor} | ${x.transactionId || 'No transaction'} | ${x.previousStatus || '—'} -> ${x.newStatus} | ${x.actionDetails}` }));
-    this.pdf.download('Audit Log Report', rows.length ? rows : [{ label: 'Result', value: 'No audit entries returned' }], 'securex-audit-report.pdf');
-  }
-
-  downloadPayoutPdf() {
-    const rows: PdfRow[] = [];
-    this.payouts().forEach((x, i) => rows.push({ label: `${i + 1}. ${x.payoutId}`, value: `Merchant ${x.merchantReference || '—'} | status ${x.status} | sub-status ${x.subStatus ?? '—'} | ${x.reason || 'No reason'} | ${x.createdAt}` }));
-    this.missingPayouts().forEach((x, i) => rows.push({ label: `Missing ${i + 1}. ${x.dealReference}`, value: `Seller ${x.sellerEmail || '—'} | payout ${this.money(x.sellerPayout)} | KYC ${x.sellerKycComplete ? 'complete' : 'incomplete'} | Bank ${x.sellerHasBank ? 'available' : 'missing'}` }));
-    this.pdf.download('Payout Operations Report', rows.length ? rows : [{ label: 'Result', value: 'No payout exceptions returned' }], 'securex-payout-report.pdf');
-  }
-
-  downloadReconciliationPdf() {
-    const rows = this.reconciliation().map((x, i) => ({ label: `${i + 1}. ${x.runAt}`, value: `Expected ${this.money(x.expectedFloat)} | Ozow ${this.money(x.ozowFloat)} | discrepancy ${this.money(x.discrepancy)} | alert ${x.alertFired ? 'Yes' : 'No'}` }));
-    this.pdf.download('Reconciliation Report', rows.length ? rows : [{ label: 'Result', value: 'No reconciliation records returned' }], 'securex-reconciliation-report.pdf');
-  }
-
-  downloadFailuresPdf() {
-    const rows = this.failures().map((x, i) => ({ label: `${i + 1}. ${x.severity} | ${x.service}`, value: `${x.method} ${x.path} | HTTP ${x.statusCode} | ${x.category} | ${x.provider || 'No provider'} | TX ${x.transactionId || '—'} | correlation ${x.correlationId || '—'} | occurrences ${x.occurrenceCount} | resolved ${x.resolved ? 'Yes' : 'No'} | ${x.message}` }));
-    this.pdf.download('System Failure Incident Report', rows.length ? rows : [{ label: 'Result', value: 'No system failure records returned' }], 'securex-system-failures-report.pdf');
-  }
-
-  downloadCsv(type: string) {
-    let header = '';
-    let rows: string[] = [];
-    if (type === 'transactions') {
-      header = 'Reference,Item,Seller,Buyer,Value,Fee,Status,Created';
-      rows = this.transactions().map(x => [x.dealReference, x.itemTitle, x.seller?.email, x.buyer?.email, x.itemValue, x.platformFee, x.status, x.createdAt].map(this.csv).join(','));
-    } else if (type === 'users') {
-      header = 'Name,Email,ID Check,AML,Liveness,Bank,Suspended,Created';
-      rows = this.users().map(x => [x.fullName, x.email, x.idCheckStatus, x.amlStatus, x.livenessStatus, x.bankVerificationStatus, x.isSuspended, x.createdAt].map(this.csv).join(','));
-    } else if (type === 'audit') {
-      header = 'Timestamp,Actor,Transaction,Previous Status,New Status,Details';
-      rows = this.audit().map(x => [x.timestamp, x.triggerActor, x.transactionId, x.previousStatus, x.newStatus, x.actionDetails].map(this.csv).join(','));
-    } else return;
-    this.downloadText(`${header}\n${rows.join('\n')}`, `securex-${type}-report.csv`, 'text/csv;charset=utf-8');
-  }
-
-  private csv(value: unknown) { return `"${String(value ?? '').replace(/"/g, '""')}"`; }
-  private money(value: number) { return `R ${Number(value || 0).toFixed(2)}`; }
-  private downloadText(text: string, name: string, type: string) {
-    const url = URL.createObjectURL(new Blob([text], { type }));
-    const a = document.createElement('a'); a.href = url; a.download = name; a.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-  }
+  private svc=inject(AdminService); private failureSvc=inject(SystemFailuresService); private pdf=inject(AdminPdfService); private auth=inject(AuthService);
+  loading=signal(false); error=signal(''); stats=signal<AdminStats|null>(null); transactions=signal<AdminTransaction[]>([]); users=signal<AdminUser[]>([]); audit=signal<AuditEntry[]>([]); payouts=signal<PayoutFailure[]>([]); missingPayouts=signal<MissingPayout[]>([]); reconciliation=signal<ReconciliationEntry[]>([]); failures=signal<SystemFailureLog[]>([]);
+  ngOnInit(){if(!this.auth.getCachedToken()||!this.auth.isAdmin()){window.location.href='/admin';return;}this.load();}
+  load(){this.loading.set(true);this.error.set('');let completed=0;const done=()=>{completed++;if(completed===8)this.loading.set(false)};const failed=()=>{this.error.set('One or more report datasets could not be loaded.');done()};
+    this.svc.getStats().subscribe({next:x=>{this.stats.set(x);done()},error:failed});this.svc.getTransactions({page:1,size:100}).subscribe({next:x=>{this.transactions.set(x.items);done()},error:failed});this.svc.getUsers({page:1,size:100}).subscribe({next:x=>{this.users.set(x.items);done()},error:failed});this.svc.getAuditLog({page:1,size:100}).subscribe({next:x=>{this.audit.set(x.items);done()},error:failed});this.svc.getPayoutFailures({page:1,size:100}).subscribe({next:x=>{this.payouts.set(x.items);done()},error:failed});this.svc.getMissingPayouts().subscribe({next:x=>{this.missingPayouts.set(x);done()},error:failed});this.svc.getReconciliation({page:1,size:100}).subscribe({next:x=>{this.reconciliation.set(x.items);done()},error:failed});this.failureSvc.get({page:1,size:100,resolved:''}).subscribe({next:x=>{this.failures.set(x.items);done()},error:failed});}
+  back(){window.location.href='/admin';}
+  downloadStatsPdf(){const s=this.stats();if(!s)return;this.pdf.download('Operations Summary',[{label:'Total users',value:String(s.totalUsers)},{label:'Funds in escrow',value:this.money(s.fundsInEscrow)},{label:'Fees collected',value:this.money(s.totalFeesCollected)},{label:'Open disputes',value:String(s.openDisputes)},{label:'Pending payouts',value:String(s.pendingPayouts)},{label:'Transactions by status',value:s.transactionsByStatus.map(x=>`${x.status}=${x.count}`).join(', ')}],'securex-operations-summary.pdf');}
+  downloadTransactionsPdf(){const rows:PdfRow[]=this.transactions().map((x,i)=>({label:`${i+1}. ${x.dealReference}`,value:`${x.itemTitle} | ${this.money(x.itemValue)} | fee ${this.money(x.platformFee)} | ${x.status} | ${x.createdAt}`}));this.pdf.download('Transaction Report',rows.length?rows:[{label:'Result',value:'No transactions returned'}],'securex-transactions-report.pdf');}
+  downloadUsersPdf(){const rows:PdfRow[]=this.users().map((x,i)=>({label:`${i+1}. ${x.email}`,value:`${x.fullName} | ID ${x.idCheckStatus} | AML ${x.amlStatus} | Liveness ${x.livenessStatus} | Bank ${x.bankVerificationStatus} | Suspended ${x.isSuspended?'Yes':'No'}`}));this.pdf.download('User & Compliance Report',rows.length?rows:[{label:'Result',value:'No users returned'}],'securex-users-compliance-report.pdf');}
+  downloadAuditPdf(){const rows:PdfRow[]=this.audit().map((x,i)=>({label:`${i+1}. ${x.timestamp}`,value:`${x.triggerActor} | ${x.transactionId||'No transaction'} | ${x.previousStatus||'—'} -> ${x.newStatus} | ${x.actionDetails}`}));this.pdf.download('Audit Log Report',rows.length?rows:[{label:'Result',value:'No audit entries returned'}],'securex-audit-report.pdf');}
+  downloadPayoutPdf(){const rows:PdfRow[]=[];this.payouts().forEach((x,i)=>rows.push({label:`${i+1}. ${x.payoutId}`,value:`Merchant ${x.merchantReference||'—'} | status ${x.status} | sub-status ${x.subStatus??'—'} | ${x.reason||'No reason'} | ${x.createdAt}`}));this.missingPayouts().forEach((x,i)=>rows.push({label:`Missing ${i+1}. ${x.dealReference}`,value:`Seller ${x.sellerEmail||'—'} | payout ${this.money(x.sellerPayout)} | KYC ${x.sellerKycComplete?'complete':'incomplete'} | Bank ${x.sellerHasBank?'available':'missing'}`}));this.pdf.download('Payout Operations Report',rows.length?rows:[{label:'Result',value:'No payout exceptions returned'}],'securex-payout-report.pdf');}
+  downloadReconciliationPdf(){const rows=this.reconciliation().map((x,i)=>({label:`${i+1}. ${x.runAt}`,value:`Expected ${this.money(x.expectedFloat)} | Ozow ${this.money(x.ozowFloat)} | discrepancy ${this.money(x.discrepancy)} | alert ${x.alertFired?'Yes':'No'}`}));this.pdf.download('Reconciliation Report',rows.length?rows:[{label:'Result',value:'No reconciliation records returned'}],'securex-reconciliation-report.pdf');}
+  downloadFailuresPdf(){const rows=this.failures().map((x,i)=>({label:`${i+1}. ${x.severity} | ${x.service}`,value:`${x.method} ${x.path} | HTTP ${x.statusCode} | ${x.category} | ${x.provider||'No provider'} | TX ${x.transactionId||'—'} | correlation ${x.correlationId||'—'} | occurrences ${x.occurrenceCount} | resolved ${x.resolved?'Yes':'No'} | ${x.message}`}));this.pdf.download('System Failure Incident Report',rows.length?rows:[{label:'Result',value:'No system failure records returned'}],'securex-system-failures-report.pdf');}
+  downloadCsv(type:string){let header='';let rows:string[]=[];if(type==='transactions'){header='Reference,Item,Seller,Buyer,Value,Fee,Status,Created';rows=this.transactions().map(x=>[x.dealReference,x.itemTitle,x.seller?.email,x.buyer?.email,x.itemValue,x.platformFee,x.status,x.createdAt].map(this.csv).join(','));}else if(type==='users'){header='Name,Email,ID Check,AML,Liveness,Bank,Suspended,Created';rows=this.users().map(x=>[x.fullName,x.email,x.idCheckStatus,x.amlStatus,x.livenessStatus,x.bankVerificationStatus,x.isSuspended,x.createdAt].map(this.csv).join(','));}else if(type==='audit'){header='Timestamp,Actor,Transaction,Previous Status,New Status,Details';rows=this.audit().map(x=>[x.timestamp,x.triggerActor,x.transactionId,x.previousStatus,x.newStatus,x.actionDetails].map(this.csv).join(','));}else return;this.downloadText(`${header}\n${rows.join('\n')}`,`securex-${type}-report.csv`,'text/csv;charset=utf-8');}
+  private csv(value:unknown){return `"${String(value??'').replace(/"/g,'""')}"`;}private money(value:number){return `R ${Number(value||0).toFixed(2)}`;}private downloadText(text:string,name:string,type:string){const url=URL.createObjectURL(new Blob([text],{type}));const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 }
