@@ -53,15 +53,13 @@ export class AdminPdfService {
     streams.forEach(stream => contentIds.push(addObject(`<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`)));
 
     const pagesId = objects.length + 1;
-    const pageIds = streams.map((_, index) => pagesId + 1 + index);
-    const catalogId = pagesId + 1 + pageIds.length;
-
-    pageIds.forEach((pageId, index) => {
-      addObject(`<< /Type /Page /Parent ${pagesId} 0 R /MediaBox [0 0 ${pageWidth} ${pageHeight}] /Resources << /Font << /F1 ${fontId} 0 R >> >> /Contents ${contentIds[index]} 0 R >>`);
-      void pageId;
-    });
-    addObject(`<< /Type /Pages /Count ${pageIds.length} /Kids [${pageIds.map(id => `${id} 0 R`).join(' ')}] >>`);
-    addObject(`<< /Type /Catalog /Pages ${pagesId} 0 R >>`);
+    objects.push('');
+    const pageIds: number[] = [];
+    for (let i = 0; i < streams.length; i++) {
+      pageIds.push(addObject(`<< /Type /Page /Parent ${pagesId} 0 R /MediaBox [0 0 ${pageWidth} ${pageHeight}] /Resources << /Font << /F1 ${fontId} 0 R >> >> /Contents ${contentIds[i]} 0 R >>`));
+    }
+    objects[pagesId - 1] = `<< /Type /Pages /Count ${pageIds.length} /Kids [${pageIds.map(id => `${id} 0 R`).join(' ')}] >>`;
+    const catalogId = addObject(`<< /Type /Catalog /Pages ${pagesId} 0 R >>`);
 
     let pdf = '%PDF-1.4\n';
     const offsets: number[] = [0];
