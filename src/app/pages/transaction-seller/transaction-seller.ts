@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { switchMap } from 'rxjs';
 import { AuthService } from '../../services/auth';
@@ -15,6 +15,7 @@ import { formatZar } from '../../utils/fee';
 })
 export class TransactionSeller implements OnInit {
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
   private auth = inject(AuthService);
   private txService = inject(TransactionService);
   private dealTokens = inject(DealTokenService);
@@ -76,6 +77,19 @@ export class TransactionSeller implements OnInit {
     this.submitting.set(false);
   }
 
+  startIdentityVerification() {
+    const tx = this.tx();
+    if (!tx) return;
+
+    this.router.navigate(['/bank-details', tx.id], {
+      queryParams: {
+        sellerEmail: tx.seller?.email ?? this.email(),
+        ref: tx.dealReference,
+        txId: tx.id,
+      }
+    });
+  }
+
   startLogistics() {
     const tx = this.tx();
     if (!tx) return;
@@ -110,6 +124,10 @@ export class TransactionSeller implements OnInit {
     const seller = this.tx()?.seller;
     return seller?.idCheckStatus === 'Approved'
         && seller?.livenessStatus === 'Approved';
+  }
+
+  get verificationRequired(): boolean {
+    return !this.verificationApproved;
   }
 
   get canStartLogistics(): boolean {
