@@ -43,7 +43,7 @@ export class AdminPdfService {
       let y = pageHeight - margin;
       lines.forEach((line, index) => {
         const size = index === 0 ? 16 : index === 1 ? 12 : 10;
-        stream += `/F1 ${size} Tf\n${margin} ${y} Td\n(${this.escape(line)}) Tj\n`;
+        stream += `/F1 ${size} Tf\n1 0 0 1 ${margin} ${y} Tm\n(${this.escape(line)}) Tj\n`;
         y -= lineHeight + (index < 2 ? 5 : 0);
       });
       stream += 'ET';
@@ -82,6 +82,11 @@ export class AdminPdfService {
   }
 
   private escape(value: string) {
-    return value.replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)').replace(/[\r\n]+/g, ' ');
+    return value
+      .replace(/[^\x20-\x7E]/g, '?')
+      .replace(/\\/g, '\\\\')
+      .replace(/\(/g, '\\(')
+      .replace(/\)/g, '\\)')
+      .replace(/[\r\n]+/g, ' ');
   }
 }
