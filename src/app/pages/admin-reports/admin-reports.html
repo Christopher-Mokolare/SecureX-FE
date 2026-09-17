@@ -1,0 +1,43 @@
+<div class="min-h-screen bg-gray-50 pt-20 pb-10">
+  <div class="max-w-7xl mx-auto px-4">
+    <div class="flex items-center justify-between mb-8">
+      <div><p class="text-xs font-semibold uppercase tracking-wider text-blue-600">SecureX Admin</p><h1 class="text-3xl font-bold text-blue-950">Reports & Downloads</h1><p class="text-gray-500 mt-1">PDF and CSV exports for the currently loaded operational datasets.</p></div>
+      <div class="flex gap-2"><button (click)="load()" class="px-4 py-2 border rounded-lg bg-white hover:bg-gray-50">Refresh</button><button (click)="back()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Admin Portal</button></div>
+    </div>
+
+    @if (loading()) { <div class="mb-5 bg-blue-50 text-blue-700 rounded-lg p-3 text-sm">Loading report datasets…</div> }
+    @if (error()) { <div class="mb-5 bg-red-50 text-red-700 rounded-lg p-3 text-sm">{{ error() }}</div> }
+
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+      <div class="bg-white rounded-xl shadow-sm border p-5">
+        <h2 class="font-bold text-lg">Operations Summary</h2><p class="text-sm text-gray-500 mt-1 mb-4">Fees, escrow, disputes, users and payout status.</p>
+        <div class="flex gap-2"><button (click)="downloadStatsPdf()" [disabled]="!stats()" class="px-3 py-2 bg-red-600 text-white rounded text-sm disabled:opacity-40">↓ PDF</button></div>
+      </div>
+      <div class="bg-white rounded-xl shadow-sm border p-5">
+        <h2 class="font-bold text-lg">Transactions</h2><p class="text-sm text-gray-500 mt-1 mb-4">{{ transactions().length }} transactions loaded for reporting.</p>
+        <div class="flex gap-2"><button (click)="downloadTransactionsPdf()" class="px-3 py-2 bg-red-600 text-white rounded text-sm">↓ PDF</button><button (click)="downloadCsv('transactions')" class="px-3 py-2 bg-green-600 text-white rounded text-sm">↓ CSV</button></div>
+      </div>
+      <div class="bg-white rounded-xl shadow-sm border p-5">
+        <h2 class="font-bold text-lg">Users & Compliance</h2><p class="text-sm text-gray-500 mt-1 mb-4">{{ users().length }} users with ID, AML, liveness and bank status.</p>
+        <div class="flex gap-2"><button (click)="downloadUsersPdf()" class="px-3 py-2 bg-red-600 text-white rounded text-sm">↓ PDF</button><button (click)="downloadCsv('users')" class="px-3 py-2 bg-green-600 text-white rounded text-sm">↓ CSV</button></div>
+      </div>
+      <div class="bg-white rounded-xl shadow-sm border p-5">
+        <h2 class="font-bold text-lg">Audit Log</h2><p class="text-sm text-gray-500 mt-1 mb-4">{{ audit().length }} audit entries loaded.</p>
+        <div class="flex gap-2"><button (click)="downloadAuditPdf()" class="px-3 py-2 bg-red-600 text-white rounded text-sm">↓ PDF</button><button (click)="downloadCsv('audit')" class="px-3 py-2 bg-green-600 text-white rounded text-sm">↓ CSV</button></div>
+      </div>
+      <div class="bg-white rounded-xl shadow-sm border p-5">
+        <h2 class="font-bold text-lg">Payout Operations</h2><p class="text-sm text-gray-500 mt-1 mb-4">{{ payouts().length }} failures and {{ missingPayouts().length }} missing payouts loaded.</p>
+        <button (click)="downloadPayoutPdf()" class="px-3 py-2 bg-red-600 text-white rounded text-sm">↓ PDF</button>
+      </div>
+      <div class="bg-white rounded-xl shadow-sm border p-5">
+        <h2 class="font-bold text-lg">Reconciliation</h2><p class="text-sm text-gray-500 mt-1 mb-4">{{ reconciliation().length }} reconciliation runs loaded.</p>
+        <button (click)="downloadReconciliationPdf()" class="px-3 py-2 bg-red-600 text-white rounded text-sm">↓ PDF</button>
+      </div>
+    </div>
+
+    <div class="mt-8 bg-white rounded-xl border shadow-sm p-5">
+      <h2 class="font-bold text-lg mb-2">Export scope</h2>
+      <p class="text-sm text-gray-600">Reports are generated from the authenticated admin datasets loaded on this page. Transaction, user and audit CSV downloads are available alongside the PDF reports. Refresh before exporting when current data is required.</p>
+    </div>
+  </div>
+</div>
