@@ -30,6 +30,12 @@ export class TransactionSeller implements OnInit {
   ngOnInit() {
     this.dealTokens.captureFromUrl('seller');
     this.txId.set(this.route.snapshot.paramMap.get('id') ?? '');
+
+    const cachedEmail = this.auth.getCachedEmail();
+    if (cachedEmail && this.txId()) {
+      this.email.set(cachedEmail);
+      this.loadTransaction();
+    }
   }
 
   load() {
@@ -39,21 +45,35 @@ export class TransactionSeller implements OnInit {
     this.auth.getToken(this.email()).pipe(
       switchMap(() => this.txService.getById(this.txId()))
     ).subscribe({
-      next: tx => {
-        if (tx.seller?.email?.toLowerCase() !== this.email().toLowerCase()) {
-          this.error.set('This email does not match the seller on this transaction.');
-          this.submitting.set(false);
-          return;
-        }
-        this.tx.set(tx);
-        this.step.set('loaded');
-        this.submitting.set(false);
-      },
+      next: tx => this.handleLoadedTransaction(tx),
       error: () => {
         this.error.set('Could not load transaction. Check your email and try again.');
         this.submitting.set(false);
       }
     });
+  }
+
+  private loadTransaction() {
+    this.submitting.set(true);
+    this.error.set(null);
+    this.txService.getById(this.txId()).subscribe({
+      next: tx => this.handleLoadedTransaction(tx),
+      error: () => {
+        this.error.set('Your session could not be restored. Please enter your email again.');
+        this.submitting.set(false);
+      }
+    });
+  }
+
+  private handleLoadedTransaction(tx: CreateTransactionResponse) {
+    if (tx.seller?.email?.toLowerCase() !== this.email().toLowerCase()) {
+      this.error.set('This email does not match the seller on this transaction.');
+      this.submitting.set(false);
+      return;
+    }
+    this.tx.set(tx);
+    this.step.set('loaded');
+    this.submitting.set(false);
   }
 
   startLogistics() {
@@ -99,6 +119,7 @@ export class TransactionSeller implements OnInit {
   get canMarkDelivered(): boolean {
     return this.status === 'LogisticsPending' && this.verificationApproved;
   }
+
   get sellerPayout(): number {
     const tx = this.tx();
     return tx ? tx.itemValue - tx.sellerFee : 0;
