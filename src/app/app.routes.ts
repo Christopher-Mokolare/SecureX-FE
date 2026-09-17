@@ -8,6 +8,8 @@ import { BankDetails } from './pages/bank-details/bank-details';
 import { Terms } from './pages/terms/terms';
 import { Faq } from './pages/faq/faq';
 import { Admin } from './pages/admin/admin';
+import { AdminHome } from './pages/admin-home/admin-home';
+import { AdminReports } from './pages/admin-reports/admin-reports';
 import { SystemFailures } from './pages/system-failures/system-failures';
 import { NotFound } from './pages/not-found/not-found';
 
@@ -20,7 +22,9 @@ export const routes: Routes = [
   { path: 'bank-details/:id', component: BankDetails },
   { path: 'terms', component: Terms },
   { path: 'faq', component: Faq },
+  { path: 'admin', component: AdminHome },
+  { path: 'admin/operations', component: Admin },
   { path: 'admin/system-failures', component: SystemFailures },
-  { path: 'admin', component: Admin },
+  { path: 'admin/reports', component: AdminReports },
   { path: '**', component: NotFound },
 ];
