@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 
 export interface PdfRow {
-  label: string;
+  label?: string;
   value: string;
 }
 
@@ -26,7 +26,7 @@ export class AdminPdfService {
     addLine('');
 
     for (const row of rows) {
-      const text = `${row.label}: ${row.value}`;
+      const text = `${row.label ?? ''}: ${row.value}`;
       if (text.length <= maxChars) addLine(text);
       else for (let i = 0; i < text.length; i += maxChars) addLine(text.slice(i, i + maxChars));
     }
