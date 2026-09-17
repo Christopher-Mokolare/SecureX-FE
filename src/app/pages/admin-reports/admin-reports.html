@@ -11,7 +11,7 @@
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
       <div class="bg-white rounded-xl shadow-sm border p-5">
         <h2 class="font-bold text-lg">Operations Summary</h2><p class="text-sm text-gray-500 mt-1 mb-4">Fees, escrow, disputes, users and payout status.</p>
-        <div class="flex gap-2"><button (click)="downloadStatsPdf()" [disabled]="!stats()" class="px-3 py-2 bg-red-600 text-white rounded text-sm disabled:opacity-40">↓ PDF</button></div>
+        <button (click)="downloadStatsPdf()" [disabled]="!stats()" class="px-3 py-2 bg-red-600 text-white rounded text-sm disabled:opacity-40">↓ PDF</button>
       </div>
       <div class="bg-white rounded-xl shadow-sm border p-5">
         <h2 class="font-bold text-lg">Transactions</h2><p class="text-sm text-gray-500 mt-1 mb-4">{{ transactions().length }} transactions loaded for reporting.</p>
@@ -33,11 +33,15 @@
         <h2 class="font-bold text-lg">Reconciliation</h2><p class="text-sm text-gray-500 mt-1 mb-4">{{ reconciliation().length }} reconciliation runs loaded.</p>
         <button (click)="downloadReconciliationPdf()" class="px-3 py-2 bg-red-600 text-white rounded text-sm">↓ PDF</button>
       </div>
+      <div class="bg-white rounded-xl shadow-sm border p-5">
+        <h2 class="font-bold text-lg">System Failures</h2><p class="text-sm text-gray-500 mt-1 mb-4">{{ failures().length }} incident records loaded.</p>
+        <button (click)="downloadFailuresPdf()" class="px-3 py-2 bg-red-600 text-white rounded text-sm">↓ PDF</button>
+      </div>
     </div>
 
     <div class="mt-8 bg-white rounded-xl border shadow-sm p-5">
       <h2 class="font-bold text-lg mb-2">Export scope</h2>
-      <p class="text-sm text-gray-600">Reports are generated from the authenticated admin datasets loaded on this page. Transaction, user and audit CSV downloads are available alongside the PDF reports. Refresh before exporting when current data is required.</p>
+      <p class="text-sm text-gray-600">Reports are generated from the authenticated admin datasets loaded on this page. Transaction, user and audit CSV downloads are available alongside the PDF reports. Refresh before exporting when current data is required. The current report view loads up to 100 records per paged dataset.</p>
     </div>
   </div>
 </div>
