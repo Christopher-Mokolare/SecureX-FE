@@ -86,6 +86,10 @@ export class BankDetails implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  reloadStatus(): void {
+    window.location.reload();
+  }
+
   isInvalid(field: string): boolean {
     const c = this.form.get(field);
     return !!(c?.invalid && c?.touched);
@@ -228,7 +232,6 @@ export class BankDetails implements OnInit, OnDestroy {
       },
       partner_params: session.partnerParams,
       onSuccess: (_data: unknown) => {
-        // The widget completed. Backend transaction state remains the source of truth.
         this.pollSellerVerification();
       },
       onError: (error: { message?: string } | unknown) => {
