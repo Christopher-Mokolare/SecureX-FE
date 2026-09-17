@@ -16,8 +16,7 @@ export class AdminPdfService {
     const pages: string[][] = [[]];
 
     const addLine = (line: string) => {
-      const current = pages[pages.length - 1];
-      if (current.length >= 48) pages.push([]);
+      if (pages[pages.length - 1].length >= 48) pages.push([]);
       pages[pages.length - 1].push(line);
     };
 
@@ -28,48 +27,41 @@ export class AdminPdfService {
 
     for (const row of rows) {
       const text = `${row.label}: ${row.value}`;
-      if (text.length <= maxChars) {
-        addLine(text);
-        continue;
-      }
-      for (let i = 0; i < text.length; i += maxChars) addLine(text.slice(i, i + maxChars));
+      if (text.length <= maxChars) addLine(text);
+      else for (let i = 0; i < text.length; i += maxChars) addLine(text.slice(i, i + maxChars));
     }
 
     const objects: string[] = [];
-    const addObject = (body: string) => {
-      objects.push(body);
-      return objects.length;
-    };
+    const addObject = (body: string) => { objects.push(body); return objects.length; };
 
     const fontId = addObject('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>');
-    const pageIds: number[] = [];
     const contentIds: number[] = [];
+    const streams: string[] = [];
 
     for (const lines of pages) {
-      let stream = 'BT\n/F1 11 Tf\n';
+      let stream = 'BT\n';
       let y = pageHeight - margin;
       lines.forEach((line, index) => {
         const size = index === 0 ? 16 : index === 1 ? 12 : 10;
-        const safe = this.escape(line);
-        stream += `/F1 ${size} Tf\n${margin} ${y} Td\n(${safe}) Tj\n`;
+        stream += `/F1 ${size} Tf\n${margin} ${y} Td\n(${this.escape(line)}) Tj\n`;
         y -= lineHeight + (index < 2 ? 5 : 0);
       });
       stream += 'ET';
-      const contentId = addObject(`<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`);
-      contentIds.push(contentId);
-      pageIds.push(0);
+      streams.push(stream);
     }
+
+    streams.forEach(stream => contentIds.push(addObject(`<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`)));
 
     const pagesId = objects.length + 1;
-    const catalogId = pagesId + 1;
+    const pageIds = streams.map((_, index) => pagesId + 1 + index);
+    const catalogId = pagesId + 1 + pageIds.length;
 
-    for (let i = 0; i < pages.length; i++) {
-      pageIds[i] = addObject(`<< /Type /Page /Parent ${pagesId} 0 R /MediaBox [0 0 ${pageWidth} ${pageHeight}] /Resources << /Font << /F1 ${fontId} 0 R >> >> /Contents ${contentIds[i]} 0 R >>`);
-    }
-
-    objects.splice(pagesId - 1, 0, '');
-    objects[pagesId - 1] = `<< /Type /Pages /Count ${pageIds.length} /Kids [${pageIds.map(id => `${id} 0 R`).join(' ')}] >>`;
-    objects.push(`<< /Type /Catalog /Pages ${pagesId} 0 R >>`);
+    pageIds.forEach((pageId, index) => {
+      addObject(`<< /Type /Page /Parent ${pagesId} 0 R /MediaBox [0 0 ${pageWidth} ${pageHeight}] /Resources << /Font << /F1 ${fontId} 0 R >> >> /Contents ${contentIds[index]} 0 R >>`);
+      void pageId;
+    });
+    addObject(`<< /Type /Pages /Count ${pageIds.length} /Kids [${pageIds.map(id => `${id} 0 R`).join(' ')}] >>`);
+    addObject(`<< /Type /Catalog /Pages ${pagesId} 0 R >>`);
 
     let pdf = '%PDF-1.4\n';
     const offsets: number[] = [0];
