@@ -8,6 +8,7 @@ import { BankDetails } from './pages/bank-details/bank-details';
 import { Terms } from './pages/terms/terms';
 import { Faq } from './pages/faq/faq';
 import { Admin } from './pages/admin/admin';
+import { SystemFailures } from './pages/system-failures/system-failures';
 import { NotFound } from './pages/not-found/not-found';
 
 export const routes: Routes = [
@@ -19,6 +20,7 @@ export const routes: Routes = [
   { path: 'bank-details/:id', component: BankDetails },
   { path: 'terms', component: Terms },
   { path: 'faq', component: Faq },
+  { path: 'admin/system-failures', component: SystemFailures },
   { path: 'admin', component: Admin },
   { path: '**', component: NotFound },
 ];
