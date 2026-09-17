@@ -13,7 +13,7 @@ export class AdminHome implements OnInit {
 
   ngOnInit() {
     if (!this.auth.getCachedToken() || !this.auth.isAdmin()) {
-      window.location.href = '/admin/operations';
+      window.location.href = '/admin';
     }
   }
 
@@ -23,6 +23,6 @@ export class AdminHome implements OnInit {
 
   logout() {
     this.auth.clearToken();
-    window.location.href = '/admin/operations';
+    window.location.href = '/admin';
   }
 }
