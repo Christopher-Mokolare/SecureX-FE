@@ -26,6 +26,7 @@ export class Admin implements OnInit {
   loginError = signal('');
 
   tab = signal<Tab>('transactions');
+  standalonePage = signal(true);
 
   // Mobile detection
   isMobile = signal(false);
@@ -83,10 +84,23 @@ export class Admin implements OnInit {
   error = signal('');
 
   ngOnInit() {
+    const path = window.location.pathname;
+    const pageMap: Record<string, Tab> = {
+      '/admin/transactions': 'transactions',
+      '/admin/users': 'users',
+      '/admin/stats': 'stats',
+      '/admin/audit': 'audit',
+      '/admin/payouts': 'payouts',
+      '/admin/reconciliation': 'reconciliation',
+    };
+    const page = pageMap[path];
+    this.standalonePage.set(Boolean(page));
+    if (page) this.tab.set(page);
+
     // Check if user is already logged in
     if (this.auth.getCachedToken()) {
       this.authenticated.set(true);
-      this.loadTransactions();
+      this.loadSelectedTab();
     }
     
     this.updateMobile();
@@ -132,6 +146,20 @@ export class Admin implements OnInit {
     this.payoutFailures.set([]);
     this.missingPayouts.set([]);
     this.reconList.set([]);
+  }
+
+  private loadSelectedTab() {
+    const t = this.tab();
+    if (t === 'transactions') this.loadTransactions();
+    if (t === 'users') this.loadUsers();
+    if (t === 'stats') this.loadStats();
+    if (t === 'audit') this.loadAudit();
+    if (t === 'payouts') this.loadPayouts();
+    if (t === 'reconciliation') this.loadReconciliation();
+  }
+
+  backToDashboard() {
+    window.location.href = '/admin';
   }
 
   setTab(t: Tab) {
