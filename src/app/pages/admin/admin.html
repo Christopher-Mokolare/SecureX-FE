@@ -56,6 +56,7 @@
         <button (click)="logout()" class="px-3 py-2 text-sm border border-gray-300 rounded text-gray-600 hover:bg-white">Sign Out</button>
       </div>
 
+      @if (!standalonePage()) {
       <!-- Tabs -->
       <div class="flex flex-wrap gap-1 mb-6 border-b border-gray-200">
         <button (click)="setTab('transactions')"
@@ -74,6 +75,18 @@
         <button (click)="setTab('reconciliation')"
           [class]="tab() === 'reconciliation' ? 'px-5 py-2 text-sm font-medium border-b-2 border-blue-600 text-blue-600' : 'px-5 py-2 text-sm font-medium text-gray-500 hover:text-gray-700'">Reconciliation</button>
       </div>
+
+
+      } @else {
+        <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
+          <div>
+            <div class="text-[10px] font-semibold uppercase tracking-[0.18em] text-cyan-700">SecureX Operations</div>
+            <h2 class="mt-1 text-xl font-bold text-slate-950">{{ tab() === 'transactions' ? 'Transactions' : tab() === 'users' ? 'Users & KYC' : tab() === 'stats' ? 'Statistics' : tab() === 'audit' ? 'Audit Log' : tab() === 'payouts' ? 'Payouts' : 'Reconciliation' }}</h2>
+            <p class="mt-1 text-sm text-slate-500">Operational module</p>
+          </div>
+          <button (click)="backToDashboard()" class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition">← Back to Dashboard</button>
+        </div>
+      }
 
       @if (error()) {
         <div class="mb-4 p-3 bg-red-50 text-red-700 rounded text-sm">{{ error() }}</div>
