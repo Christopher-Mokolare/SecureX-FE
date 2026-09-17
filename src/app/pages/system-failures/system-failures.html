@@ -11,69 +11,51 @@
 
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
       <div class="bg-white rounded-lg shadow p-4"><p class="text-xs uppercase text-gray-500">Matching failures</p><p class="text-2xl font-bold text-red-700 mt-1">{{ total() }}</p></div>
-      <div class="bg-white rounded-lg shadow p-4"><p class="text-xs uppercase text-gray-500">Critical on page</p><p class="text-2xl font-bold text-red-700 mt-1">{{ logs().filter(x => x.severity === 'Critical').length }}</p></div>
-      <div class="bg-white rounded-lg shadow p-4"><p class="text-xs uppercase text-gray-500">Errors on page</p><p class="text-2xl font-bold text-orange-700 mt-1">{{ logs().filter(x => x.severity === 'Error').length }}</p></div>
+      <div class="bg-white rounded-lg shadow p-4"><p class="text-xs uppercase text-gray-500">Critical on page</p><p class="text-2xl font-bold text-red-700 mt-1">{{ criticalCount() }}</p></div>
+      <div class="bg-white rounded-lg shadow p-4"><p class="text-xs uppercase text-gray-500">Errors on page</p><p class="text-2xl font-bold text-orange-700 mt-1">{{ errorCount() }}</p></div>
       <div class="bg-white rounded-lg shadow p-4"><p class="text-xs uppercase text-gray-500">Current page</p><p class="text-2xl font-bold text-gray-800 mt-1">{{ page() }} / {{ pages() }}</p></div>
     </div>
 
     <div class="bg-white rounded-lg shadow p-4 mb-4 flex flex-wrap gap-3">
       <input [ngModel]="search()" (ngModelChange)="search.set($event); page.set(1); load()" placeholder="Search message / endpoint / correlation ID…" class="border border-gray-300 rounded px-3 py-2 text-sm w-80" />
-      <select [ngModel]="severity()" (ngModelChange)="severity.set($event); page.set(1); load()" class="border border-gray-300 rounded px-3 py-2 text-sm">
-        <option value="">All severities</option><option value="Critical">Critical</option><option value="Error">Error</option><option value="Warning">Warning</option>
-      </select>
-      <select [ngModel]="resolved()" (ngModelChange)="resolved.set($event); page.set(1); load()" class="border border-gray-300 rounded px-3 py-2 text-sm">
-        <option value="false">Open</option><option value="true">Resolved</option><option value="">All</option>
-      </select>
+      <select [ngModel]="severity()" (ngModelChange)="severity.set($event); page.set(1); load()" class="border border-gray-300 rounded px-3 py-2 text-sm"><option value="">All severities</option><option value="Critical">Critical</option><option value="Error">Error</option><option value="Warning">Warning</option></select>
+      <select [ngModel]="resolved()" (ngModelChange)="resolved.set($event); page.set(1); load()" class="border border-gray-300 rounded px-3 py-2 text-sm"><option value="false">Open</option><option value="true">Resolved</option><option value="">All</option></select>
     </div>
 
     @if (error()) { <div class="mb-4 p-3 bg-red-50 text-red-700 rounded text-sm">{{ error() }}</div> }
 
     <div class="bg-white rounded-lg shadow overflow-x-auto">
-      <table class="min-w-full text-sm">
-        <thead class="bg-gray-50 text-gray-600 uppercase text-xs"><tr>
-          <th class="px-4 py-3 text-left">Severity</th><th class="px-4 py-3 text-left">Time</th><th class="px-4 py-3 text-left">Service</th><th class="px-4 py-3 text-left">Provider</th><th class="px-4 py-3 text-left">Endpoint</th><th class="px-4 py-3 text-left">Status</th><th class="px-4 py-3 text-left">Message</th><th class="px-4 py-3 text-left">State</th>
-        </tr></thead>
-        <tbody class="divide-y divide-gray-100">
-          @if (loading()) { <tr><td colspan="8" class="px-4 py-8 text-center text-gray-400">Loading…</td></tr> }
-          @for (log of logs(); track log.id) {
-            <tr class="hover:bg-gray-50 cursor-pointer" (click)="open(log)">
-              <td class="px-4 py-3"><span [class]="'px-2 py-0.5 rounded-full text-xs font-medium ' + severityClass(log.severity)">{{ log.severity }}</span></td>
-              <td class="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">{{ log.createdAt | date:'dd MMM yyyy HH:mm:ss' }}</td>
-              <td class="px-4 py-3">{{ log.service }}</td><td class="px-4 py-3">{{ log.provider || '—' }}</td>
-              <td class="px-4 py-3 font-mono text-xs">{{ log.method }} {{ log.path }}</td><td class="px-4 py-3 font-medium">{{ log.statusCode }}</td>
-              <td class="px-4 py-3 max-w-md truncate">{{ log.message }}</td>
-              <td class="px-4 py-3"><span [class]="'px-2 py-0.5 rounded-full text-xs font-medium ' + statusClass(log)">{{ log.resolved ? 'Resolved' : 'Open' }}</span></td>
-            </tr>
-          }
-          @if (!loading() && logs().length === 0) { <tr><td colspan="8" class="px-4 py-8 text-center text-gray-400">No system failures found</td></tr> }
-        </tbody>
-      </table>
+      <table class="min-w-full text-sm"><thead class="bg-gray-50 text-gray-600 uppercase text-xs"><tr>
+        <th class="px-4 py-3 text-left">Severity</th><th class="px-4 py-3 text-left">Time</th><th class="px-4 py-3 text-left">Service</th><th class="px-4 py-3 text-left">Provider</th><th class="px-4 py-3 text-left">Endpoint</th><th class="px-4 py-3 text-left">Status</th><th class="px-4 py-3 text-left">Message</th><th class="px-4 py-3 text-left">State</th>
+      </tr></thead><tbody class="divide-y divide-gray-100">
+        @if (loading()) { <tr><td colspan="8" class="px-4 py-8 text-center text-gray-400">Loading…</td></tr> }
+        @for (log of logs(); track log.id) {
+          <tr class="hover:bg-gray-50 cursor-pointer" (click)="open(log)">
+            <td class="px-4 py-3"><span [class]="'px-2 py-0.5 rounded-full text-xs font-medium ' + severityClass(log.severity)">{{ log.severity }}</span></td>
+            <td class="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">{{ log.createdAt | date:'dd MMM yyyy HH:mm:ss' }}</td>
+            <td class="px-4 py-3">{{ log.service }}</td><td class="px-4 py-3">{{ log.provider || '—' }}</td><td class="px-4 py-3 font-mono text-xs">{{ log.method }} {{ log.path }}</td><td class="px-4 py-3 font-medium">{{ log.statusCode }}</td><td class="px-4 py-3 max-w-md truncate">{{ log.message }}</td>
+            <td class="px-4 py-3"><span [class]="'px-2 py-0.5 rounded-full text-xs font-medium ' + statusClass(log)">{{ log.resolved ? 'Resolved' : 'Open' }}</span></td>
+          </tr>
+        }
+        @if (!loading() && logs().length === 0) { <tr><td colspan="8" class="px-4 py-8 text-center text-gray-400">No system failures found</td></tr> }
+      </tbody></table>
     </div>
 
-    <div class="flex justify-between items-center mt-4 text-sm text-gray-600"><span>{{ total() }} matching records</span><div class="flex gap-2">
-      <button [disabled]="page() === 1" (click)="previousPage()" class="px-3 py-1 border rounded disabled:opacity-40">Prev</button><span class="px-3 py-1">Page {{ page() }} of {{ pages() }}</span><button [disabled]="page() >= pages()" (click)="nextPage()" class="px-3 py-1 border rounded disabled:opacity-40">Next</button>
-    </div></div>
+    <div class="flex justify-between items-center mt-4 text-sm text-gray-600"><span>{{ total() }} matching records</span><div class="flex gap-2"><button [disabled]="page() === 1" (click)="previousPage()" class="px-3 py-1 border rounded disabled:opacity-40">Prev</button><span class="px-3 py-1">Page {{ page() }} of {{ pages() }}</span><button [disabled]="page() >= pages()" (click)="nextPage()" class="px-3 py-1 border rounded disabled:opacity-40">Next</button></div></div>
   </div>
 
   @if (selected(); as log) {
-    <div class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" (click)="close()">
-      <div class="bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6" (click)="$event.stopPropagation()">
-        <div class="flex items-start justify-between mb-5"><div><h2 class="text-xl font-bold text-gray-900">System Incident</h2><div class="flex gap-2 mt-2"><span [class]="'px-2 py-0.5 rounded-full text-xs font-medium ' + severityClass(log.severity)">{{ log.severity }}</span><span [class]="'px-2 py-0.5 rounded-full text-xs font-medium ' + statusClass(log)">{{ log.resolved ? 'Resolved' : 'Open' }}</span></div></div><button (click)="close()" class="text-gray-500 text-xl">×</button></div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-          <div><span class="text-gray-500">Incident ID</span><div class="font-mono break-all">{{ log.id }}</div></div><div><span class="text-gray-500">Correlation ID</span><div class="font-mono break-all">{{ log.correlationId || '—' }}</div></div>
-          <div><span class="text-gray-500">Time</span><div>{{ log.createdAt | date:'dd MMM yyyy HH:mm:ss' }}</div></div><div><span class="text-gray-500">Last seen</span><div>{{ log.lastSeenAt | date:'dd MMM yyyy HH:mm:ss' }}</div></div>
-          <div><span class="text-gray-500">Service</span><div>{{ log.service }}</div></div><div><span class="text-gray-500">Environment</span><div>{{ log.environment }}</div></div>
-          <div><span class="text-gray-500">Provider</span><div>{{ log.provider || '—' }}</div></div><div><span class="text-gray-500">HTTP status</span><div>{{ log.statusCode }}</div></div>
-          <div class="md:col-span-2"><span class="text-gray-500">Request</span><div class="font-mono break-all">{{ log.method }} {{ log.path }}</div></div>
-          <div class="md:col-span-2"><span class="text-gray-500">Message</span><div class="bg-gray-50 rounded p-3 mt-1 whitespace-pre-wrap">{{ log.message }}</div></div>
-          @if (log.errorType) { <div><span class="text-gray-500">Error type</span><div>{{ log.errorType }}</div></div> }
-          @if (log.transactionId) { <div><span class="text-gray-500">Transaction ID</span><div class="font-mono break-all">{{ log.transactionId }}</div></div> }
-          @if (log.exception) { <div class="md:col-span-2"><span class="text-gray-500">Exception</span><pre class="bg-gray-900 text-gray-100 rounded p-3 mt-1 text-xs overflow-auto max-h-48">{{ log.exception }}</pre></div> }
-          @if (log.stackTrace) { <div class="md:col-span-2"><span class="text-gray-500">Stack trace</span><pre class="bg-gray-900 text-gray-100 rounded p-3 mt-1 text-xs overflow-auto max-h-64">{{ log.stackTrace }}</pre></div> }
-          @if (log.resolutionNotes) { <div class="md:col-span-2"><span class="text-gray-500">Resolution notes</span><div class="bg-green-50 rounded p-3 mt-1">{{ log.resolutionNotes }}</div></div> }
-        </div>
-        <div class="flex justify-end gap-2 mt-6 pt-4 border-t">@if (!log.resolved) {<button (click)="resolve(log)" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Mark Resolved</button>} @else {<button (click)="reopen(log)" class="px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700">Reopen</button>}<button (click)="close()" class="px-4 py-2 border rounded">Close</button></div>
+    <div class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" (click)="close()"><div class="bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6" (click)="$event.stopPropagation()">
+      <div class="flex items-start justify-between mb-5"><div><h2 class="text-xl font-bold text-gray-900">System Incident</h2><div class="flex gap-2 mt-2"><span [class]="'px-2 py-0.5 rounded-full text-xs font-medium ' + severityClass(log.severity)">{{ log.severity }}</span><span [class]="'px-2 py-0.5 rounded-full text-xs font-medium ' + statusClass(log)">{{ log.resolved ? 'Resolved' : 'Open' }}</span></div></div><button (click)="close()" class="text-gray-500 text-xl">×</button></div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+        <div><span class="text-gray-500">Incident ID</span><div class="font-mono break-all">{{ log.id }}</div></div><div><span class="text-gray-500">Correlation ID</span><div class="font-mono break-all">{{ log.correlationId || '—' }}</div></div>
+        <div><span class="text-gray-500">Time</span><div>{{ log.createdAt | date:'dd MMM yyyy HH:mm:ss' }}</div></div><div><span class="text-gray-500">Last seen</span><div>{{ log.lastSeenAt | date:'dd MMM yyyy HH:mm:ss' }}</div></div>
+        <div><span class="text-gray-500">Service</span><div>{{ log.service }}</div></div><div><span class="text-gray-500">Environment</span><div>{{ log.environment }}</div></div><div><span class="text-gray-500">Provider</span><div>{{ log.provider || '—' }}</div></div><div><span class="text-gray-500">HTTP status</span><div>{{ log.statusCode }}</div></div>
+        <div class="md:col-span-2"><span class="text-gray-500">Request</span><div class="font-mono break-all">{{ log.method }} {{ log.path }}</div></div><div class="md:col-span-2"><span class="text-gray-500">Message</span><div class="bg-gray-50 rounded p-3 mt-1 whitespace-pre-wrap">{{ log.message }}</div></div>
+        @if (log.errorType) { <div><span class="text-gray-500">Error type</span><div>{{ log.errorType }}</div></div> } @if (log.transactionId) { <div><span class="text-gray-500">Transaction ID</span><div class="font-mono break-all">{{ log.transactionId }}</div></div> }
+        @if (log.exception) { <div class="md:col-span-2"><span class="text-gray-500">Exception</span><pre class="bg-gray-900 text-gray-100 rounded p-3 mt-1 text-xs overflow-auto max-h-48">{{ log.exception }}</pre></div> } @if (log.stackTrace) { <div class="md:col-span-2"><span class="text-gray-500">Stack trace</span><pre class="bg-gray-900 text-gray-100 rounded p-3 mt-1 text-xs overflow-auto max-h-64">{{ log.stackTrace }}</pre></div> } @if (log.resolutionNotes) { <div class="md:col-span-2"><span class="text-gray-500">Resolution notes</span><div class="bg-green-50 rounded p-3 mt-1">{{ log.resolutionNotes }}</div></div> }
       </div>
-    </div>
+      <div class="flex justify-end gap-2 mt-6 pt-4 border-t">@if (!log.resolved) {<button (click)="resolve(log)" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Mark Resolved</button>} @else {<button (click)="reopen(log)" class="px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700">Reopen</button>}<button (click)="close()" class="px-4 py-2 border rounded">Close</button></div>
+    </div></div>
   }
 </div>
