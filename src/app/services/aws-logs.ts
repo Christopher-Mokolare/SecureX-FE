@@ -5,6 +5,7 @@ import { environment } from '../../environments/environment';
 
 export interface AwsLogEntry {
   timestamp: string;
+  level: string;
   message: string;
   logStreamName?: string;
   eventId?: string;
