@@ -2,7 +2,7 @@
   <div class="flex min-h-screen">
     <aside class="hidden lg:flex w-64 shrink-0 flex-col border-r border-white/10 bg-slate-950 text-white">
       <div class="h-20 px-6 flex items-center border-b border-white/10">
-        <button (click)="open('/admin')" class="text-left">
+        <button (click)="open('/admin/dashboard')" class="text-left">
           <div class="text-xl font-bold tracking-tight">Secure<span class="text-cyan-400">X</span></div>
           <div class="text-[10px] uppercase tracking-[0.2em] text-slate-400 mt-0.5">Admin Console</div>
         </button>
@@ -10,10 +10,10 @@
 
       <nav class="flex-1 p-4 space-y-1">
         <div class="px-3 pt-2 pb-2 text-[10px] font-semibold uppercase tracking-widest text-slate-500">Workspace</div>
-        <button (click)="open('/admin')" class="w-full flex items-center gap-3 rounded-xl bg-white/10 px-3 py-2.5 text-sm font-medium text-white">
+        <button (click)="open('/admin/dashboard')" class="w-full flex items-center gap-3 rounded-xl bg-white/10 px-3 py-2.5 text-sm font-medium text-white">
           <span class="h-2 w-2 rounded-full bg-cyan-400"></span> Dashboard
         </button>
-        <button (click)="open('/admin/operations')" class="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-300 hover:bg-white/5 hover:text-white transition">
+        <button (click)="open('/admin/transactions')" class="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-300 hover:bg-white/5 hover:text-white transition">
           <span class="text-slate-500">▦</span> Operations
         </button>
         <button (click)="open('/admin/system-failures')" class="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-300 hover:bg-white/5 hover:text-white transition">
@@ -65,14 +65,13 @@
               <h1 class="text-3xl sm:text-4xl font-bold tracking-tight text-slate-950">Admin Dashboard</h1>
               <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-500">A single operational workspace for escrow transactions, users and KYC, payouts, reconciliation, audit activity, system incidents and reporting.</p>
             </div>
-            <button (click)="open('/admin/operations')" class="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 transition">Open Operations <span>→</span></button>
           </div>
         </section>
 
         <section class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
-          <button (click)="open('/admin/operations')" class="group rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md transition">
+          <button (click)="open('/admin/transactions')" class="group rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md transition">
             <div class="flex items-center justify-between"><span class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700 font-bold">OP</span><span class="text-slate-300 group-hover:text-slate-600">→</span></div>
-            <h2 class="mt-5 font-semibold text-slate-950">Operations</h2><p class="mt-1 text-sm text-slate-500">Transactions, users, stats, audit, payouts and reconciliation.</p>
+            <h2 class="mt-5 font-semibold text-slate-950">Transactions</h2><p class="mt-1 text-sm text-slate-500">Review escrow transactions and operational controls.</p>
           </button>
           <button (click)="open('/admin/system-failures')" class="group rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm hover:-translate-y-0.5 hover:border-rose-200 hover:shadow-md transition">
             <div class="flex items-center justify-between"><span class="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-50 text-rose-600 font-bold">!</span><span class="text-slate-300 group-hover:text-slate-600">→</span></div>
@@ -91,7 +90,7 @@
         <section class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden mb-8">
           <div class="px-6 py-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div><h2 class="font-semibold text-slate-950">Operations workspace</h2><p class="text-sm text-slate-500 mt-1">Jump directly into a specific operational area.</p></div>
-            <button (click)="open('/admin/operations')" class="text-sm font-semibold text-cyan-700 hover:text-cyan-800">View all operations →</button>
+            <button (click)="open('/admin/transactions')" class="text-sm font-semibold text-cyan-700 hover:text-cyan-800">View transactions →</button>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
             <button (click)="open('/admin/transactions')" class="p-5 text-left border-b sm:border-r border-slate-100 hover:bg-slate-50 transition"><div class="text-xs font-semibold uppercase tracking-wider text-slate-400">01</div><div class="mt-2 font-semibold text-slate-900">Transactions</div><div class="mt-1 text-sm text-slate-500">Escrow lifecycle and transaction controls.</div></button>
