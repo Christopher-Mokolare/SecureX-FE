@@ -1,47 +1,34 @@
-<div class="min-h-screen bg-gray-50 pt-20 pb-10">
-  <div class="max-w-7xl mx-auto px-4">
-    <div class="flex items-center justify-between mb-8">
-      <div><p class="text-xs font-semibold uppercase tracking-wider text-blue-600">SecureX Admin</p><h1 class="text-3xl font-bold text-blue-950">Reports & Downloads</h1><p class="text-gray-500 mt-1">PDF and CSV exports for the currently loaded operational datasets.</p></div>
-      <div class="flex gap-2"><button (click)="load()" class="px-4 py-2 border rounded-lg bg-white hover:bg-gray-50">Refresh</button><button (click)="back()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Admin Portal</button></div>
+<div class="min-h-screen bg-slate-50 text-slate-900 pb-10">
+  <main class="min-h-screen">
+    <header class="border-b border-slate-200 bg-white shadow-sm">
+      <div class="px-5 sm:px-8 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <img src="/favicon.png" alt="SecureX" class="h-9 w-9 rounded-lg" />
+          <div><div class="text-lg font-bold text-slate-950">SecureX</div><div class="text-[10px] font-semibold uppercase tracking-[0.18em] text-cyan-700">SecureX Operations</div></div>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="hidden sm:inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700"><span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span> Admin session active</span>
+          <button (click)="back()" class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">← Dashboard</button>
+        </div>
+      </div>
+    </header>
+    <div class="max-w-7xl mx-auto px-5 sm:px-8 py-8">
+      <div class="flex items-center justify-between mb-8">
+        <div><div class="text-[10px] font-semibold uppercase tracking-[0.18em] text-cyan-700">Reporting</div><h1 class="text-3xl font-bold text-slate-950">Reports &amp; Downloads</h1><p class="text-slate-500 mt-1">PDF and CSV exports for authenticated operational datasets.</p></div>
+        <button (click)="load()" class="px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50">Refresh</button>
+      </div>
+      @if (loading()) { <div class="mb-5 bg-cyan-50 border border-cyan-100 text-cyan-800 rounded-xl p-3 text-sm">Loading report datasets…</div> }
+      @if (error()) { <div class="mb-5 bg-red-50 border border-red-100 text-red-700 rounded-xl p-3 text-sm">{{ error() }}</div> }
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5"><h2 class="font-bold text-lg text-slate-950">Operations Summary</h2><p class="text-sm text-slate-500 mt-1 mb-4">Fees, escrow, disputes, users and payout status.</p><button (click)="downloadStatsPdf()" [disabled]="!stats()" class="px-3 py-2 bg-slate-900 text-white rounded-lg text-sm disabled:opacity-40">↓ PDF</button></div>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5"><h2 class="font-bold text-lg text-slate-950">Transactions</h2><p class="text-sm text-slate-500 mt-1 mb-4">{{ transactions().length }} transactions loaded for reporting.</p><div class="flex gap-2"><button (click)="downloadTransactionsPdf()" class="px-3 py-2 bg-slate-900 text-white rounded-lg text-sm">↓ PDF</button><button (click)="downloadCsv('transactions')" class="px-3 py-2 bg-emerald-600 text-white rounded-lg text-sm">↓ CSV</button></div></div>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5"><h2 class="font-bold text-lg text-slate-950">Users &amp; Compliance</h2><p class="text-sm text-slate-500 mt-1 mb-4">{{ users().length }} users with ID, AML, liveness and bank status.</p><div class="flex gap-2"><button (click)="downloadUsersPdf()" class="px-3 py-2 bg-slate-900 text-white rounded-lg text-sm">↓ PDF</button><button (click)="downloadCsv('users')" class="px-3 py-2 bg-emerald-600 text-white rounded-lg text-sm">↓ CSV</button></div></div>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5"><h2 class="font-bold text-lg text-slate-950">Audit Log</h2><p class="text-sm text-slate-500 mt-1 mb-4">{{ audit().length }} audit entries loaded.</p><div class="flex gap-2"><button (click)="downloadAuditPdf()" class="px-3 py-2 bg-slate-900 text-white rounded-lg text-sm">↓ PDF</button><button (click)="downloadCsv('audit')" class="px-3 py-2 bg-emerald-600 text-white rounded-lg text-sm">↓ CSV</button></div></div>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5"><h2 class="font-bold text-lg text-slate-950">Payout Operations</h2><p class="text-sm text-slate-500 mt-1 mb-4">{{ payouts().length }} failures and {{ missingPayouts().length }} missing payouts loaded.</p><button (click)="downloadPayoutPdf()" class="px-3 py-2 bg-slate-900 text-white rounded-lg text-sm">↓ PDF</button></div>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5"><h2 class="font-bold text-lg text-slate-950">Reconciliation</h2><p class="text-sm text-slate-500 mt-1 mb-4">{{ reconciliation().length }} reconciliation runs loaded.</p><button (click)="downloadReconciliationPdf()" class="px-3 py-2 bg-slate-900 text-white rounded-lg text-sm">↓ PDF</button></div>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5"><h2 class="font-bold text-lg text-slate-950">System Failures</h2><p class="text-sm text-slate-500 mt-1 mb-4">{{ failures().length }} incident records loaded.</p><button (click)="downloadFailuresPdf()" class="px-3 py-2 bg-slate-900 text-white rounded-lg text-sm">↓ PDF</button></div>
+      </div>
+      <div class="mt-8 bg-white rounded-2xl border border-slate-200 shadow-sm p-5"><h2 class="font-bold text-lg text-slate-950 mb-2">Export scope</h2><p class="text-sm text-slate-600">Reports are generated from the authenticated admin datasets loaded on this page. Transaction, user and audit CSV downloads are available alongside the PDF reports. Refresh before exporting when current data is required. The current report view loads up to 100 records per paged dataset.</p></div>
     </div>
-
-    @if (loading()) { <div class="mb-5 bg-blue-50 text-blue-700 rounded-lg p-3 text-sm">Loading report datasets…</div> }
-    @if (error()) { <div class="mb-5 bg-red-50 text-red-700 rounded-lg p-3 text-sm">{{ error() }}</div> }
-
-    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-      <div class="bg-white rounded-xl shadow-sm border p-5">
-        <h2 class="font-bold text-lg">Operations Summary</h2><p class="text-sm text-gray-500 mt-1 mb-4">Fees, escrow, disputes, users and payout status.</p>
-        <button (click)="downloadStatsPdf()" [disabled]="!stats()" class="px-3 py-2 bg-red-600 text-white rounded text-sm disabled:opacity-40">↓ PDF</button>
-      </div>
-      <div class="bg-white rounded-xl shadow-sm border p-5">
-        <h2 class="font-bold text-lg">Transactions</h2><p class="text-sm text-gray-500 mt-1 mb-4">{{ transactions().length }} transactions loaded for reporting.</p>
-        <div class="flex gap-2"><button (click)="downloadTransactionsPdf()" class="px-3 py-2 bg-red-600 text-white rounded text-sm">↓ PDF</button><button (click)="downloadCsv('transactions')" class="px-3 py-2 bg-green-600 text-white rounded text-sm">↓ CSV</button></div>
-      </div>
-      <div class="bg-white rounded-xl shadow-sm border p-5">
-        <h2 class="font-bold text-lg">Users & Compliance</h2><p class="text-sm text-gray-500 mt-1 mb-4">{{ users().length }} users with ID, AML, liveness and bank status.</p>
-        <div class="flex gap-2"><button (click)="downloadUsersPdf()" class="px-3 py-2 bg-red-600 text-white rounded text-sm">↓ PDF</button><button (click)="downloadCsv('users')" class="px-3 py-2 bg-green-600 text-white rounded text-sm">↓ CSV</button></div>
-      </div>
-      <div class="bg-white rounded-xl shadow-sm border p-5">
-        <h2 class="font-bold text-lg">Audit Log</h2><p class="text-sm text-gray-500 mt-1 mb-4">{{ audit().length }} audit entries loaded.</p>
-        <div class="flex gap-2"><button (click)="downloadAuditPdf()" class="px-3 py-2 bg-red-600 text-white rounded text-sm">↓ PDF</button><button (click)="downloadCsv('audit')" class="px-3 py-2 bg-green-600 text-white rounded text-sm">↓ CSV</button></div>
-      </div>
-      <div class="bg-white rounded-xl shadow-sm border p-5">
-        <h2 class="font-bold text-lg">Payout Operations</h2><p class="text-sm text-gray-500 mt-1 mb-4">{{ payouts().length }} failures and {{ missingPayouts().length }} missing payouts loaded.</p>
-        <button (click)="downloadPayoutPdf()" class="px-3 py-2 bg-red-600 text-white rounded text-sm">↓ PDF</button>
-      </div>
-      <div class="bg-white rounded-xl shadow-sm border p-5">
-        <h2 class="font-bold text-lg">Reconciliation</h2><p class="text-sm text-gray-500 mt-1 mb-4">{{ reconciliation().length }} reconciliation runs loaded.</p>
-        <button (click)="downloadReconciliationPdf()" class="px-3 py-2 bg-red-600 text-white rounded text-sm">↓ PDF</button>
-      </div>
-      <div class="bg-white rounded-xl shadow-sm border p-5">
-        <h2 class="font-bold text-lg">System Failures</h2><p class="text-sm text-gray-500 mt-1 mb-4">{{ failures().length }} incident records loaded.</p>
-        <button (click)="downloadFailuresPdf()" class="px-3 py-2 bg-red-600 text-white rounded text-sm">↓ PDF</button>
-      </div>
-    </div>
-
-    <div class="mt-8 bg-white rounded-xl border shadow-sm p-5">
-      <h2 class="font-bold text-lg mb-2">Export scope</h2>
-      <p class="text-sm text-gray-600">Reports are generated from the authenticated admin datasets loaded on this page. Transaction, user and audit CSV downloads are available alongside the PDF reports. Refresh before exporting when current data is required. The current report view loads up to 100 records per paged dataset.</p>
-    </div>
-  </div>
+  </main>
 </div>
