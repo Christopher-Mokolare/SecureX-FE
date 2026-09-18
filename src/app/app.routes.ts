@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { adminGuard } from './guards/admin.guard';
 import { Home } from './pages/home/home';
 import { StartTransaction } from './pages/start-transaction/start-transaction';
 import { TransactionBuyer } from './pages/transaction-buyer/transaction-buyer';
@@ -23,16 +24,17 @@ export const routes: Routes = [
   { path: 'bank-details/:id', component: BankDetails },
   { path: 'terms', component: Terms },
   { path: 'faq', component: Faq },
-  { path: 'admin', component: AdminHome, pathMatch: 'full' },
-  { path: 'admin/operations', component: Admin },
-  { path: 'admin/transactions', component: Admin },
-  { path: 'admin/users', component: Admin },
-  { path: 'admin/stats', component: Admin },
-  { path: 'admin/audit', component: Admin },
-  { path: 'admin/payouts', component: Admin },
-  { path: 'admin/reconciliation', component: Admin },
-  { path: 'admin/system-failures', component: SystemFailures },
-  { path: 'admin/aws-logs', component: AwsLogs },
-  { path: 'admin/reports', component: AdminReports },
+  { path: 'admin', component: Admin, pathMatch: 'full' },
+  { path: 'admin/dashboard', component: AdminHome, canActivate: [adminGuard], pathMatch: 'full' },
+  { path: 'admin/operations', component: Admin, canActivate: [adminGuard] },
+  { path: 'admin/transactions', component: Admin, canActivate: [adminGuard] },
+  { path: 'admin/users', component: Admin, canActivate: [adminGuard] },
+  { path: 'admin/stats', component: Admin, canActivate: [adminGuard] },
+  { path: 'admin/audit', component: Admin, canActivate: [adminGuard] },
+  { path: 'admin/payouts', component: Admin, canActivate: [adminGuard] },
+  { path: 'admin/reconciliation', component: Admin, canActivate: [adminGuard] },
+  { path: 'admin/system-failures', component: SystemFailures, canActivate: [adminGuard] },
+  { path: 'admin/aws-logs', component: AwsLogs, canActivate: [adminGuard] },
+  { path: 'admin/reports', component: AdminReports, canActivate: [adminGuard] },
   { path: '**', component: NotFound },
 ];
