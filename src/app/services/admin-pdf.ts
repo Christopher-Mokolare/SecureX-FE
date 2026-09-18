@@ -265,7 +265,7 @@ export class AdminPdfService {
     return [
       'q',
       // Clean white header for reliable contrast in every PDF viewer.
-      '1 1 1 rg',
+      '0.945 0.961 0.984 rg',
       this.rect(0, headerBottom, pageWidth, 88) + ' f',
       // SecureX blue accent line.
       '0.231 0.510 0.965 rg',
