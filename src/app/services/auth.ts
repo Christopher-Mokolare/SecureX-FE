@@ -52,8 +52,11 @@ export class AuthService {
     if (!token) return false;
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
-      const role = payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
-      return role === 'Admin';
+      const roleClaim = payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role']
+        ?? payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/role']
+        ?? payload.role;
+      const roles = Array.isArray(roleClaim) ? roleClaim : [roleClaim];
+      return roles.some((role: unknown) => typeof role === 'string' && role.toLowerCase() === 'admin');
     } catch { return false; }
   }
 }
