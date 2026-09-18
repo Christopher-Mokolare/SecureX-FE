@@ -1,35 +1,42 @@
-<div class="min-h-screen bg-slate-50 text-slate-900">
-  <header class="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur">
-    <div class="max-w-[1500px] mx-auto px-5 sm:px-8 h-16 flex items-center justify-between">
-      <div><div class="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-700">SecureX Operations</div><div class="font-semibold text-slate-950">AWS Infrastructure Logs</div></div>
-      <div class="flex items-center gap-2"><button (click)="backToDashboard()" class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">← Dashboard</button><button (click)="load()" class="rounded-xl bg-slate-950 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800">Refresh</button></div>
-    </div>
-  </header>
-  <main class="max-w-[1500px] mx-auto px-5 sm:px-8 py-8">
-    <div class="mb-6"><h1 class="text-3xl font-bold tracking-tight text-slate-950">CloudWatch / ECS Logs</h1><p class="mt-2 text-sm text-slate-500">Read-only production application logs from the SecureX ECS service. AWS credentials remain server-side.</p></div>
-    <section class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-      <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><div class="text-xs uppercase tracking-wider text-slate-400">Log group</div><div class="mt-2 font-mono text-sm break-all">{{ logGroup() || 'Loading…' }}</div></div>
-      <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><div class="text-xs uppercase tracking-wider text-slate-400">Region</div><div class="mt-2 font-semibold">{{ region() || 'Loading…' }}</div></div>
-      <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><div class="text-xs uppercase tracking-wider text-slate-400">Events on page</div><div class="mt-2 text-2xl font-bold">{{ logs().length }}</div></div>
-    </section>
-    <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm mb-5 flex flex-wrap gap-3 items-center">
-      <input [ngModel]="search()" (ngModelChange)="search.set($event)" (keyup.enter)="apply()" placeholder="Search logs…" class="w-72 rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-cyan-500" />
-      <select [ngModel]="hours()" (ngModelChange)="hours.set(+$event)" class="rounded-xl border border-slate-200 px-3 py-2.5 text-sm"><option [ngValue]="1">Last hour</option><option [ngValue]="6">Last 6 hours</option><option [ngValue]="24">Last 24 hours</option><option [ngValue]="168">Last 7 days</option></select>
-      <select [ngModel]="level()" (ngModelChange)="level.set($event)" class="rounded-xl border border-slate-200 px-3 py-2.5 text-sm"><option value="">All levels</option><option value="ERROR">Errors</option><option value="WARN">Warnings</option><option value="INFO">Info</option></select>
-      <button (click)="apply()" class="rounded-xl bg-cyan-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-cyan-700">Apply filters</button>
-    </section>
-    @if (error()) { <div class="mb-5 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{{ error() }}</div> }
-    <section class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between"><div><h2 class="font-semibold">Application log stream</h2><p class="text-xs text-slate-500 mt-1">{{ logs().length }} events returned</p></div><span class="text-xs text-slate-400">Read-only</span></div>
-      <div class="overflow-x-auto">
-        <table class="min-w-full text-sm"><thead class="bg-slate-50 text-xs uppercase tracking-wider text-slate-500"><tr><th class="px-5 py-3 text-left">Time</th><th class="px-5 py-3 text-left">Level</th><th class="px-5 py-3 text-left">Stream</th><th class="px-5 py-3 text-left">Message</th></tr></thead>
+<div class="min-h-screen bg-slate-50 text-slate-900 pb-10">
+  <main class="min-h-screen">
+    <header class="border-b border-slate-200 bg-white shadow-sm">
+      <div class="px-5 sm:px-8 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <img src="/favicon.png" alt="SecureX" class="h-9 w-9 rounded-lg" />
+          <div><div class="text-lg font-bold text-slate-950">SecureX</div><div class="text-[10px] font-semibold uppercase tracking-[0.18em] text-cyan-700">SecureX Operations</div></div>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="hidden sm:inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700"><span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span> Admin session active</span>
+          <button (click)="backToDashboard()" class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">← Dashboard</button>
+          <button (click)="load()" class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800">Refresh</button>
+        </div>
+      </div>
+    </header>
+    <div class="max-w-7xl mx-auto px-5 sm:px-8 py-8">
+      <div class="mb-8"><div class="text-[10px] font-semibold uppercase tracking-[0.18em] text-cyan-700">Infrastructure</div><h1 class="text-3xl font-bold tracking-tight text-slate-950">AWS / ECS Logs</h1><p class="text-slate-500 mt-1">Inspect read-only CloudWatch application logs from the production SecureX API service.</p></div>
+      <section class="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-6">
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><div class="text-xs uppercase tracking-wider text-slate-400">Log group</div><div class="mt-2 font-mono text-sm break-all">{{ logGroup() || 'Loading…' }}</div></div>
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><div class="text-xs uppercase tracking-wider text-slate-400">Region</div><div class="mt-2 font-semibold">{{ region() || 'Loading…' }}</div></div>
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><div class="text-xs uppercase tracking-wider text-slate-400">Events on page</div><div class="mt-2 text-2xl font-bold">{{ logs().length }}</div></div>
+      </section>
+      <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm mb-5 flex flex-wrap gap-3 items-center">
+        <input [ngModel]="search()" (ngModelChange)="search.set($event)" (keyup.enter)="apply()" placeholder="Search logs…" class="w-72 rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-cyan-500" />
+        <select [ngModel]="hours()" (ngModelChange)="hours.set(+$event)" class="rounded-xl border border-slate-200 px-3 py-2.5 text-sm"><option [ngValue]="1">Last hour</option><option [ngValue]="6">Last 6 hours</option><option [ngValue]="24">Last 24 hours</option><option [ngValue]="168">Last 7 days</option></select>
+        <select [ngModel]="level()" (ngModelChange)="level.set($event)" class="rounded-xl border border-slate-200 px-3 py-2.5 text-sm"><option value="">All levels</option><option value="ERROR">Errors</option><option value="WARN">Warnings</option><option value="INFO">Info</option></select>
+        <button (click)="apply()" class="rounded-xl bg-cyan-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-cyan-700">Apply filters</button>
+      </section>
+      @if (error()) { <div class="mb-5 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{{ error() }}</div> }
+      <section class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between"><div><h2 class="font-semibold text-slate-950">Application log stream</h2><p class="text-xs text-slate-500 mt-1">{{ logs().length }} events returned</p></div><span class="text-xs text-slate-400">Read-only</span></div>
+        <div class="overflow-x-auto"><table class="min-w-full text-sm"><thead class="bg-slate-50 text-xs uppercase tracking-wider text-slate-500"><tr><th class="px-5 py-3 text-left">Time</th><th class="px-5 py-3 text-left">Level</th><th class="px-5 py-3 text-left">Stream</th><th class="px-5 py-3 text-left">Message</th></tr></thead>
         <tbody class="divide-y divide-slate-100">
           @if (loading()) { <tr><td colspan="4" class="px-5 py-10 text-center text-slate-400">Loading CloudWatch logs…</td></tr> }
           @for (log of logs(); track log.eventId || log.timestamp + log.message) { <tr class="hover:bg-slate-50"><td class="px-5 py-3 whitespace-nowrap text-xs text-slate-500">{{ log.timestamp | date:'dd MMM yyyy HH:mm:ss' }}</td><td class="px-5 py-3"><span [class]="'rounded-full px-2 py-1 text-xs font-medium ' + levelClass(log.message)">{{ log.message.includes('ERROR') || log.message.includes('Exception') ? 'ERROR' : log.message.includes('WARN') ? 'WARN' : 'LOG' }}</span></td><td class="px-5 py-3 font-mono text-xs text-slate-500 whitespace-nowrap">{{ log.logStreamName || '—' }}</td><td class="px-5 py-3 min-w-[500px] font-mono text-xs whitespace-pre-wrap">{{ messagePreview(log.message) }}</td></tr> }
           @if (!loading() && logs().length === 0) { <tr><td colspan="4" class="px-5 py-10 text-center text-slate-400">No CloudWatch events found for the selected period.</td></tr> }
-        </tbody></table>
-      </div>
-      <div class="px-6 py-4 border-t border-slate-100 flex justify-end gap-2"><button (click)="previous()" class="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-600">Refresh previous</button><button [disabled]="!nextToken()" (click)="next()" class="rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold disabled:opacity-40">Next results →</button></div>
-    </section>
+        </tbody></table></div>
+        <div class="px-6 py-4 border-t border-slate-100 flex justify-end gap-2"><button (click)="previous()" class="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-600">Refresh previous</button><button [disabled]="!nextToken()" (click)="next()" class="rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold disabled:opacity-40">Next results →</button></div>
+      </section>
+    </div>
   </main>
 </div>
