@@ -97,10 +97,15 @@ export class Admin implements OnInit {
     this.standalonePage.set(Boolean(page));
     if (page) this.tab.set(page);
 
-    // /admin is always the admin entry/login screen.
-    // Never expose the dashboard simply because an old browser session exists.
-    this.auth.clearToken();
-    this.authenticated.set(false);
+    // /admin is the public admin entry/login screen.
+    // Only the exact /admin entry clears an existing browser session.
+    // Protected admin modules must preserve the authenticated session.
+    if (path === '/admin') {
+      this.auth.clearToken();
+      this.authenticated.set(false);
+    } else if (this.auth.getCachedToken() && this.auth.isAdmin()) {
+      this.authenticated.set(true);
+    }
     
     this.updateMobile();
     window.addEventListener('resize', () => {
@@ -158,7 +163,7 @@ export class Admin implements OnInit {
   }
 
   backToDashboard() {
-    window.location.href = '/admin';
+    window.location.href = '/admin/dashboard';
   }
 
   setTab(t: Tab) {
