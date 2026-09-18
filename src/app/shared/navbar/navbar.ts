@@ -16,7 +16,7 @@ import { AuthService } from '../../services/auth';
             <a href="javascript:void(0)" (click)="scrollTo('how-it-works')" class="text-gray-200 hover:text-white hover:underline cursor-pointer">How it Works</a>
             <a href="javascript:void(0)" (click)="scrollTo('pricing')" class="text-gray-200 hover:text-white hover:underline cursor-pointer">Pricing</a>
             @if (auth.isAdmin()) {
-              <a routerLink="/admin" class="text-yellow-300 hover:text-yellow-100 font-medium">Admin</a>
+              <a routerLink="/admin/dashboard" class="text-yellow-300 hover:text-yellow-100 font-medium">Admin</a>
             }
             <a routerLink="/start"
                class="bg-gradient-to-r from-green-500 to-blue-600 text-white px-4 py-2 rounded-md font-medium shadow hover:from-green-600 hover:to-blue-700 transition">
@@ -38,7 +38,7 @@ import { AuthService } from '../../services/auth';
           <a href="javascript:void(0)" (click)="scrollTo('how-it-works'); menuOpen.set(false)" class="block py-3 px-4 text-gray-200 hover:bg-blue-700">How it Works</a>
           <a href="javascript:void(0)" (click)="scrollTo('pricing'); menuOpen.set(false)" class="block py-3 px-4 text-gray-200 hover:bg-blue-700">Pricing</a>
           @if (auth.isAdmin()) {
-            <a routerLink="/admin" (click)="menuOpen.set(false)" class="block py-3 px-4 text-yellow-300 font-bold hover:bg-blue-700">Admin</a>
+            <a routerLink="/admin/dashboard" (click)="menuOpen.set(false)" class="block py-3 px-4 text-yellow-300 font-bold hover:bg-blue-700">Admin</a>
           }
           <a routerLink="/start" (click)="menuOpen.set(false)" class="block py-3 px-4 text-green-400 font-bold hover:bg-blue-700">Start Transaction</a>
         </div>
