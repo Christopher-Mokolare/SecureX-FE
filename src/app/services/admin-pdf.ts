@@ -62,17 +62,17 @@ export class AdminPdfService {
   }
 
   private buildTablePages(title: string, subtitle: string, columns: PdfColumn[], rows: string[][], pageWidth: number, pageHeight: number, margin: number): string[][] {
-    const pages: string[][] = [[]]; const headerHeight = 82; const footer = 30; const tableHeader = 25; const bottom = footer + margin; const line = 10; const pad = 6;
+    const pages: string[][] = [[]]; const headerHeight = 104; const footer = 30; const tableHeader = 28; const bottom = footer + margin; const line = 10; const pad = 6;
     const start = () => {
       if (pages[pages.length - 1].length) pages.push([]);
       const page = pages[pages.length - 1]; page.push(this.headerStream(title, subtitle, pageWidth, pageHeight, margin));
       page.push('0.945 0.961 0.980 rg'); page.push(this.rect(margin, pageHeight - headerHeight - 4, pageWidth - margin * 2, tableHeader) + ' f');
-      let x = margin; for (const col of columns) { page.push('0.059 0.090 0.165 rg'); page.push('/F2 8 Tf'); page.push('1 0 0 1 ' + (x + pad) + ' ' + (pageHeight - headerHeight + 4) + ' Tm'); page.push('(' + this.escape(col.label.toUpperCase()) + ') Tj'); x += col.width; }
+      let x = margin; for (const col of columns) { page.push('0.059 0.090 0.165 rg'); page.push('/F2 8 Tf'); page.push('1 0 0 1 ' + (x + pad) + ' ' + (pageHeight - headerHeight - 22) + ' Tm'); page.push('(' + this.escape(col.label.toUpperCase()) + ') Tj'); x += col.width; }
     };
-    start(); let y = pageHeight - headerHeight - tableHeader - 4;
+    start(); let y = pageHeight - headerHeight - tableHeader - 8;
     for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
-      const row = rows[rowIndex]; const wrapped = columns.map((c, i) => this.wrap(row[i] || '', c.width - pad * 2, 8, 2)); const rowLines = Math.max.apply(null, wrapped.map(v => v.length)); const rowHeight = Math.max(24, rowLines * line + 10);
-      if (y - rowHeight < bottom) { start(); y = pageHeight - headerHeight - tableHeader - 4; }
+      const row = rows[rowIndex]; const wrapped = columns.map((c, i) => this.wrap(row[i] || '', c.width - pad * 2, 8, 8)); const rowLines = Math.max.apply(null, wrapped.map(v => v.length)); const rowHeight = Math.max(24, rowLines * line + 10);
+      if (y - rowHeight < bottom) { start(); y = pageHeight - headerHeight - tableHeader - 8; }
       const page = pages[pages.length - 1]; page.push(rowIndex % 2 === 0 ? '0.973 0.980 0.988 rg' : '1 1 1 rg'); page.push(this.rect(margin, y - rowHeight + 2, pageWidth - margin * 2, rowHeight) + ' f');
       let x = margin;
       for (let i = 0; i < columns.length; i++) { const col = columns[i]; const lines = wrapped[i]; page.push('0.059 0.090 0.165 rg'); page.push('/F1 8 Tf');
@@ -101,7 +101,45 @@ export class AdminPdfService {
   }
 
   private normalizeColumns(columns: PdfColumn[], width: number): PdfColumn[] { const total = columns.reduce((s, c) => s + c.width, 0); const factor = width / total; return columns.map(c => ({ ...c, width: c.width * factor })); }
-  private wrap(value: string, width: number, size: number, maxLines: number): string[] { const clean = this.clean(value); const max = Math.max(6, Math.floor(width / (size * 0.48))); if (clean.length <= max) return [clean]; const words = clean.split(/\s+/); const lines: string[] = []; let current = ''; for (const word of words) { const next = current ? current + ' ' + word : word; if (next.length <= max) current = next; else { if (current) lines.push(current); current = word; if (lines.length === maxLines - 1) break; } } if (current && lines.length < maxLines) lines.push(current); const out = lines.slice(0, maxLines); if (clean.length > out.join(' ').length && out.length) out[out.length - 1] = out[out.length - 1].slice(0, Math.max(1, max - 3)) + '...'; return out; }
+  private wrap(value: string, width: number, size: number, maxLines: number): string[] {
+    const clean = this.clean(value);
+    const max = Math.max(6, Math.floor(width / (size * 0.48)));
+    if (clean.length <= max) return [clean];
+
+    const words = clean.split(/\s+/);
+    const lines: string[] = [];
+    let current = '';
+
+    for (const word of words) {
+      // Break very long tokens (IDs, references, emails, URLs) instead of letting
+      // them run through adjacent columns.
+      if (word.length > max) {
+        if (current) { lines.push(current); current = ''; }
+        for (let i = 0; i < word.length; i += max) {
+          if (lines.length >= maxLines) break;
+          lines.push(word.slice(i, i + max));
+        }
+        continue;
+      }
+
+      const next = current ? current + ' ' + word : word;
+      if (next.length <= max) current = next;
+      else {
+        if (current) lines.push(current);
+        current = word;
+        if (lines.length >= maxLines) break;
+      }
+    }
+
+    if (current && lines.length < maxLines) lines.push(current);
+
+    const out = lines.slice(0, maxLines);
+    const rendered = out.join(' ');
+    if (clean.length > rendered.length && out.length) {
+      out[out.length - 1] = out[out.length - 1].slice(0, Math.max(1, max - 3)) + '...';
+    }
+    return out;
+  }
   private clean(value: string): string { return String(value || '').replace(/[^\x20-\x7E]/g, '?').replace(/[\r\n]+/g, ' '); }
   private escape(value: string): string { return this.clean(value).replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)'); }
   private metricColor(accent: PdfSummaryMetric['accent']): number[] { switch (accent) { case 'green': return [0.055, 0.600, 0.400]; case 'amber': return [0.850, 0.550, 0.100]; case 'red': return [0.800, 0.180, 0.180]; case 'slate': return this.slate; default: return this.blue; } }
