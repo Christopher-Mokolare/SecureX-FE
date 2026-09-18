@@ -125,9 +125,9 @@ export class Admin implements OnInit {
   login() {
     this.loginError.set('');
     this.auth.getToken(this.loginEmail, this.loginPassword).subscribe({
-      next: () => { 
-        this.authenticated.set(true); 
-        this.loadSelectedTab();
+      next: () => {
+        this.authenticated.set(true);
+        window.location.href = '/admin/dashboard';
       },
       error: () => this.loginError.set('Invalid email or password'),
     });
