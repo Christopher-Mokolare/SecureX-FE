@@ -16,14 +16,14 @@ export class AdminHome implements OnInit {
     // send the user to the existing admin login/operations screen instead of
     // redirecting back to /admin and creating an infinite redirect loop.
     if (!this.auth.getCachedToken()) {
-      window.location.href = '/admin/operations';
+      window.location.href = '/admin';
       return;
     }
 
     // A cached token is enough to render the dashboard. The API remains the
     // authoritative authorization boundary for admin operations.
     if (!this.auth.isAdmin()) {
-      window.location.href = '/admin/operations';
+      window.location.href = '/admin';
     }
   }
 
