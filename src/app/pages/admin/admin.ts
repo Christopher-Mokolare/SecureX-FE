@@ -150,6 +150,7 @@ export class Admin implements OnInit {
     this.payoutFailures.set([]);
     this.missingPayouts.set([]);
     this.reconList.set([]);
+    window.location.href = '/admin';
   }
 
   private loadSelectedTab() {
