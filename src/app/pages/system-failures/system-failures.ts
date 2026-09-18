@@ -34,7 +34,7 @@ export class SystemFailures implements OnInit {
   }
 
   goBack() {
-    window.history.back();
+    window.location.href = '/admin/dashboard';
   }
 
   criticalCount() {
