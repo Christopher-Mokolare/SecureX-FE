@@ -256,40 +256,45 @@ export class AdminPdfService {
     pageHeight: number,
     margin: number,
   ): string {
-    const y = pageHeight - 60;
-    const titleWidth = this.approxWidth(title, 14);
+    const headerBottom = pageHeight - 88;
+    const centerX = pageWidth / 2;
+    const titleSize = Math.min(14, Math.max(10, 14 * 300 / Math.max(300, this.approxWidth(title, 14))));
+    const titleWidth = this.approxWidth(title, titleSize);
     const generated = this.generatedAt();
 
     return [
       'q',
-      '0.059 0.090 0.165 rg',
-      this.rect(0, pageHeight - 88, pageWidth, 88) + ' f',
-      '0.231 0.510 0.965 rg',
-      this.rect(0, pageHeight - 88, 6, 88) + ' f',
+      // Clean white header for reliable contrast in every PDF viewer.
       '1 1 1 rg',
-      this.shield(margin, y - 12, 26) + ' f',
+      this.rect(0, headerBottom, pageWidth, 88) + ' f',
+      // SecureX blue accent line.
+      '0.231 0.510 0.965 rg',
+      this.rect(0, headerBottom, pageWidth, 3) + ' f',
+      // Brand mark on the left.
+      '0.059 0.090 0.165 rg',
+      this.shield(margin, pageHeight - 69, 26) + ' f',
       '0.231 0.510 0.965 rg',
       '2.2 w',
-      this.xMark(margin + 6, y - 19, 14) + ' S',
-      '1 1 1 rg',
+      this.xMark(margin + 6, pageHeight - 65, 14) + ' S',
+      '0.059 0.090 0.165 rg',
       '/F2 17 Tf',
-      `1 0 0 1 ${margin + 38} ${y + 3} Tm`,
+      `1 0 0 1 ${margin + 38} ${pageHeight - 57} Tm`,
       '(SecureX) Tj',
-      '0.70 0.76 0.84 rg',
+      '0.392 0.455 0.545 rg',
       '/F1 7.5 Tf',
-      `1 0 0 1 ${margin + 39} ${y - 12} Tm`,
-      '(SECURE TRANSACTIONS. TRUSTED EXCHANGES.) Tj',
-      '1 1 1 rg',
-      '/F2 14 Tf',
-      `1 0 0 1 ${pageWidth - margin - titleWidth} ${y + 1} Tm`,
+      `1 0 0 1 ${margin + 39} ${pageHeight - 71} Tm`,
+      '(SECURE TRANSACTIONS. TRUSTED EXCHANGES.) Tj`,
+      // Document title is centered, never right-aligned against the brand.
+      '0.059 0.090 0.165 rg',
+      `/F2 ${titleSize.toFixed(2)} Tf`,
+      `1 0 0 1 ${(centerX - titleWidth / 2).toFixed(2)} ${pageHeight - 53} Tm`,
       `(${this.escape(title)}) Tj`,
-      '0.70 0.76 0.84 rg',
+      '0.392 0.455 0.545 rg',
       '/F1 8 Tf',
-      `1 0 0 1 ${pageWidth - margin - this.approxWidth(subtitle, 8)} ${y - 13} Tm`,
+      `1 0 0 1 ${(centerX - this.approxWidth(subtitle, 8) / 2).toFixed(2)} ${pageHeight - 68} Tm`,
       `(${this.escape(subtitle)}) Tj`,
-      '0.70 0.76 0.84 rg',
       '/F1 7 Tf',
-      `1 0 0 1 ${pageWidth - margin - this.approxWidth('Generated ' + generated, 7)} ${y - 26} Tm`,
+      `1 0 0 1 ${(centerX - this.approxWidth('Generated ' + generated, 7) / 2).toFixed(2)} ${pageHeight - 81} Tm`,
       `(Generated ${this.escape(generated)}) Tj`,
       'Q',
     ].join('\\n');
