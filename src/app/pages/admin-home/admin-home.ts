@@ -12,8 +12,18 @@ export class AdminHome implements OnInit {
   private auth = inject(AuthService);
 
   ngOnInit() {
-    if (!this.auth.getCachedToken() || !this.auth.isAdmin()) {
-      window.location.href = '/admin';
+    // /admin is the authenticated dashboard. If there is no session yet,
+    // send the user to the existing admin login/operations screen instead of
+    // redirecting back to /admin and creating an infinite redirect loop.
+    if (!this.auth.getCachedToken()) {
+      window.location.href = '/admin/operations';
+      return;
+    }
+
+    // A cached token is enough to render the dashboard. The API remains the
+    // authoritative authorization boundary for admin operations.
+    if (!this.auth.isAdmin()) {
+      window.location.href = '/admin/operations';
     }
   }
 
