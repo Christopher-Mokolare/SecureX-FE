@@ -10,6 +10,19 @@ export class AdminPdfService {
   private readonly blue = [0.231, 0.510, 0.965];
   private readonly slate = [0.392, 0.455, 0.545];
 
+  /** Backward-compatible generic report export used by the legacy admin page. */
+  download(title: string, rows: Array<{ label: string; value: string }>, fileName: string): void {
+    const columns: PdfColumn[] = [
+      { label: 'Field', width: 220, align: 'left' },
+      { label: 'Value', width: 500, align: 'left' },
+    ];
+    const tableRows = rows.map(row => [String(row.label ?? ''), String(row.value ?? '')]);
+    this.downloadTable(title, columns, tableRows, fileName, {
+      landscape: true,
+      subtitle: 'SecureX Admin Portal',
+    });
+  }
+
   downloadTable(title: string, columns: PdfColumn[], rows: string[][], fileName: string, options: PdfTableOptions = {}): void {
     const landscape = options.landscape !== false;
     const pageWidth = landscape ? 842 : 595;
