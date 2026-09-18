@@ -50,7 +50,7 @@ export class AwsLogs implements OnInit {
   }
 
   apply() { this.nextToken.set(''); this.load(); }
-  backToDashboard() { window.location.href = '/admin'; }
+  backToDashboard() { window.location.href = '/admin/dashboard'; }
   previous() { this.nextToken.set(''); this.load(); }
   next() { if (this.nextToken()) this.load(this.nextToken()); }
 
