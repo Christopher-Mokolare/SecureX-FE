@@ -16,7 +16,6 @@
     <div class="max-w-7xl mx-auto px-5 sm:px-8 py-8">
       <div class="flex items-center justify-between mb-8">
         <div><div class="text-[10px] font-semibold uppercase tracking-[0.18em] text-cyan-700">Reporting</div><h1 class="text-3xl font-bold text-slate-950">Reports &amp; Downloads</h1><p class="text-slate-500 mt-1">PDF and CSV exports for authenticated operational datasets.</p></div>
-        <button (click)="load()" class="px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50">Refresh</button>
       </div>
       @if (loading()) { <div class="mb-5 bg-cyan-50 border border-cyan-100 text-cyan-800 rounded-xl p-3 text-sm">Loading report datasets…</div> }
       @if (error()) { <div class="mb-5 bg-red-50 border border-red-100 text-red-700 rounded-xl p-3 text-sm">{{ error() }}</div> }
