@@ -20,7 +20,7 @@ export interface PdfSummaryMetric {
 @Injectable({ providedIn: 'root' })
 export class AdminPdfService {
   private readonly navy = [0.059, 0.090, 0.165];
-  private readonly blue = [0.231, 0.510, 0.965];
+  private readonly blue = [0.118, 0.271, 0.702];
   private readonly slate = [0.392, 0.455, 0.545];
 
   download(title: string, rows: Array<{ label: string; value: string }>, fileName: string): void {
@@ -268,12 +268,12 @@ export class AdminPdfService {
       '0.945 0.961 0.984 rg',
       this.rect(0, headerBottom, pageWidth, 88) + ' f',
       // SecureX blue accent line.
-      '0.231 0.510 0.965 rg',
+      '0.118 0.271 0.702 rg',
       this.rect(0, headerBottom, pageWidth, 3) + ' f',
       // Brand mark on the left.
       '0.059 0.090 0.165 rg',
       this.shield(margin, pageHeight - 69, 26) + ' f',
-      '0.231 0.510 0.965 rg',
+      '0.118 0.271 0.702 rg',
       '2.2 w',
       this.xMark(margin + 6, pageHeight - 65, 14) + ' S',
       '0.059 0.090 0.165 rg',
