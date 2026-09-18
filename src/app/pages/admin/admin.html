@@ -66,9 +66,12 @@
       }
 
       @if (authenticated()) {
-      <div class="flex items-center justify-between mb-6">
-        <h1 class="text-2xl font-bold text-blue-900">Admin Portal</h1>
-        <button (click)="logout()" class="px-3 py-2 text-sm border border-gray-300 rounded text-gray-600 hover:bg-white">Sign Out</button>
+      <div class="mb-6 flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
+        <div>
+          <div class="text-[10px] font-semibold uppercase tracking-[0.18em] text-cyan-700">Operations Workspace</div>
+          <h1 class="mt-1 text-xl font-bold text-slate-950">{{ tab() === 'transactions' ? 'Transactions' : tab() === 'users' ? 'Users & KYC' : tab() === 'stats' ? 'Statistics' : tab() === 'audit' ? 'Audit Log' : tab() === 'payouts' ? 'Payouts' : 'Reconciliation' }}</h1>
+        </div>
+        <span class="text-sm text-slate-500">Live operational data</span>
       </div>
 
       @if (!standalonePage()) {
