@@ -5,7 +5,6 @@ import { forkJoin } from 'rxjs';
 import { AdminService, AdminTransaction, AdminUser, AdminStats, TxStatusCount, TransactionDetail, AuditEntry, PayoutFailure, MissingPayout, ReconciliationEntry } from '../../services/admin';
 import { AuthService } from '../../services/auth';
 import { AdminPdfService } from '../../services/admin-pdf';
-import { Footer } from '../../shared/footer/footer';
 
 type Tab = 'transactions' | 'users' | 'stats' | 'audit' | 'payouts' | 'reconciliation';
 
@@ -108,6 +107,14 @@ export class Admin implements OnInit {
     }
     
     this.updateMobile();
+
+    // Standalone admin modules must load their backend dataset immediately.
+    // Previously the selected tab was set but never loaded on initial navigation,
+    // leaving pages such as /admin/transactions visibly empty despite live data.
+    if (this.authenticated()) {
+      this.loadSelectedTab();
+    }
+
     window.addEventListener('resize', () => {
       this.windowWidth.set(window.innerWidth);
       this.updateMobile();
