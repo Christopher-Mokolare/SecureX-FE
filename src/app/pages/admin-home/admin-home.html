@@ -71,7 +71,7 @@
         <section class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-4 mb-8">
           <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <div class="text-xs uppercase tracking-wider text-slate-400">Transactions</div>
-            <div class="mt-2 text-2xl font-bold text-slate-950">{{ stats?.transactionsByStatus?.length ? (stats?.transactionsByStatus | json) : (statsLoading ? '…' : '—') }}</div>
+            <div class="mt-2 text-2xl font-bold text-slate-950">{{ stats ? totalTransactions : (statsLoading ? '…' : '—') }}</div>
             <div class="mt-1 text-xs text-slate-500">Live status data</div>
           </div>
           <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
