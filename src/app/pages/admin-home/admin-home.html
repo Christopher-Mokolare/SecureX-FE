@@ -68,6 +68,38 @@
           </div>
         </section>
 
+        <section class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-4 mb-8">
+          <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div class="text-xs uppercase tracking-wider text-slate-400">Transactions</div>
+            <div class="mt-2 text-2xl font-bold text-slate-950">{{ stats?.transactionsByStatus?.length ? (stats?.transactionsByStatus | json) : (statsLoading ? '…' : '—') }}</div>
+            <div class="mt-1 text-xs text-slate-500">Live status data</div>
+          </div>
+          <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div class="text-xs uppercase tracking-wider text-slate-400">Users</div>
+            <div class="mt-2 text-2xl font-bold text-slate-950">{{ stats?.totalUsers ?? (statsLoading ? '…' : '—') }}</div>
+            <div class="mt-1 text-xs text-slate-500">Registered users</div>
+          </div>
+          <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div class="text-xs uppercase tracking-wider text-slate-400">Escrow</div>
+            <div class="mt-2 text-2xl font-bold text-slate-950">{{ stats ? ('R ' + (stats.fundsInEscrow | number:'1.2-2')) : (statsLoading ? '…' : '—') }}</div>
+            <div class="mt-1 text-xs text-slate-500">Funds currently in escrow</div>
+          </div>
+          <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div class="text-xs uppercase tracking-wider text-slate-400">Open disputes</div>
+            <div class="mt-2 text-2xl font-bold text-rose-600">{{ stats?.openDisputes ?? (statsLoading ? '…' : '—') }}</div>
+            <div class="mt-1 text-xs text-slate-500">Requires operational attention</div>
+          </div>
+          <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div class="text-xs uppercase tracking-wider text-slate-400">Pending payouts</div>
+            <div class="mt-2 text-2xl font-bold text-amber-600">{{ stats?.pendingPayouts ?? (statsLoading ? '…' : '—') }}</div>
+            <div class="mt-1 text-xs text-slate-500">Unresolved payout records</div>
+          </div>
+        </section>
+
+        @if (statsError) {
+          <div class="mb-8 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{{ statsError }}</div>
+        }
+
         <section class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
           <button (click)="open('/admin/transactions')" class="group rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md transition">
             <div class="flex items-center justify-between"><span class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700 font-bold">OP</span><span class="text-slate-300 group-hover:text-slate-600">→</span></div>
