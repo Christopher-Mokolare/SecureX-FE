@@ -22,8 +22,6 @@ export class AdminPdfService {
   private readonly navy = [0.059, 0.090, 0.165];
   private readonly blue = [0.231, 0.510, 0.965];
   private readonly slate = [0.392, 0.455, 0.545];
-  private readonly border = [0.863, 0.886, 0.922];
-  private readonly light = [0.973, 0.980, 0.988];
 
   download(title: string, rows: Array<{ label: string; value: string }>, fileName: string): void {
     const columns: PdfColumn[] = [
@@ -167,9 +165,7 @@ export class AdminPdfService {
     const pad = 7;
 
     const start = () => {
-      if (pages[pages.length - 1].length) {
-        pages.push([]);
-      }
+      if (pages[pages.length - 1].length) pages.push([]);
 
       const page = pages[pages.length - 1];
       page.push(this.headerStream(title, subtitle, pageWidth, pageHeight, margin));
@@ -189,18 +185,14 @@ export class AdminPdfService {
 
       page.push('0.863 0.886 0.922 RG');
       page.push('0.6 w');
-      page.push(
-        `${margin} ${headerY - tableHeader} m ${pageWidth - margin} ${headerY - tableHeader} l S`,
-      );
+      page.push(`${margin} ${headerY - tableHeader} m ${pageWidth - margin} ${headerY - tableHeader} l S`);
     };
 
     start();
 
     let y = pageHeight - headerHeight - tableHeader - 8;
 
-    if (!rows.length) {
-      rows = [['No records available for this report.']];
-    }
+    if (!rows.length) rows = [['No records available for this report.']];
 
     for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
       const row = rows[rowIndex];
@@ -248,9 +240,7 @@ export class AdminPdfService {
 
       page.push('0.900 0.918 0.945 RG');
       page.push('0.35 w');
-      page.push(
-        `${margin} ${y - rowHeight + 2} m ${pageWidth - margin} ${y - rowHeight + 2} l S`,
-      );
+      page.push(`${margin} ${y - rowHeight + 2} m ${pageWidth - margin} ${y - rowHeight + 2} l S`);
 
       y -= rowHeight;
     }
@@ -302,7 +292,7 @@ export class AdminPdfService {
       `1 0 0 1 ${pageWidth - margin - this.approxWidth('Generated ' + generated, 7)} ${y - 26} Tm`,
       `(Generated ${this.escape(generated)}) Tj`,
       'Q',
-    ].join('\n');
+    ].join('\\n');
   }
 
   private addFooters(
@@ -318,9 +308,7 @@ export class AdminPdfService {
       page.push('(SecureX Operations  |  Confidential operational report) Tj');
 
       const pageLabel = `Page ${index + 1} of ${pages.length}`;
-      page.push(
-        `1 0 0 1 ${pageWidth - margin - this.approxWidth(pageLabel, 7)} 16 Tm`,
-      );
+      page.push(`1 0 0 1 ${pageWidth - margin - this.approxWidth(pageLabel, 7)} 16 Tm`);
       page.push(`(${pageLabel}) Tj`);
     });
   }
@@ -337,7 +325,7 @@ export class AdminPdfService {
 
     const content = pageStreams.map(lines => {
       const stream = lines.join('\n');
-      return add(`<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`);
+      return add(`<< /Length ${stream.length} >>\\nstream\\n${stream}\\nendstream`);
     });
 
     const pagesId = add('');
@@ -352,24 +340,24 @@ export class AdminPdfService {
 
     const catalog = add(`<< /Type /Catalog /Pages ${pagesId} 0 R >>`);
 
-    let pdf = '%PDF-1.4\n';
+    let pdf = '%PDF-1.4\\n';
     const offsets: number[] = [0];
 
     objects.forEach((object, index) => {
       offsets[index + 1] = pdf.length;
-      pdf += `${index + 1} 0 obj\n${object}\nendobj\n`;
+      pdf += `${index + 1} 0 obj\\n${object}\\nendobj\\n`;
     });
 
     const xref = pdf.length;
-    pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`;
+    pdf += `xref\\n0 ${objects.length + 1}\\n0000000000 65535 f \\n`;
 
     for (let i = 1; i <= objects.length; i++) {
-      pdf += String(offsets[i]).padStart(10, '0') + ' 00000 n \n';
+      pdf += String(offsets[i]).padStart(10, '0') + ' 00000 n \\n';
     }
 
     return (
       pdf +
-      `trailer\n<< /Size ${objects.length + 1} /Root ${catalog} 0 R >>\nstartxref\n${xref}\n%%EOF`
+      `trailer\\n<< /Size ${objects.length + 1} /Root ${catalog} 0 R >>\\nstartxref\\n${xref}\\n%%EOF`
     );
   }
 
@@ -404,9 +392,8 @@ export class AdminPdfService {
 
       const next = current ? current + ' ' + word : word;
 
-      if (next.length <= max) {
-        current = next;
-      } else {
+      if (next.length <= max) current = next;
+      else {
         if (current) lines.push(current);
         current = word;
       }
@@ -508,15 +495,15 @@ export class AdminPdfService {
 
   private clean(value: string): string {
     return String(value || '')
-      .replace(/[^\\x20-\\x7E]/g, '?')
-      .replace(/[\\r\\n]+/g, ' ');
+      .replace(/[^\x20-\x7E]/g, '?')
+      .replace(/[\r\n]+/g, ' ');
   }
 
   private escape(value: string): string {
     return this.clean(value)
       .replace(/\\/g, '\\\\')
-      .replace(/\\(/g, '\\\\(')
-      .replace(/\\)/g, '\\\\)');
+      .replace(/\(/g, '\\(')
+      .replace(/\)/g, '\\)');
   }
 
   private savePdf(pdf: string, fileName: string): void {
@@ -524,7 +511,6 @@ export class AdminPdfService {
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
     anchor.href = url;
-    anchor.download = fileName;
     anchor.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
