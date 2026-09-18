@@ -26,7 +26,7 @@ export const routes: Routes = [
   { path: 'faq', component: Faq },
   { path: 'admin', component: Admin, pathMatch: 'full' },
   { path: 'admin/dashboard', component: AdminHome, canActivate: [adminGuard], pathMatch: 'full' },
-  { path: 'admin/operations', component: Admin, canActivate: [adminGuard] },
+  { path: 'admin/operations', redirectTo: 'admin/transactions', pathMatch: 'full' },
   { path: 'admin/transactions', component: Admin, canActivate: [adminGuard] },
   { path: 'admin/users', component: Admin, canActivate: [adminGuard] },
   { path: 'admin/stats', component: Admin, canActivate: [adminGuard] },
