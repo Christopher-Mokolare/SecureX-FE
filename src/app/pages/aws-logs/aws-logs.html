@@ -9,7 +9,7 @@
         <div class="flex items-center gap-3">
           <span class="hidden sm:inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700"><span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span> Admin session active</span>
           <button (click)="backToDashboard()" class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">← Dashboard</button>
-          <button (click)="load()" class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800">Refresh</button>
+          <button (click)="load()" [disabled]="loading()" class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-50">Refresh</button>
         </div>
       </div>
     </header>
@@ -24,7 +24,7 @@
         <input [ngModel]="search()" (ngModelChange)="search.set($event)" (keyup.enter)="apply()" placeholder="Search logs…" class="w-72 rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-cyan-500" />
         <select [ngModel]="hours()" (ngModelChange)="hours.set(+$event)" class="rounded-xl border border-slate-200 px-3 py-2.5 text-sm"><option [ngValue]="1">Last hour</option><option [ngValue]="6">Last 6 hours</option><option [ngValue]="24">Last 24 hours</option><option [ngValue]="168">Last 7 days</option></select>
         <select [ngModel]="level()" (ngModelChange)="level.set($event)" class="rounded-xl border border-slate-200 px-3 py-2.5 text-sm"><option value="">All levels</option><option value="ERROR">Errors</option><option value="WARN">Warnings</option><option value="INFO">Info</option></select>
-        <button (click)="apply()" class="rounded-xl bg-cyan-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-cyan-700">Apply filters</button>
+        <button (click)="apply()" [disabled]="loading()" class="rounded-xl bg-cyan-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-cyan-700 disabled:opacity-50">Apply filters</button>
       </section>
       @if (error()) { <div class="mb-5 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{{ error() }}</div> }
       <section class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
@@ -32,10 +32,14 @@
         <div class="overflow-x-auto"><table class="min-w-full text-sm"><thead class="bg-slate-50 text-xs uppercase tracking-wider text-slate-500"><tr><th class="px-5 py-3 text-left">Time</th><th class="px-5 py-3 text-left">Level</th><th class="px-5 py-3 text-left">Stream</th><th class="px-5 py-3 text-left">Message</th></tr></thead>
         <tbody class="divide-y divide-slate-100">
           @if (loading()) { <tr><td colspan="4" class="px-5 py-10 text-center text-slate-400">Loading CloudWatch logs…</td></tr> }
-          @for (log of logs(); track log.eventId || log.timestamp + log.message) { <tr class="hover:bg-slate-50"><td class="px-5 py-3 whitespace-nowrap text-xs text-slate-500">{{ log.timestamp | date:'dd MMM yyyy HH:mm:ss' }}</td><td class="px-5 py-3"><span [class]="'rounded-full px-2 py-1 text-xs font-medium ' + levelClass(log.message)">{{ log.message.includes('ERROR') || log.message.includes('Exception') ? 'ERROR' : log.message.includes('WARN') ? 'WARN' : 'LOG' }}</span></td><td class="px-5 py-3 font-mono text-xs text-slate-500 whitespace-nowrap">{{ log.logStreamName || '—' }}</td><td class="px-5 py-3 min-w-[500px] font-mono text-xs whitespace-pre-wrap">{{ messagePreview(log.message) }}</td></tr> }
+          @for (log of logs(); track log.eventId || log.timestamp + log.message) { <tr class="hover:bg-slate-50"><td class="px-5 py-3 whitespace-nowrap text-xs text-slate-500">{{ log.timestamp | date:'dd MMM yyyy HH:mm:ss' }}</td><td class="px-5 py-3"><span [class]="'rounded-full px-2 py-1 text-xs font-medium ' + levelClass(log.level)">{{ log.level }}</span></td><td class="px-5 py-3 font-mono text-xs text-slate-500 whitespace-nowrap">{{ log.logStreamName || '—' }}</td><td class="px-5 py-3 min-w-[500px] font-mono text-xs whitespace-pre-wrap">{{ messagePreview(log.message) }}</td></tr> }
           @if (!loading() && logs().length === 0) { <tr><td colspan="4" class="px-5 py-10 text-center text-slate-400">No CloudWatch events found for the selected period.</td></tr> }
         </tbody></table></div>
-        <div class="px-6 py-4 border-t border-slate-100 flex justify-end gap-2"><button (click)="previous()" class="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-600">Refresh previous</button><button [disabled]="!nextToken()" (click)="next()" class="rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold disabled:opacity-40">Next results →</button></div>
+        <div class="px-6 py-4 border-t border-slate-100 flex justify-between items-center">
+          <button [disabled]="!previousTokens().length || loading()" (click)="previous()" class="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-600 disabled:opacity-40">← Previous</button>
+          <span class="text-xs text-slate-400">Page {{ previousTokens().length + 1 }}</span>
+          <button [disabled]="!nextToken() || loading()" (click)="next()" class="rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold disabled:opacity-40">Next results →</button>
+        </div>
       </section>
     </div>
   </main>
