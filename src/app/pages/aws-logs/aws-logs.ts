@@ -22,6 +22,8 @@ export class AwsLogs implements OnInit {
   logGroup = signal('');
   region = signal('');
   nextToken = signal('');
+  currentToken = signal('');
+  previousTokens = signal<string[]>([]);
 
   ngOnInit() {
     if (!this.auth.getCachedToken() || !this.auth.isAdmin()) {
@@ -31,14 +33,15 @@ export class AwsLogs implements OnInit {
     this.load();
   }
 
-  load(nextToken?: string) {
+  load(token?: string) {
     this.loading.set(true);
     this.error.set('');
-    this.svc.get(this.hours(), this.search(), this.level(), 100, nextToken).subscribe({
+    this.svc.get(this.hours(), this.search(), this.level(), 100, token).subscribe({
       next: result => {
         this.logs.set(result.items);
         this.logGroup.set(result.logGroup);
         this.region.set(result.region);
+        this.currentToken.set(token ?? '');
         this.nextToken.set(result.nextToken ?? '');
         this.loading.set(false);
       },
@@ -49,16 +52,40 @@ export class AwsLogs implements OnInit {
     });
   }
 
-  apply() { this.nextToken.set(''); this.load(); }
+  apply() {
+    this.nextToken.set('');
+    this.currentToken.set('');
+    this.previousTokens.set([]);
+    this.load();
+  }
+
   backToDashboard() { window.location.href = '/admin/dashboard'; }
-  previous() { this.nextToken.set(''); this.load(); }
-  next() { if (this.nextToken()) this.load(this.nextToken()); }
+
+  previous() {
+    const history = [...this.previousTokens()];
+    if (!history.length) return;
+    const token = history.pop() ?? '';
+    this.previousTokens.set(history);
+    this.load(token || undefined);
+  }
+
+  next() {
+    const token = this.nextToken();
+    if (!token) return;
+    this.previousTokens.update(history => [...history, this.currentToken()]);
+    this.load(token);
+  }
 
   levelClass(message: string) {
     const value = message.toUpperCase();
-    if (value.includes('CRITICAL') || value.includes('FATAL')) return 'bg-red-100 text-red-800';
-    if (value.includes('ERROR') || value.includes('EXCEPTION')) return 'bg-orange-100 text-orange-800';
+    if (value.includes('CRITICAL') || value.includes('FATAL') ||
+        value.includes('ERROR') || value.includes('EXCEPTION')) {
+      return 'bg-red-100 text-red-800';
+    }
     if (value.includes('WARN')) return 'bg-yellow-100 text-yellow-800';
+    if (value.includes('INFO') || value.includes('INFORMATION')) {
+      return 'bg-blue-100 text-blue-800';
+    }
     return 'bg-slate-100 text-slate-700';
   }
 
