@@ -288,7 +288,7 @@ export class AdminPdfService {
       '0.70 0.76 0.84 rg',
       '/F1 7.5 Tf',
       `1 0 0 1 ${margin + 39} ${y - 12} Tm`,
-      '(SECURE TRANSACTIONS. TRUSTED EXCHANGES.) Tj`,
+      '(SECURE TRANSACTIONS. TRUSTED EXCHANGES.) Tj',
       '1 1 1 rg',
       '/F2 14 Tf',
       `1 0 0 1 ${pageWidth - margin - titleWidth} ${y + 1} Tm`,
