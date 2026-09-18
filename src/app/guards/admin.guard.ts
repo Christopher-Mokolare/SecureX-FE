@@ -2,21 +2,14 @@ import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from '../services/auth';
 
-export const adminGuard: CanActivateFn = (route, state) => {
+export const adminGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
 
-  // Check if user is admin
-  if (!auth.isAdmin()) {
-    router.navigate(['/']);
-    return false;
+  if (auth.getCachedToken() && auth.isAdmin()) {
+    return true;
   }
 
-  // Check if on mobile device (width < 768px)
-  if (typeof window !== 'undefined' && window.innerWidth < 768) {
-    router.navigate(['/']);
-    return false;
-  }
-
-  return true;
+  auth.clearToken();
+  return router.createUrlTree(['/admin']);
 };
