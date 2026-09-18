@@ -297,7 +297,7 @@ export class AdminPdfService {
       `1 0 0 1 ${(centerX - this.approxWidth('Generated ' + generated, 7) / 2).toFixed(2)} ${pageHeight - 81} Tm`,
       `(Generated ${this.escape(generated)}) Tj`,
       'Q',
-    ].join('\\n');
+    ].join('\n');
   }
 
   private addFooters(
