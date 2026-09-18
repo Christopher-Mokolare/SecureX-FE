@@ -283,7 +283,7 @@ export class AdminPdfService {
       '0.392 0.455 0.545 rg',
       '/F1 7.5 Tf',
       `1 0 0 1 ${margin + 39} ${pageHeight - 71} Tm`,
-      '(SECURE TRANSACTIONS. TRUSTED EXCHANGES.) Tj`,
+      '(SECURE TRANSACTIONS. TRUSTED EXCHANGES.) Tj',
       // Document title is centered, never right-aligned against the brand.
       '0.059 0.090 0.165 rg',
       `/F2 ${titleSize.toFixed(2)} Tf`,
