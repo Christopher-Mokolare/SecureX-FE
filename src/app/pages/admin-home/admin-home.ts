@@ -34,6 +34,10 @@ export class AdminHome implements OnInit {
     this.loadStats();
   }
 
+  get totalTransactions(): number {
+    return this.stats?.transactionsByStatus?.reduce((total, entry) => total + entry.count, 0) ?? 0;
+  }
+
   loadStats() {
     this.statsLoading = true;
     this.statsError = '';
