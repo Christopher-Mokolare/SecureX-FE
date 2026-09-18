@@ -325,7 +325,7 @@ export class AdminPdfService {
 
     const content = pageStreams.map(lines => {
       const stream = lines.join('\n');
-      return add(`<< /Length ${stream.length} >>\\nstream\\n${stream}\\nendstream`);
+      return add(`<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`);
     });
 
     const pagesId = add('');
@@ -340,24 +340,24 @@ export class AdminPdfService {
 
     const catalog = add(`<< /Type /Catalog /Pages ${pagesId} 0 R >>`);
 
-    let pdf = '%PDF-1.4\\n';
+    let pdf = '%PDF-1.4\n';
     const offsets: number[] = [0];
 
     objects.forEach((object, index) => {
       offsets[index + 1] = pdf.length;
-      pdf += `${index + 1} 0 obj\\n${object}\\nendobj\\n`;
+      pdf += `${index + 1} 0 obj\n${object}\nendobj\n`;
     });
 
     const xref = pdf.length;
-    pdf += `xref\\n0 ${objects.length + 1}\\n0000000000 65535 f \\n`;
+    pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`;
 
     for (let i = 1; i <= objects.length; i++) {
-      pdf += String(offsets[i]).padStart(10, '0') + ' 00000 n \\n';
+      pdf += String(offsets[i]).padStart(10, '0') + ' 00000 n \n';
     }
 
     return (
       pdf +
-      `trailer\\n<< /Size ${objects.length + 1} /Root ${catalog} 0 R >>\\nstartxref\\n${xref}\\n%%EOF`
+      `trailer\n<< /Size ${objects.length + 1} /Root ${catalog} 0 R >>\nstartxref\n${xref}\n%%EOF`
     );
   }
 
