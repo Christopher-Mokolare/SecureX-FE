@@ -76,18 +76,16 @@ export class AwsLogs implements OnInit {
     this.load(token);
   }
 
-  levelClass(message: string) {
-    const value = message.toUpperCase();
-    if (value.includes('CRITICAL') || value.includes('FATAL') ||
-        value.includes('ERROR') || value.includes('EXCEPTION')) {
-      return 'bg-red-100 text-red-800';
+  levelClass(level: string) {
+    switch (level) {
+      case 'ERROR': return 'bg-red-100 text-red-800';
+      case 'WARN': return 'bg-yellow-100 text-yellow-800';
+      case 'INFO': return 'bg-blue-100 text-blue-800';
+      default: return 'bg-slate-100 text-slate-700';
     }
-    if (value.includes('WARN')) return 'bg-yellow-100 text-yellow-800';
-    if (value.includes('INFO') || value.includes('INFORMATION')) {
-      return 'bg-blue-100 text-blue-800';
-    }
-    return 'bg-slate-100 text-slate-700';
   }
 
-  messagePreview(message: string) { return message.replace(/\s+/g, ' ').trim(); }
+  messagePreview(message: string) {
+    return message.replace(/\s+/g, ' ').trim();
+  }
 }
