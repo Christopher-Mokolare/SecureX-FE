@@ -97,11 +97,10 @@ export class Admin implements OnInit {
     this.standalonePage.set(Boolean(page));
     if (page) this.tab.set(page);
 
-    // Check if user is already logged in
-    if (this.auth.getCachedToken()) {
-      this.authenticated.set(true);
-      this.loadSelectedTab();
-    }
+    // /admin is always the admin entry/login screen.
+    // Never expose the dashboard simply because an old browser session exists.
+    this.auth.clearToken();
+    this.authenticated.set(false);
     
     this.updateMobile();
     window.addEventListener('resize', () => {
