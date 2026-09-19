@@ -259,7 +259,11 @@ export class Admin implements OnInit {
     }));
     this.pdf.download('Reconciliation', [
       { label: 'Loaded records', value: String(this.reconList().length) },
-      ...rows,
+      { label: 'Provider balance', value: 'Only shown when an authoritative Ozow balance is available' },
+      { label: 'Reserve scope', value: 'Unresolved payouts + refund reserve; excludes customer escrow balance' },
+      ...this.reconList().flatMap(r => [
+        { label: r.runAt ? this.date(r.runAt) : 'Unknown run', value: `Required R ${this.number(r.expectedFloat)} | Provider ${r.ozowFloat == null ? 'Unavailable' : 'R ' + this.number(r.ozowFloat)} | Status ${r.status ?? '—'}${r.error ? ' | ' + r.error : ''}` },
+      ]),
     ], `securex-reconciliation-${this.today()}.pdf`);
   }
 
