@@ -112,9 +112,10 @@ export interface ReconciliationEntry {
   id: string;
   runAt: string;
   expectedFloat: number;
-  ozowFloat: number;
+  ozowFloat: number | null;
   discrepancy: number;
   alertFired: boolean;
+  error?: string;
   transactionId?: string;
   status?: string;
   provider?: string;
