@@ -506,7 +506,7 @@
         <div class="flex items-center justify-between mb-4">
           <div>
             <h2 class="text-lg font-semibold text-gray-800">Reconciliation</h2>
-            <p class="text-sm text-gray-500">Required Ozow float reserve compared with the live Ozow float. This covers unresolved payouts and refunds; it is not the customer escrow balance.</p>
+            <p class="text-sm text-gray-500">Required Ozow float reserve and provider-reported balance status. The reserve covers unresolved payouts and refunds; it is not the customer escrow balance. Ozow float is unavailable here until an authoritative provider balance integration is enabled.</p>
           </div>
           <span class="text-sm text-gray-500">{{ reconTotal() }} runs</span>
         </div>
@@ -517,7 +517,7 @@
               <tr>
                 <th class="px-4 py-3 text-left">Run At</th>
                 <th class="px-4 py-3 text-right">Required Float</th>
-                <th class="px-4 py-3 text-right">Ozow Float</th>
+                <th class="px-4 py-3 text-right">Provider Float</th>
                 <th class="px-4 py-3 text-right">Discrepancy</th>
                 <th class="px-4 py-3 text-left">Status</th>
               </tr>
