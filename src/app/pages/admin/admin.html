@@ -437,7 +437,7 @@
         <div class="flex items-center justify-between mb-4">
           <div>
             <h2 class="text-lg font-semibold text-gray-800">Missing Payouts</h2>
-            <p class="text-sm text-gray-500">Completed transactions that have not been successfully paid out.</p>
+            <p class="text-sm text-gray-500">Completed transactions with no local payout record. Retry first verifies the original Ozow reference to prevent duplicate seller payouts.</p>
           </div>
           @if (missingPayouts().length > 0) {
             <span class="px-2 py-1 bg-red-100 text-red-700 rounded text-xs font-medium">{{ missingPayouts().length }} outstanding</span>
