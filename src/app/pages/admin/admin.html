@@ -455,6 +455,7 @@
                 <th class="px-4 py-3 text-left">Seller</th>
                 <th class="px-4 py-3 text-left">KYC</th>
                 <th class="px-4 py-3 text-left">Bank</th>
+                <th class="px-4 py-3 text-left">Provider Status</th>
                 <th class="px-4 py-3 text-left">Created</th>
                 <th class="px-4 py-3 text-left">Action</th>
               </tr>
@@ -481,6 +482,14 @@
                       <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Missing</span>
                     }
                   </td>
+                  <td class="px-4 py-3">
+                    <span [class]="'px-2 py-0.5 rounded-full text-xs font-medium ' + (p.status === 'ProviderFailed' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800')">
+                      {{ p.status === 'ProviderFailed' ? ('Failed' + (p.providerStatus != null ? ' (' + p.providerStatus + ')' : '')) : 'Not recorded' }}
+                    </span>
+                    @if (p.providerReason) {
+                      <div class="mt-1 max-w-xs text-xs text-gray-500" [title]="p.providerReason">{{ p.providerReason }}</div>
+                    }
+                  </td>
                   <td class="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">{{ p.createdAt | date:'dd MMM yyyy HH:mm' }}</td>
                   <td class="px-4 py-3">
                     <button (click)="retryMissingPayout(p.id)"
@@ -492,7 +501,7 @@
                 </tr>
               }
               @if (!loading() && missingPayouts().length === 0) {
-                <tr><td colspan="9" class="px-4 py-8 text-center text-gray-400">No missing payouts found</td></tr>
+                <tr><td colspan="10" class="px-4 py-8 text-center text-gray-400">No missing payouts found</td></tr>
               }
             </tbody>
           </table>
