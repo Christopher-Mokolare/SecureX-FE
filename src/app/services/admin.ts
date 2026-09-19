@@ -106,6 +106,11 @@ export interface MissingPayout {
   createdAt: string;
   transactionId?: string;
   status?: string;
+  payoutId?: string;
+  providerStatus?: number;
+  providerSubStatus?: number;
+  providerReason?: string;
+  providerNotificationAt?: string;
 }
 
 export interface ReconciliationEntry {
