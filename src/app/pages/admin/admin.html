@@ -506,7 +506,7 @@
         <div class="flex items-center justify-between mb-4">
           <div>
             <h2 class="text-lg font-semibold text-gray-800">Reconciliation</h2>
-            <p class="text-sm text-gray-500">Expected SecureX float compared with the Ozow float.</p>
+            <p class="text-sm text-gray-500">Required Ozow float reserve compared with the live Ozow float. This covers unresolved payouts and refunds; it is not the customer escrow balance.</p>
           </div>
           <span class="text-sm text-gray-500">{{ reconTotal() }} runs</span>
         </div>
@@ -516,7 +516,7 @@
             <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
               <tr>
                 <th class="px-4 py-3 text-left">Run At</th>
-                <th class="px-4 py-3 text-right">Expected Float</th>
+                <th class="px-4 py-3 text-right">Required Float</th>
                 <th class="px-4 py-3 text-right">Ozow Float</th>
                 <th class="px-4 py-3 text-right">Discrepancy</th>
                 <th class="px-4 py-3 text-left">Status</th>
@@ -535,10 +535,12 @@
                   <td class="px-4 py-3">
                     @if (r.status === 'ProviderUnavailable') {
                       <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800" [title]="r.error || 'Ozow balance unavailable'">Provider unavailable</span>
+                    } @else if (r.status === 'Legacy') {
+                      <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700" title="Historical record created before the float reconciliation fix">Legacy</span>
                     } @else if (r.alertFired) {
-                      <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Discrepancy</span>
+                      <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Float shortfall</span>
                     } @else {
-                      <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Reconciled</span>
+                      <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Sufficient</span>
                     }
                   </td>
                 </tr>
