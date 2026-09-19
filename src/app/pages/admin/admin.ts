@@ -319,7 +319,7 @@ export class Admin implements OnInit {
     const d = this.detail();
     if (!d) return;
     this.svc.retryPayout(d.transaction.id).subscribe({
-      next: () => { this.actionMsg.set('Payout resubmitted'); this.openDetail(d.transaction); },
+      next: () => { this.actionMsg.set('Payout submitted'); this.openDetail(d.transaction); },
       error: (e) => this.actionMsg.set(e.error?.error ?? 'Failed to retry payout'),
     });
   }
@@ -481,6 +481,8 @@ export class Admin implements OnInit {
       Refunded: 'bg-gray-100 text-gray-600',
       PaymentPending: 'bg-yellow-100 text-yellow-800',
       LogisticsPending: 'bg-yellow-100 text-yellow-800',
+      ProviderUnavailable: 'bg-orange-100 text-orange-800',
+      Legacy: 'bg-slate-100 text-slate-700',
     };
     return map[s] ?? 'bg-gray-100 text-gray-700';
   }
