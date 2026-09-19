@@ -519,7 +519,7 @@
                 <th class="px-4 py-3 text-right">Expected Float</th>
                 <th class="px-4 py-3 text-right">Ozow Float</th>
                 <th class="px-4 py-3 text-right">Discrepancy</th>
-                <th class="px-4 py-3 text-left">Alert</th>
+                <th class="px-4 py-3 text-left">Status</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
@@ -530,13 +530,15 @@
                 <tr>
                   <td class="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">{{ r.runAt | date:'dd MMM yyyy HH:mm' }}</td>
                   <td class="px-4 py-3 text-right">R {{ r.expectedFloat | number:'1.2-2' }}</td>
-                  <td class="px-4 py-3 text-right">R {{ r.ozowFloat | number:'1.2-2' }}</td>
-                  <td class="px-4 py-3 text-right font-medium">R {{ r.discrepancy | number:'1.2-2' }}</td>
+                  <td class="px-4 py-3 text-right">{{ r.ozowFloat === null || r.ozowFloat === undefined ? 'Unavailable' : ('R ' + (r.ozowFloat | number:'1.2-2')) }}</td>
+                  <td class="px-4 py-3 text-right font-medium">{{ r.ozowFloat === null || r.ozowFloat === undefined ? '—' : ('R ' + (r.discrepancy | number:'1.2-2')) }}</td>
                   <td class="px-4 py-3">
-                    @if (r.alertFired) {
-                      <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Alert Fired</span>
+                    @if (r.status === 'ProviderUnavailable') {
+                      <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800" [title]="r.error || 'Ozow balance unavailable'">Provider unavailable</span>
+                    } @else if (r.alertFired) {
+                      <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Discrepancy</span>
                     } @else {
-                      <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">OK</span>
+                      <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Reconciled</span>
                     }
                   </td>
                 </tr>
