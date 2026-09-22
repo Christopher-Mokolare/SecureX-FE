@@ -4,6 +4,12 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
+export interface TransactionLimits {
+  minimumAmount: number;
+  maximumAmount: number;
+  currency: string;
+}
+
 export interface CreateTransactionRequest {
   buyerFullName: string;
   buyerEmail: string;
@@ -83,6 +89,10 @@ export interface SmileSession {
 @Injectable({ providedIn: 'root' })
 export class TransactionService {
   private http = inject(HttpClient);
+
+  getTransactionLimits(): Observable<TransactionLimits> {
+    return this.http.get<TransactionLimits>(`${environment.apiBase}/api/config/transaction-limits`);
+  }
 
   create(body: CreateTransactionRequest): Observable<CreateTransactionResponse> {
     return this.http.post<CreateTransactionResponse>(`${environment.apiBase}/api/transactions`, body).pipe(
