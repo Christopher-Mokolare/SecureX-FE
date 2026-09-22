@@ -23,7 +23,9 @@ export class StartTransaction implements OnInit, OnDestroy {
 
   isSandbox = environment.smileIdSandbox;
 
-  submitting = signal(false);\n  transactionLimits = signal<TransactionLimits | null>(null);\n  configError = signal<string | null>(null);
+  submitting = signal(false);
+  transactionLimits = signal<TransactionLimits | null>(null);
+  configError = signal<string | null>(null);
 
   workflowStep = signal<'idle' | 'creating' | 'verification' | 'payment' | 'complete' | 'failed'>('idle');
 
@@ -144,7 +146,12 @@ export class StartTransaction implements OnInit, OnDestroy {
   }
 
   onSubmit() {
-    if (!this.transactionLimits()) {\n      this.configError.set('Transaction limits are still loading. Please try again in a moment.');\n      return;\n    }\n\n    if (this.submitting()) {
+    if (!this.transactionLimits()) {
+      this.configError.set('Transaction limits are still loading. Please try again in a moment.');
+      return;
+    }
+
+    if (this.submitting()) {
       return;
     }
 
