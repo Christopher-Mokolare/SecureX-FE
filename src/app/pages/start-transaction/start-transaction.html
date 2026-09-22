@@ -258,6 +258,12 @@
         Fill in the details below to create a secure escrow deal.
       </p>
 
+      @if (configError()) {
+        <div class="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+          {{ configError() }}
+        </div>
+      }
+
       @if (errorMessage()) {
         <div class="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
           {{ errorMessage() }}
@@ -327,8 +333,8 @@
             <input
               formControlName="itemValue"
               type="number"
-              min="1"
-              max="100000"
+              [min]="transactionLimits()?.minimumAmount"
+              [max]="transactionLimits()?.maximumAmount"
               placeholder="e.g. 5000"
               class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
               [class.border-red-400]="isInvalid('itemValue')"
@@ -337,7 +343,11 @@
 
             @if (isInvalid('itemValue')) {
               <p class="text-red-500 text-xs mt-1">
-                A valid price is required (R1.00 - R100,000.00).
+                @if (transactionLimits(); as limits) {
+                  A valid price is required ({{ fmt(limits.minimumAmount) }} - {{ fmt(limits.maximumAmount) }}).
+                } @else {
+                  Transaction limits are loading.
+                }
               </p>
             }
           </div>
@@ -719,7 +729,7 @@
         <button
           type="submit"
           class="w-full bg-gradient-to-r from-green-500 to-blue-600 text-white py-4 rounded-lg font-bold text-lg hover:from-green-600 hover:to-blue-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
-          [disabled]="submitting()"
+          [disabled]="submitting() || !transactionLimits()"
         >
           @if (submitting()) {
             @if (workflowStep() === 'creating') {
