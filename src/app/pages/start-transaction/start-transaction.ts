@@ -1,8 +1,8 @@
-import { Component, inject, signal, computed, OnDestroy } from '@angular/core';
+import { Component, inject, signal, computed, OnDestroy, OnInit } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Subscription, switchMap, timer, takeWhile, take, tap, throwError } from 'rxjs';
-import { TransactionService } from '../../services/transaction';
+import { TransactionService, TransactionLimits } from '../../services/transaction';
 import { DealTokenService } from '../../services/deal-token';
 import { environment } from '../../../environments/environment';
 import { calcStandardFee, calcExpressFee, formatZar } from '../../utils/fee';
@@ -13,7 +13,7 @@ import { calcStandardFee, calcExpressFee, formatZar } from '../../utils/fee';
   imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './start-transaction.html',
 })
-export class StartTransaction implements OnDestroy {
+export class StartTransaction implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
   private txService = inject(TransactionService);
   private dealTokens = inject(DealTokenService);
@@ -24,6 +24,8 @@ export class StartTransaction implements OnDestroy {
   isSandbox = environment.smileIdSandbox;
 
   submitting = signal(false);
+  transactionLimits = signal<TransactionLimits | null>(null);
+  configError = signal<string | null>(null);
 
   workflowStep = signal<'idle' | 'creating' | 'verification' | 'payment' | 'complete' | 'failed'>('idle');
 
@@ -43,7 +45,7 @@ export class StartTransaction implements OnDestroy {
     itemDescription: ['', [Validators.required, Validators.minLength(10)]],
     itemValue: [
       null as number | null,
-      [Validators.required, Validators.min(1), Validators.max(100000)],
+      [Validators.required],
     ],
     sellerLocation: ['', Validators.required],
     serviceType: ['Standard' as 'Standard' | 'VerifiedExpress', Validators.required],
@@ -79,6 +81,23 @@ export class StartTransaction implements OnDestroy {
   ];
 
   fmt = formatZar;
+
+  ngOnInit(): void {
+    this.txService.getTransactionLimits().subscribe({
+      next: limits => {
+        this.transactionLimits.set(limits);
+        this.form.get('itemValue')?.setValidators([
+          Validators.required,
+          Validators.min(limits.minimumAmount),
+          Validators.max(limits.maximumAmount),
+        ]);
+        this.form.get('itemValue')?.updateValueAndValidity();
+      },
+      error: () => {
+        this.configError.set('Transaction limits could not be loaded. Please refresh and try again.');
+      },
+    });
+  }
 
   ngOnDestroy() {
     this.pollSub?.unsubscribe();
@@ -127,6 +146,11 @@ export class StartTransaction implements OnDestroy {
   }
 
   onSubmit() {
+    if (!this.transactionLimits()) {
+      this.configError.set('Transaction limits are still loading. Please try again in a moment.');
+      return;
+    }
+
     if (this.submitting()) {
       return;
     }
