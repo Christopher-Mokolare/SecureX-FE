@@ -315,6 +315,36 @@ export class Admin implements OnInit {
     });
   }
 
+  confirmArrival() {
+    const d = this.detail();
+    if (!d || d.transaction.status !== 'LogisticsPending') return;
+    if (!confirm('Confirm that the item has arrived at the designated courier/collection location?')) return;
+    this.actionMsg.set('Confirming arrival…');
+    this.svc.confirmArrival(d.transaction.id).subscribe({
+      next: updated => {
+        this.actionMsg.set('Arrival confirmed. Buyer has been notified.');
+        this.detail.set({ ...d, transaction: updated });
+        this.loadTransactions();
+      },
+      error: err => this.actionMsg.set(err?.error?.Error ?? err?.error?.error ?? 'Could not confirm arrival.')
+    });
+  }
+
+  confirmCollection() {
+    const d = this.detail();
+    if (!d || d.transaction.status !== 'ItemDelivered' || d.transaction.inspectionWindowEndsAt) return;
+    if (!confirm('Confirm that the buyer has physically collected the item? This starts the 24-hour inspection window.')) return;
+    this.actionMsg.set('Starting inspection window…');
+    this.svc.confirmCollection(d.transaction.id).subscribe({
+      next: updated => {
+        this.actionMsg.set('Collection confirmed. 24-hour inspection window started.');
+        this.detail.set({ ...d, transaction: updated });
+        this.loadTransactions();
+      },
+      error: err => this.actionMsg.set(err?.error?.Error ?? err?.error?.error ?? 'Could not confirm collection.')
+    });
+  }
+
   retryPayout() {
     const d = this.detail();
     if (!d) return;
