@@ -130,7 +130,14 @@
       @if (status === 'LogisticsPending') {
         <div class="bg-blue-50 border border-blue-200 rounded-xl p-5 text-center">
           <p class="text-blue-800 font-semibold">🚚 Delivery in Progress</p>
-          <p class="text-blue-700 text-sm mt-1">The seller has confirmed logistics. Waiting for delivery confirmation.</p>
+          <p class="text-blue-700 text-sm mt-1">The seller has handed the item into the logistics process. SecureX will confirm arrival at the collection location.</p>
+        </div>
+      }
+
+      @if (status === 'ItemDelivered' && !tx()!.inspectionWindowEndsAt) {
+        <div class="bg-blue-50 border border-blue-200 rounded-xl p-5 text-center">
+          <p class="text-blue-800 font-semibold">📦 Item ready for collection</p>
+          <p class="text-blue-700 text-sm mt-1">SecureX has confirmed that the item has arrived at the collection location. The 24-hour inspection window starts after SecureX confirms that you have collected it.</p>
         </div>
       }
 
