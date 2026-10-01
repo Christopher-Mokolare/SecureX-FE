@@ -134,5 +134,9 @@ export class TransactionBuyer implements OnInit, OnDestroy {
   }
 
   get status(): string { return this.tx()?.status ?? ''; }
-  get canAction(): boolean { return this.status === 'ItemDelivered' && !this.windowExpired(); }
+  get canAction(): boolean {
+    return this.status === 'ItemDelivered'
+      && !!this.tx()?.inspectionWindowEndsAt
+      && !this.windowExpired();
+  }
 }
