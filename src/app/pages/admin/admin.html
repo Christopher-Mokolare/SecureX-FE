@@ -699,6 +699,19 @@
             </div>
           }
 
+          @if (d.transaction.status === 'Completed' && !d.payout) {
+            <button (click)="triggerPayout()"
+              class="px-4 py-2 bg-green-600 text-white text-sm rounded hover:bg-green-700">Trigger Payout</button>
+          }
+
+          @if (d.transaction.status === 'Completed' && d.payout?.resolved === false) {
+            <span class="inline-flex px-4 py-2 bg-gray-100 text-gray-600 text-sm rounded">Payout Pending</span>
+          }
+
+          @if (d.transaction.status === 'Completed' && d.payout?.resolved === true) {
+            <span class="inline-flex px-4 py-2 bg-green-100 text-green-700 text-sm rounded">Payout Resolved</span>
+          }
+
           @if (d.transaction.status === 'Completed') {
             <button (click)="retryPayout()"
               class="px-4 py-2 bg-yellow-500 text-white text-sm rounded hover:bg-yellow-600">Retry Payout</button>
