@@ -161,6 +161,7 @@ export class AdminService {
   getTransaction(id: string): Observable<TransactionDetail> { return this.http.get<TransactionDetail>(`${this.base}/transactions/${id}`); }
   exportTransactions(params: { status?: string; search?: string; fromDate?: string; toDate?: string }): string { return `${this.base}/transactions/export?${this.qs(params)}`; }
   resolveDispute(txId: string, decision = 'release-to-seller'): Observable<AdminTransaction> { return this.http.post<AdminTransaction>(`${this.base}/transactions/${txId}/resolve-dispute`, { Decision: decision }); }
+  triggerPayout(txId: string): Observable<{ dealReference: string; message: string }> { return this.http.post<{ dealReference: string; message: string }>(`${this.base}/transactions/${txId}/trigger-payout`, {}); }
   retryPayout(txId: string): Observable<void> { return this.http.post<void>(`${this.base}/transactions/${txId}/retry-payout`, {}); }
   advanceTransaction(txId: string, toStatus = '', reason?: string): Observable<AdminTransaction> { return this.http.post<AdminTransaction>(`${this.base}/transactions/${txId}/advance`, { ToStatus: toStatus, Reason: reason ?? null }); }
   getUsers(params: { page?: number; size?: number; search?: string; kycStatus?: string; suspended?: boolean }): Observable<PagedResult<AdminUser>> { return this.http.get<PagedResult<AdminUser>>(`${this.base}/users?${this.qs(params)}`); }
