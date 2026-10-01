@@ -315,11 +315,25 @@ export class Admin implements OnInit {
     });
   }
 
+  triggerPayout() {
+    const d = this.detail();
+    if (!d || d.transaction.status !== 'Completed') return;
+    if (!confirm('Trigger the seller payout for this completed transaction?')) return;
+
+    this.svc.triggerPayout(d.transaction.id).subscribe({
+      next: () => {
+        this.actionMsg.set('Payout submitted');
+        this.openDetail(d.transaction);
+      },
+      error: (e) => this.actionMsg.set(e.error?.error ?? 'Failed to trigger payout'),
+    });
+  }
+
   retryPayout() {
     const d = this.detail();
     if (!d) return;
     this.svc.retryPayout(d.transaction.id).subscribe({
-      next: () => { this.actionMsg.set('Payout submitted'); this.openDetail(d.transaction); },
+      next: () => { this.actionMsg.set('Payout retry submitted'); this.openDetail(d.transaction); },
       error: (e) => this.actionMsg.set(e.error?.error ?? 'Failed to retry payout'),
     });
   }
